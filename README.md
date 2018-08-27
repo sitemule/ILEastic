@@ -1,5 +1,5 @@
 # ILEastic
-It is a self contained web application server for the ILE environment on IBMi running microservices. 
+It is a self contained web application server for the ILE environment on IBM i running microservices. 
 
 ILEastic is a service program that provides a simple, blazing fast programmable HTTP server for your application so you easy can plug your RPG code into a services infrastructure or make simple web applications without the need of any third party webserver products.
 
@@ -123,8 +123,7 @@ In this first commit we have only implemented the `il_listen` and `il_responseWr
 
 
 # Note
-This project was initially call Node.RPG, however people could not find the node.js code, so it was a bad name. Thanks for the feedback 
-pointing me into a better direection.
+This project was initially call Node.RPG, however people could not find the node.js code :) so obvously it was a bad name. Thanks for the feedback pointing me into a better direection.
 
 Happy ILEastic coding
 
