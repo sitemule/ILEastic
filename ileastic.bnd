@@ -1,0 +1,4 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('Node.RPG 1.1.1')
+    EXPORT SYMBOL("node_listen")                          
+    EXPORT SYMBOL("node_write")                           
+ENDPGMEXP                                                 
