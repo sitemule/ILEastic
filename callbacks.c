@@ -1,5 +1,5 @@
 ﻿/* ------------------------------------------------------------- */
-/* Program . . . : Node.RPG - main interface                     */
+/* Program . . . : ILEastic - main interface                     */
 /* Date  . . . . : 02.06.2018                                    */
 /* Design  . . . : Niels Liisberg                                */
 /* Function  . . : Main Socket server                            */
@@ -9,7 +9,7 @@
 /* ------------------------------------------------------------- */
 #define _MULTI_THREADED
 
-// max number of concurrent users
+// max number of concurrent threads
 #define FD_SETSIZE 4096
 
 #include <os2.h>
@@ -42,7 +42,7 @@
 
 
 /* --------------------------------------------------------------------------- */
-void node_write (PRESPONSE pResponse, PVARCHAR buf)
+void il_responseWrite (PRESPONSE pResponse, PVARCHAR buf)
 {
     putHeader (pResponse);
     putChunk (pResponse, buf->String, buf->Length);         

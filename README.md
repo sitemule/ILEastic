@@ -50,7 +50,7 @@ Example:
 
             dcl-ds config likeds(configDS);
 
-            config.port = 44999;
+            config.port = 44001;
             config.host = '*ANY';
 
             il_listen (config : %paddr(myservlet));
@@ -62,11 +62,11 @@ Example:
         dcl-proc myservlet;
 
             dcl-pi *n;
-                pRequest  pointer value;
-                pResponse pointer value;
+                request  likeds(REQUESTDS);
+                response likeds(RESPONSEDS);
             end-pi;
   
-            il_responseWrite(pResponse:'Hello world');
+            il_responseWrite(response:'Hello world');
 
         end-proc;
 ```

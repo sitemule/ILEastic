@@ -1,15 +1,15 @@
         // -----------------------------------------------------------------------------
-        // This example runs a simple servlet using Node.RPG
+        // This example runs a simple servlet using ILEastic framework
         // Note: It requires your RPG code to be reentrant and compiled
         // for multithreading. Each client request is handled by a seperate thread.
         // Start it:
-        // SBMJOB CMD(CALL PGM(DEMO01)) JOB(NODERPG) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+        // SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
         // -----------------------------------------------------------------------------     
         ctl-opt copyright('Sitemule.com  (C), 2018');
         ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-        ctl-opt debug(*yes) bndDir('NODERPG');
+        ctl-opt debug(*yes) bndDir('ILEASTIC');
         ctl-opt thread(*CONCURRENT);
-        /include noderpg.inc
+        /include ILEeastic.inc
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
@@ -17,7 +17,7 @@
 
             dcl-ds config likeds(configDS);
 
-            config.port = 44999; 
+            config.port = 44001; 
             config.host = '*ANY';
 
             node_listen (config : %paddr(myservlet));
@@ -33,6 +33,6 @@
                 response likeds(RESPONSEDS);
             end-pi;
   
-            node_Write(response:'Hello world');
+            il_responseWrite(response:'Hello world');
 
         end-proc;
