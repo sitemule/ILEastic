@@ -171,7 +171,7 @@ typedef _Packed struct _BLOB {
    UCHAR String[1];
 } BLOB, * PBLOB;
 
-/********* OLD AS/400 error
+/********* OLD AS/400 error : */
 #ifndef memicmp
 #  define memicmp __memicmp
   int __memicmp(PUCHAR , PUCHAR, int );
@@ -191,7 +191,7 @@ typedef _Packed struct _BLOB {
 #  define strdup  __strdup
   PUCHAR  __strdup (PUCHAR str);
 #endif
-***********/
+/***********/
 
 #define beginsWith(a,b) (memicmp(a, b, sizeof(b)-1) == 0)
 

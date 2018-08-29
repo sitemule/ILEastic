@@ -17,6 +17,8 @@ INCLUDE=/QIBM/include
 ##CCFLAGS=OUTPUT(*PRINT *NOSHOWSRC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR('$(INCLUDE)')
 CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR('$(INCLUDE)') DBGVIEW(*ALL)
 
+CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR('$(INCLUDE)') 
+
 #
 # User-defined part end
 #-----------------------------------------------------------
@@ -31,14 +33,18 @@ CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSI
 .c:
 	system "CRTCMOD MODULE($(BIN_LIB)/$@ SRCSTMF('$<' $(CCFLAGS)
                
+current: env
+
+	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('$(SRC).c') $(CCFLAGS2) "
+
 all: env compile bind 
 
 env:
 	system "CHGATR OBJ('*') ATR(*CCSID) VALUE(1208)"
-	system "CHGATR OBJ('noderpg.bnd') ATR(*CCSID) VALUE(1252)"
-	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('Node.RPG: Programmable applications server for RPG')                                          
-	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/NODERPG)"
-	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/NODERPG) OBJ((NODERPG))"
+	system "CHGATR OBJ('ILEastic.bnd') ATR(*CCSID) VALUE(1252)"
+	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')                                          
+	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
+	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 
 
 compile: 
@@ -50,6 +56,6 @@ compile:
 	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('e2aa2e.c') $(CCFLAGS)"
 
 bind: 
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) EXPORT(*SRCFILE) SRCSTMF(noderpg.bnd) TEXT('Node.RPG')"
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) EXPORT(*SRCFILE) SRCSTMF(ILEASTIC.bnd) TEXT('Node.RPG')"
  
 .PHONY:

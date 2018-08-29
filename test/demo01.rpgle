@@ -9,7 +9,7 @@
         ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
         ctl-opt debug(*yes) bndDir('ILEASTIC');
         ctl-opt thread(*CONCURRENT);
-        /include ILEeastic.inc
+        /include ./include/ILEastic.rpgle
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
@@ -20,7 +20,7 @@
             config.port = 44001; 
             config.host = '*ANY';
 
-            node_listen (config : %paddr(myservlet));
+            il_listen (config : %paddr(myservlet));
 
         end-proc;
         // -----------------------------------------------------------------------------

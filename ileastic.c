@@ -95,9 +95,9 @@ void putHeader (PRESPONSE pResponse)
         "Content-type: %s;charset=%s\r\n"
         "\r\n",
         pResponse->status,
-        vc2str(pResponse->statusText),
-        vc2str(pResponse->contentType),
-        vc2str(pResponse->charset)
+        vc2str(&pResponse->statusText),
+        vc2str(&pResponse->contentType),
+        vc2str(&pResponse->charset)
     );
 
     len = p - header;
@@ -121,9 +121,9 @@ static void * serverThread (PINSTANCE pInstance)
     while (pInstance->config.clientSocket > 0) {
         response.firstWrite = true;
         response.status = 200;
-        strcpy(response.contentType , "text/html");
-        strcpy(response.charset     , "UTF-8");
-        strcpy(response.statusText  , "OK");
+        str2vc(&response.contentType , "text/html");
+        str2vc(&response.charset     , "UTF-8");
+        str2vc(&response.statusText  , "OK");
         pInstance->servlet (&request , &response);
         putChunkEnd (&response);
         // for now !! TODO 
@@ -166,7 +166,7 @@ static BOOL getSocket(PCONFIG pConfig)
     int rc;
 
     UCHAR interface  [32];
-    vc2strcpy(interface , pConfig->interface);
+    vc2strcpy(interface , &pConfig->interface);
 
     // Get a socket descriptor 
     if ((pConfig->mainSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)  {

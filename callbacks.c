@@ -36,9 +36,9 @@
 
 
 #include "ostypes.h"
+#include "varchar.h"
 #include "sysdef.h"
 #include "strUtil.h"
-#include "varchar.h"
 
 
 /* --------------------------------------------------------------------------- */

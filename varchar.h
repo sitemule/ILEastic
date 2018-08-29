@@ -1,13 +1,26 @@
 ﻿#ifndef VARCHAR_H
 #define  VARCHAR_H
 
+typedef _Packed struct  _VARCHARLIST {                 
+   ULONG  memUsed;                                     
+   ULONG  endOffset;                                   
+   ULONG  numEntries;                                  
+   PUCHAR list;                                        
+} VARCHARLIST, * PVARCHARLIST;                         
+
 typedef void * PVAR_CHAR;
+
+typedef _Packed struct _VARPUCHAR {    
+   USHORT Length;                      
+   PUCHAR String;                      
+} VARPUCHAR, * PVARPUCHAR;             
 
 typedef _Packed struct _LVARCHAR {
    LONG  Length;
    UCHAR String[1048576];
 } LVARCHAR, * PLVARCHAR;
 
+// Real varchars:
 typedef _Packed struct _VARCHAR {
    SHORT Length;
    UCHAR String[32767];

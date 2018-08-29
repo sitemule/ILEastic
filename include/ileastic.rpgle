@@ -1,5 +1,5 @@
 ﻿        dcl-ds  configDS qualified based(prototype_only);
-            host    char(64);
+            host    varchar(64);
             port    int(10);
             filler  char(4096);
         end-ds;

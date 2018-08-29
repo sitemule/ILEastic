@@ -4,8 +4,30 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Compile Service program Node.RPG",
-            "command": "ssh dksrv133 'cd /prj/node.rpg/;gmake'",
+            "label": "Compile current file",
+            "command": "ssh -t dksrv133 'cd /prj/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            // Use the standard less compilation problem matcher.
+            "problemMatcher": {
+                "owner": "c",
+                "fileLocation": ["relative", "${workspaceRoot}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Compile Service program ILEastic",
+            "command": "ssh dksrv133 'cd /prj/ILEastic/;gmake'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -16,8 +38,8 @@
             ]
         },
         {
-            "label": "Compile Test modules for Node.RPG",
-            "command": "ssh dksrv133 'cd /prj/node.rpg/test/;gmake'",
+            "label": "Compile Test modules for ILEastic",
+            "command": "ssh dksrv133 'cd /prj/ILEastic/test/;gmake'",
             "type": "shell",
             "group": {
                 "kind": "build",

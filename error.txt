@@ -1,0 +1,11 @@
+system "CHGATR OBJ('*') ATR(*CCSID) VALUE(1208)"
+CPFB414: Attributes changed for 20 objects.  0 objects not changed.
+system "CHGATR OBJ('ILEastic.bnd') ATR(*CCSID) VALUE(1252)"
+CPFB414: Attributes changed for 1 objects.  0 objects not changed.
+system -q "CRTLIB ILEASTIC TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')                                          
+makefile:37: recipe for target 'env' failed
+system -q "CRTBNDDIR BNDDIR(ILEASTIC/ILEASTIC)"
+makefile:37: recipe for target 'env' failed
+system -q "ADDBNDDIRE BNDDIR(ILEASTIC/ILEASTIC) OBJ((ILEASTIC))"
+system "CRTCMOD MODULE(ILEASTIC/ileastic) SRCSTMF('ileastic.c') OPTION(*EXPMAC *SHOWINC) OUTPUT(*PRINT *NOSHOWSRC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) DEFINE(NOCRYPT USE_STANDARD_TMPFILE USE_BIG_ENDIAN LXW_HAS_SNPRINTF) SYSIFCOPT(*IFS64IO) INCDIR('/QIBM/include' '../include' '' '../third_party/minizip') "
+makefile:45: recipe for target 'compile' failed

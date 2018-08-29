@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "ostypes.h"
+#include "strUtil.h"
 #include "varchar.h"
 
 /* ------------------------------------------------------------- */

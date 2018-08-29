@@ -26,29 +26,34 @@ typedef _Packed struct _APIRTN  {
 
 
 typedef _Packed struct _CONFIG  {
-    UCHAR interface [64];
-    int   port;
-    UCHAR filler[1024];
-    int   mainSocket;
-    int   clientSocket;
-    UCHAR rmtHost [32];
-    ULONG rmtTcpIp;
-    int   rmtPort;
+    VARCHAR64 interface;
+    int       port;
+    UCHAR     filler[1024];
+    int       mainSocket;
+    int       clientSocket;
+    UCHAR     rmtHost [32];
+    ULONG     rmtTcpIp;
+    int       rmtPort;
     
 } CONFIG,  *PCONFIG;
 
 
 typedef _Packed struct _REQUEST  {
-    PCONFIG pConfig;
-    UCHAR   contentType  [128];
+    PCONFIG     pConfig;
+    PUCHAR      pUrl;
+    PUCHAR      pQueryString;
+    PUCHAR      pHeaders;
+    PUCHAR      pContent;
+    VARCHAR128  contentType;
+    VARCHAR32   method;     
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
-    PCONFIG pConfig;
-    SHORT   status;
-    UCHAR   statusText  [128];
-    UCHAR   contentType [128];
-    UCHAR   charset     [32];
+    PCONFIG     pConfig;
+    SHORT       status;
+    VARCHAR128  statusText;
+    VARCHAR128  contentType ;
+    VARCHAR32   charset;
     // private
     UCHAR   filler      [512];
     BOOL    firstWrite;  
@@ -67,7 +72,7 @@ typedef _Packed struct _INSTANCE  {
 /* ------------------------------------------------------------- */
 /* Prototypes -------------------------------------------------- */
 /* ------------------------------------------------------------- */
-void putChunk (PRESPONSE pResponse, PUCHAR buf, int len);   
+void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);   
 void putHeader (PRESPONSE pResponse);
       
 
