@@ -3,6 +3,11 @@
 
 typedef void * PVAR_CHAR;
 
+typedef _Packed struct _LVARCHAR {
+   LONG  Length;
+   UCHAR String[1048576];
+} VARCHAR, * PVARCHAR;
+
 typedef _Packed struct _VARCHAR {
    SHORT Length;
    UCHAR String[32767];

@@ -1,4 +1,4 @@
-STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('Node.RPG 1.1.1')
-    EXPORT SYMBOL("node_listen")                          
-    EXPORT SYMBOL("node_write")                           
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.1')
+    EXPORT SYMBOL("il_listen")                          
+    EXPORT SYMBOL("il_responseWrite")                           
 ENDPGMEXP                                                 

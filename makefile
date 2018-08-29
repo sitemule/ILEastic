@@ -6,7 +6,7 @@
 # BIN_LIB is the destination library for the service program.
 # the rpg modules and the binder source file are also created in BIN_LIB.
 # binder source file and rpg module can be remove with the clean step (make clean)
-BIN_LIB=NODE.RPG
+BIN_LIB=ILEASTIC
 
 # to this folder the header files (prototypes) are copied in the install step
 INCLUDE=/QIBM/include
@@ -42,13 +42,14 @@ env:
 
 
 compile: 
-	system "CRTCMOD MODULE($(BIN_LIB)/node) SRCSTMF('node.c') $(CCFLAGS) "
+	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('ileastic.c') $(CCFLAGS) "
+	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('varchar.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/callbacks) SRCSTMF('callbacks.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/sndpgmmsg) SRCSTMF('sndpgmmsg.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/strUtil) SRCSTMF('strUtil.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('e2aa2e.c') $(CCFLAGS)"
 
 bind: 
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/noderpg) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) EXPORT(*SRCFILE) SRCSTMF(noderpg.bnd) TEXT('Node.RPG')"
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) EXPORT(*SRCFILE) SRCSTMF(noderpg.bnd) TEXT('Node.RPG')"
  
 .PHONY:

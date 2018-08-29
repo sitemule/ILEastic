@@ -1,12 +1,10 @@
 ﻿#
-# Build test cases for Node.rpg
+# Build test cases for ILEastic
 #
-BIN_LIB=NODE.RPG
+BIN_LIB=ILEASTIC
 
 # to this folder the header files (prototypes) are copied in the install step
 RPG_OPT=DBGVIEW(*LIST) INCDIR('./..')
-
- 
     
 all: compile
 .ONESHELL:

@@ -1,5 +1,5 @@
 ﻿/* ------------------------------------------------------------- */
-/* Program . . . : Node.RPG - main interface                     */
+/* Program . . . : ILEastic - main interface                     */
 /* Date  . . . . : 02.06.2018                                    */
 /* Design  . . . : Niels Liisberg                                */
 /* Function  . . : Main Socket server                            */
@@ -9,7 +9,7 @@
 /* ------------------------------------------------------------- */
 #define _MULTI_THREADED
 
-// max number of concurrent users
+// max number of concurrent threads
 #define FD_SETSIZE 4096
 
 #include <os2.h>
@@ -55,7 +55,7 @@ void putChunkEnd (PRESPONSE pResponse)
     rc = write(pResponse->pConfig->clientSocket, lenbuf, lenleni );
 }
 /* --------------------------------------------------------------------------- */
-void putChunk (PRESPONSE pResponse, PUCHAR buf, int len)         
+void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)         
 {        
     int rc;                                                 
     LONG   lenleni;                                        
@@ -95,9 +95,9 @@ void putHeader (PRESPONSE pResponse)
         "Content-type: %s;charset=%s\r\n"
         "\r\n",
         pResponse->status,
-        strrighttrimncpy(w1,pResponse->statusText, sizeof(pResponse->statusText)),
-        strrighttrimncpy(w2,pResponse->contentType, sizeof(pResponse->contentType)),
-        strrighttrimncpy(w3,pResponse->charset, sizeof(pResponse->charset))
+        vc2str(pResponse->statusText),
+        vc2str(pResponse->contentType),
+        vc2str(pResponse->charset)
     );
 
     len = p - header;
@@ -166,7 +166,7 @@ static BOOL getSocket(PCONFIG pConfig)
     int rc;
 
     UCHAR interface  [32];
-    strtrimncpy(interface , pConfig->interface, sizeof(pConfig->interface));
+    vc2strcpy(interface , pConfig->interface);
 
     // Get a socket descriptor 
     if ((pConfig->mainSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)  {
@@ -210,7 +210,7 @@ static BOOL getSocket(PCONFIG pConfig)
         return false;
    }
 
-    // Up to 512 clients can be queued 
+    // Up to XXX clients can be queued 
     rc = listen(pConfig->mainSocket, SOMAXCONN);
     if (rc < 0)  {
         errcde = montcp(errno);
@@ -263,7 +263,7 @@ void setMaxSockets(void)
 
 }
 /* ------------------------------------------------------------- */
-void node_listen (PCONFIG pConfig, SERVLET servlet)
+void il_listen (PCONFIG pConfig, SERVLET servlet)
 {
     BOOL     resetSocket = TRUE;
 

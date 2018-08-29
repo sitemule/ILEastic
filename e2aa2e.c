@@ -1,7 +1,7 @@
 ﻿/* SYSIFCOPT(*IFSIO) TERASPACE(*YES *TSIFC) STGMDL(*INHERIT) */
 /* ------------------------------------------------------------- */
 /* Design  . . . : Niels Liisberg                                */
-/* Function  . . : X-alation using iconv                         */
+/* Function  . . : simple translate                              */
 /*                                                               */
 /* By     Date       PTF     Description                         */
 /* NL     24.04.2018         New program                         */
