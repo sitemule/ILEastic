@@ -27,7 +27,7 @@
         },
         {
             "label": "Compile Service program ILEastic",
-            "command": "ssh dksrv133 'cd /prj/ILEastic/;gmake'",
+            "command": "ssh dksrv133 'cd /prj/ILEastic/;gmake all'",
             "type": "shell",
             "group": {
                 "kind": "build",

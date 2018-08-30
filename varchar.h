@@ -15,6 +15,12 @@ typedef _Packed struct _VARPUCHAR {
    PUCHAR String;                      
 } VARPUCHAR, * PVARPUCHAR;             
 
+typedef _Packed struct _LVARPUCHAR {    
+   ULONG  Length;                      
+   PUCHAR String;                      
+} LVARPUCHAR, * PLVARPUCHAR;             
+
+
 typedef _Packed struct _LVARCHAR {
    LONG  Length;
    UCHAR String[1048576];

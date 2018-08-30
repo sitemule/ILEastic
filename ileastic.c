@@ -61,7 +61,9 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     LONG   lenleni;                                        
     PUCHAR tempBuf = malloc ( len + 16);                   
     PUCHAR wrkBuf = tempBuf;                               
-                                                            
+
+    putHeader (pResponse); // if not put yet
+
     lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
     meme2a( wrkBuf , wrkBuf , lenleni);              
     wrkBuf += lenleni;                                     
@@ -90,7 +92,7 @@ void putHeader (PRESPONSE pResponse)
 
     p += sprintf(p ,
         "HTTP/1.1 %d %s\r\n"
-        "Date: Tue, 05 Jun 2018 22:45:51 GMT\r\n"
+        "Date: Tue, 05 Jun 2018 22:45:51 GMT\r\n" // Todo !!! Real timestamp
         "Transfer-Encoding: chunked\r\n"
         "Content-type: %s;charset=%s\r\n"
         "\r\n",
@@ -107,18 +109,105 @@ void putHeader (PRESPONSE pResponse)
     pResponse->firstWrite = false;
              
 }
+                                                         
+
+/* --------------------------------------------------------------------------- 
+   Parse this: 
+   GET / HTTP/1.1██Host: dksrv133:44001██Con
+   --------------------------------------------------------------------------- */
+static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
+{
+
+    ULONG beforeHeadersLen;
+    PUCHAR begin , next;
+    char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
+    PUCHAR eoh = memmem ( buf ,bufLen , eol , 4);
+
+    if (eoh == NULL)      return false;
+
+    // got the end of header; Now parse the HTTP header
+    pRequest->completeHeader.String = buf;
+    pRequest->completeHeader.Length = eoh - buf;
+
+    beforeHeadersLen = pRequest->completeHeader.Length;
+
+    // Headers
+    pRequest->headers.String = memmem ( buf ,bufLen , eol , 2) + 2;
+    pRequest->headers.Length = eoh - pRequest->headers.String;
+
+    // Method
+    begin = buf;
+    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    pRequest->method.String = begin;
+    next = memchr(begin, 0x20, beforeHeadersLen);
+    pRequest->method.Length = next - begin;
+
+    // url
+    begin = next;
+    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    pRequest->url.String = begin;
+    next = memchr(begin, 0x20, beforeHeadersLen);
+    pRequest->url.Length = next - begin;
+    
+    // Protocol
+    begin = next;
+    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    pRequest->protocol.String = begin;
+    next  = memmem ( begin  , beforeHeadersLen , eol , 2);
+    pRequest->protocol.Length = next - begin;
+
+    // Next step is to split the url at "?" into resource, and queryString
+    pRequest->resource.String = pRequest->url.String;
+    pRequest->queryString.String = memchr(pRequest->url.String, 0x3F, pRequest->url.Length);
+    if (pRequest->queryString.String) {
+        pRequest->queryString.Length = pRequest->protocol.String - pRequest->url.String;
+        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String;
+    } else {
+        pRequest->resource.Length = pRequest->url.Length;
+    }
+
+    pRequest->content.String = eoh + 4;
+
+    return true;
+
+}
 /* --------------------------------------------------------------------------- */
+static void receivePayload (PREQUEST pRequest)
+{
+    PUCHAR buf = malloc (SOCMAXREAD);
+    PUCHAR bufWin = buf;
+    ULONG  bufLen = 0;
+    LONG   rc;
+    BOOL   isLookingForHeaders = true;
+
+    // Load the complete request data
+    for(;;) {
+        socketWait (pRequest->pConfig->clientSocket, 10);
+        rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
+        if (rc <= 0) break;
+        bufLen += rc;
+        bufWin += rc;
+        if (isLookingForHeaders) {
+            if (lookForHeaders ( pRequest , buf, bufLen)) {
+                isLookingForHeaders = false;
+                break; // TODO - Now only GET - no payload 
+            }
+        }
+    }
+}
+/* --------------------------------------------------------------------------- */
+
 static void * serverThread (PINSTANCE pInstance)
 {
     REQUEST  request;
     RESPONSE response;
 
-    memset(&request  , 0, sizeof(REQUEST));
-    memset(&response , 0, sizeof(RESPONSE));
-    request.pConfig = &pInstance->config;
-    response.pConfig = &pInstance->config;
-
     while (pInstance->config.clientSocket > 0) {
+        memset(&request  , 0, sizeof(REQUEST));
+        memset(&response , 0, sizeof(RESPONSE));
+        request.pConfig = &pInstance->config;
+        response.pConfig = &pInstance->config;
+        receivePayload(&request);
         response.firstWrite = true;
         response.status = 200;
         str2vc(&response.contentType , "text/html");
@@ -126,11 +215,11 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.statusText  , "OK");
         pInstance->servlet (&request , &response);
         putChunkEnd (&response);
-        // for now !! TODO 
-        close(response.pConfig->clientSocket);
-        response.pConfig->clientSocket = 0;
-
+        if (request.completeHeader.String) {
+            free(request.completeHeader.String);
+        } 
     }
+    close(response.pConfig->clientSocket);
     free(pInstance);
     pthread_exit(NULL);
 }

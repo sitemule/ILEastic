@@ -32,7 +32,15 @@
                 request  likeds(REQUESTDS);
                 response likeds(RESPONSEDS);
             end-pi;
-  
-            il_responseWrite(response:'Hello world');
+
+            //dcl-s file varchar(32:4) ccsid(*utf8);
+            dcl-s file varchar(256);
+            dcl-s err  ind;
+
+            file = lCopy(request.resource);
+            err = il_serveStatic (response : file);
+            if err;
+                il_responseWrite(response:'File ' + file + ' not found');
+            endif;
 
         end-proc;

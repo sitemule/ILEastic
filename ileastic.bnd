@@ -1,4 +1,6 @@
 STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.1')
+    EXPORT SYMBOL("lvpc2lvc")                          
     EXPORT SYMBOL("il_listen")                          
-    EXPORT SYMBOL("il_responseWrite")                           
+    EXPORT SYMBOL("il_responseWrite")   
+    EXPORT SYMBOL("il_serveStatic")                        
 ENDPGMEXP                                                 

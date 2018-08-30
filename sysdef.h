@@ -3,6 +3,8 @@
 
 #include "ostypes.h"
 
+#define  SOCMAXREAD 650000
+
 typedef void(OS_CALL) ();
 #pragma linkage (OS_CALL, OS)
 
@@ -40,12 +42,16 @@ typedef _Packed struct _CONFIG  {
 
 typedef _Packed struct _REQUEST  {
     PCONFIG     pConfig;
-    PUCHAR      pUrl;
-    PUCHAR      pQueryString;
-    PUCHAR      pHeaders;
-    PUCHAR      pContent;
+    LVARPUCHAR  method;     
+    LVARPUCHAR  url;
+    LVARPUCHAR  resource;
+    LVARPUCHAR  queryString;
+    LVARPUCHAR  protocol;
+    LVARPUCHAR  headers;
+    LVARPUCHAR  content;
     VARCHAR128  contentType;
-    VARCHAR32   method;     
+    LVARPUCHAR  completeHeader;
+
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
@@ -74,6 +80,7 @@ typedef _Packed struct _INSTANCE  {
 /* ------------------------------------------------------------- */
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);   
 void putHeader (PRESPONSE pResponse);
+int socketWait (int sd , int sec);
       
 
 #endif

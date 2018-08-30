@@ -47,6 +47,9 @@ PUCHAR binMem2Hex (PUCHAR out , PUCHAR in , LONG len);
 PUCHAR hex2BinMem (PUCHAR out , PUCHAR in , LONG len);
 FIXEDDEC str2dec(PUCHAR str, UCHAR decPoint);
 LONG packedMem2Int(PUCHAR buf, SHORT bytes);
+PUCHAR memmem  (PUCHAR heystack , ULONG haystackLen, 
+                PUCHAR needle , ULONG needleLen);
+
 
 
 #endif

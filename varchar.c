@@ -16,6 +16,13 @@
 #include "varchar.h"
 
 /* ------------------------------------------------------------- */
+void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in)
+{
+   out->Length = in->Length;
+   memcpy(out->String , in->String, in->Length);
+   out->String[in->Length] = '\0'; 
+}
+/* ------------------------------------------------------------- */
 VARPUCHAR str2varpuchar(PUCHAR s)
 {
    VARPUCHAR res;

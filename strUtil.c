@@ -53,6 +53,24 @@ int memIcmp (PUCHAR s1, PUCHAR s2 , int len)
     }
     return c;
 }
+#include "ostypes.h"
+/* ------------------------------------------------------------- *\
+   memmem 
+\* ------------------------------------------------------------- */
+PUCHAR memmem  (PUCHAR heystack , ULONG haystackLen, 
+                       PUCHAR needle , ULONG needleLen)
+{
+    PUCHAR p = heystack;
+    PUCHAR end = heystack + haystackLen;
+    while (p < end) {
+        if (*p == *needle
+        &&   0 == memcmp ( p , needle , needleLen)) {
+            return p;
+        }
+        p++;
+    }
+    return NULL;
+}
 /* ------------------------------------------------------------- *\
    toUpper and toLower in ccsid 277
 \* ------------------------------------------------------------- */
