@@ -184,7 +184,11 @@ static BOOL receivePayload (PREQUEST pRequest)
     for(;;) {
         socketWait (pRequest->pConfig->clientSocket, 10);
         rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
-        if (rc <= 0) return true;
+        if (rc <= 0) {
+            free(buf);
+            return true;
+        }
+        
         bufLen += rc;
         bufWin += rc;
         if (isLookingForHeaders) {
