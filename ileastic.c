@@ -172,7 +172,7 @@ static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 
 }
 /* --------------------------------------------------------------------------- */
-static void receivePayload (PREQUEST pRequest)
+static BOOL receivePayload (PREQUEST pRequest)
 {
     PUCHAR buf = malloc (SOCMAXREAD);
     PUCHAR bufWin = buf;
@@ -184,13 +184,13 @@ static void receivePayload (PREQUEST pRequest)
     for(;;) {
         socketWait (pRequest->pConfig->clientSocket, 10);
         rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
-        if (rc <= 0) break;
+        if (rc <= 0) return true;
         bufLen += rc;
         bufWin += rc;
         if (isLookingForHeaders) {
             if (lookForHeaders ( pRequest , buf, bufLen)) {
                 isLookingForHeaders = false;
-                break; // TODO - Now only GET - no payload 
+                return false; // TODO - Now only GET - no payload 
             }
         }
     }
@@ -207,7 +207,9 @@ static void * serverThread (PINSTANCE pInstance)
         memset(&response , 0, sizeof(RESPONSE));
         request.pConfig = &pInstance->config;
         response.pConfig = &pInstance->config;
-        receivePayload(&request);
+        if (receivePayload(&request)) {
+            break;
+        }
         response.firstWrite = true;
         response.status = 200;
         str2vc(&response.contentType , "text/html");

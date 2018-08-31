@@ -33,13 +33,16 @@
                 response likeds(RESPONSEDS);
             end-pi;
 
-            //dcl-s file varchar(32:4) ccsid(*utf8);
             dcl-s file varchar(256);
             dcl-s err  ind;
 
+            // lCopy - copy from the internal HTTP pointers
             file = lCopy(request.resource);
+
+            // Serve any static files from the IFS
             err = il_serveStatic (response : file);
             if err;
+                response.status = 404;
                 il_responseWrite(response:'File ' + file + ' not found');
             endif;
 
