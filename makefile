@@ -27,8 +27,8 @@ env:
 
 
 compile: 
-  system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1208)"
-  system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
+	system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1208)"
+	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('src/ileastic.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('src/varchar.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/callbacks) SRCSTMF('src/callbacks.c') $(CCFLAGS)"
