@@ -9,53 +9,37 @@
 BIN_LIB=ILEASTIC
 
 # to this folder the header files (prototypes) are copied in the install step
-INCLUDE=/QIBM/include
-
+INCLUDE='/QIBM/include' 'headers/'
 
 # CCFLAGS = C compiler parameter
-##CCFLAGS=OPTION(*EXPMAC *SHOWINC) OUTPUT(*PRINT *NOSHOWSRC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) DEFINE(NOCRYPT USE_STANDARD_TMPFILE USE_BIG_ENDIAN LXW_HAS_SNPRINTF) SYSIFCOPT(*IFS64IO) INCDIR('/QIBM/include' '../include' '$(ZLIB_INC)' '../third_party/minizip')
-##CCFLAGS=OUTPUT(*PRINT *NOSHOWSRC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR('$(INCLUDE)')
-CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR('$(INCLUDE)') DBGVIEW(*ALL)
-
-CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR('$(INCLUDE)') 
+CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
 #
 # User-defined part end
 #-----------------------------------------------------------
- 
- 
-.SUFFIXES: .rpgle .c .cpp
- 
-# suffix rules
-.rpgle:
-	system "CRTRPGMOD $(BIN_LIB)/$@ SRCSTMF('$<') $(RCFLAGS)"
-	touch filename.o
-.c:
-	system "CRTCMOD MODULE($(BIN_LIB)/$@ SRCSTMF('$<' $(CCFLAGS)
-               
-current: env
-
-	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('$(SRC).c') $(CCFLAGS2) "
 
 all: env compile bind 
 
 env:
-	system "CHGATR OBJ('*') ATR(*CCSID) VALUE(1208)"
-	system "CHGATR OBJ('ILEastic.bnd') ATR(*CCSID) VALUE(1252)"
 	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')                                          
 	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 
 
 compile: 
-	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('ileastic.c') $(CCFLAGS) "
-	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('varchar.c') $(CCFLAGS) "
-	system "CRTCMOD MODULE($(BIN_LIB)/callbacks) SRCSTMF('callbacks.c') $(CCFLAGS)"
-	system "CRTCMOD MODULE($(BIN_LIB)/sndpgmmsg) SRCSTMF('sndpgmmsg.c') $(CCFLAGS)"
-	system "CRTCMOD MODULE($(BIN_LIB)/strUtil) SRCSTMF('strUtil.c') $(CCFLAGS)"
-	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('e2aa2e.c') $(CCFLAGS)"
+	system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1208)"
+	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
+	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('src/ileastic.c') $(CCFLAGS) "
+	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('src/varchar.c') $(CCFLAGS) "
+	system "CRTCMOD MODULE($(BIN_LIB)/callbacks) SRCSTMF('src/callbacks.c') $(CCFLAGS)"
+	system "CRTCMOD MODULE($(BIN_LIB)/sndpgmmsg) SRCSTMF('src/sndpgmmsg.c') $(CCFLAGS)"
+	system "CRTCMOD MODULE($(BIN_LIB)/strUtil) SRCSTMF('src/strUtil.c') $(CCFLAGS)"
+	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('src/e2aa2e.c') $(CCFLAGS)"
 
-bind: 
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) EXPORT(*SRCFILE) SRCSTMF(ILEASTIC.bnd) TEXT('ILEastic - programable applicationserver for ILE')"
- 
-.PHONY:
+bind:
+	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
+	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*ADD)"
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')"
+
+clean:
+	-system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
