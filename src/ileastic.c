@@ -406,7 +406,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         pInstance->servlet = servlet;
         rc = pthread_create(&pServerThread , NULL, serverThread , pInstance);
         if (rc) {
-            joblog("Thread not started");
+            joblog("Thread not started. Job needs multithreading enabled, ALWMLTTHD(*YES).");
             exit(0);
         }
 
