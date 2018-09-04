@@ -10,7 +10,7 @@
         ctl-opt debug(*yes) bndDir('ILEASTIC');
         ctl-opt thread(*CONCURRENT);
         
-        /include ./include/ILEastic.rpgle
+        /include ./headers/ILEastic.rpgle
         
         // -----------------------------------------------------------------------------
         // Main
