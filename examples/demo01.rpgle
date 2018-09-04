@@ -7,19 +7,17 @@
         // -----------------------------------------------------------------------------     
         ctl-opt copyright('Sitemule.com  (C), 2018');
         ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-        ctl-opt debug(*yes) bndDir('ILEASTIC');
+        ctl-opt debug(*yes) bndDir('ILEASTIC/ILEASTIC');
         ctl-opt thread(*CONCURRENT);
-        
-        /include ./include/ILEastic.rpgle
-        
+        /include headers/ileastic.rpgle
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
         dcl-proc main;
 
-            dcl-ds config likeds(configDS);
+            dcl-ds config likeds(il_config);
 
-            config.port = 44002; 
+            config.port = 44001; 
             config.host = '*ANY';
 
             il_listen (config : %paddr(myservlet));
@@ -31,14 +29,21 @@
         dcl-proc myservlet;
 
             dcl-pi *n;
-                request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);
+                request  likeds(il_request);
+                response likeds(il_response);
             end-pi;
-  
-            dcl-s counter int(10);
 
-            for counter = 1 to 1000;
-                il_responseWrite(response: 'counter : ' + %char(counter) + ' ');
-            endfor;
+            dcl-s file varchar(256);
+            dcl-s err  ind;
+
+            // lCopy - copy from the internal HTTP pointers
+            file = il_getVarcharValue(request.resource);
+
+            // Serve any static files from the IFS
+            err = il_serveStatic (response : file);
+            if err;
+                response.status = 404;
+                il_responseWrite(response:'File ' + file + ' not found');
+            endif;
 
         end-proc;
