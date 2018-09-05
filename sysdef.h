@@ -49,7 +49,7 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  protocol;
     LVARPUCHAR  headers;
     LVARPUCHAR  content;
-    VARCHAR128  contentType;
+    VARCHAR256  contentType;
     LVARPUCHAR  completeHeader;
 
 } REQUEST , *PREQUEST;
@@ -57,15 +57,15 @@ typedef _Packed struct _REQUEST  {
 typedef _Packed struct _RESPONSE  {
     PCONFIG     pConfig;
     SHORT       status;
-    VARCHAR128  statusText;
-    VARCHAR128  contentType ;
+    VARCHAR256  statusText;
+    VARCHAR256  contentType ;
     VARCHAR32   charset;
     // private
     UCHAR   filler      [512];
     BOOL    firstWrite;  
 } RESPONSE , *PRESPONSE;
 
-/* function pointers */
+// function pointers
 typedef  void (* SERVLET) (PREQUEST pRequest, PRESPONSE pResponse);
 
 typedef _Packed struct _INSTANCE  {

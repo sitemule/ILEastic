@@ -40,26 +40,72 @@
 #include "sysdef.h"
 #include "strUtil.h"
 
+/* --------------------------------------------------------------------------- */
+// Getters - curtesy procedures 
+/* --------------------------------------------------------------------------- */
+void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2lvc (out, &pRequest->resource);
+}         
+void il_getRequestMethod
+ (PVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2vc (out, &pRequest->method);
+}         
+void il_getRequestUrl (PLVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2lvc (out, &pRequest->url);
+}         
+void il_getRequestQueryString (PLVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2lvc (out, &pRequest->queryString);
+}         
+void il_getRequestProtocol (PVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2vc (out, &pRequest->protocol);
+}         
+void il_getRequestHeaders (PLVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2lvc (out, &pRequest->headers);
+}         
 
 /* --------------------------------------------------------------------------- */
 void il_responseWrite (PRESPONSE pResponse, PLVARCHAR buf)
 {
     putChunk (pResponse, buf->String, buf->Length);         
 }
+
 /* --------------------------------------------------------------------------- */
-void setContentTypeForFileType (PRESPONSE pResponse , PVARCHAR fileName)
+PUCHAR il_getFileExtension  (PVARCHAR256 extension, PVARCHAR fileName)
 {
     PUCHAR f = vc2str(fileName);
-    PUCHAR temp, extension = f;
+    PUCHAR temp, ext = f;
+    
     for(;;) {
-        temp = strchr ( extension  , '.');
+        temp = strchr ( ext  , '.');
         if (temp == NULL) break;
-        extension = temp +1;
+        ext = temp +1;
     }
-    if (extension == f 
+    if (ext == f) {
+        str2vc(extension , "");
+        return;
+    }
+    str2vc(extension , ext);
+    return extension->String;
+}
+
+
+/* --------------------------------------------------------------------------- */
+PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
+{
+    PUCHAR f = vc2str(fileName);
+    VARCHAR256 ext;
+    PUCHAR extension = il_getFileExtension (&ext , fileName);
+
+    if (*extension == '\0' 
     || 0 == stricmp (extension, "html")
     || 0 == stricmp (extension, "htm")) {
-        str2vc(&pResponse->contentType , "text/html");
+        str2vc(pMimeType , "text/html");
         return;
     }
 
@@ -67,16 +113,15 @@ void setContentTypeForFileType (PRESPONSE pResponse , PVARCHAR fileName)
     ||   0 == stricmp (extension, "png")
     ||   0 == stricmp (extension, "jpg")
     ||   0 == stricmp (extension, "jpeg")) {
-        vcprintf (&pResponse->contentType , "image/%s", extension);
+        vcprintf (pMimeType , "image/%s", extension);
         return;
     }
     if ( 0 == stricmp (extension, "css")) {
-        vcprintf (&pResponse->contentType , "text/%s", extension);
+        vcprintf (pMimeType , "text/%s", extension);
         return;
     }
-    vcprintf (&pResponse->contentType , "application/%s", extension);
+    vcprintf (pMimeType , "application/%s", extension);
 }
-
 /* --------------------------------------------------------------------------- */
 LGL il_serveStatic (PRESPONSE pResponse, PVARCHAR fileName)         
 {        
@@ -87,8 +132,8 @@ LGL il_serveStatic (PRESPONSE pResponse, PVARCHAR fileName)
     fp = fopen(pFile, "rb");
     if (fp == NULL) return ON; // Error;
     
-    setContentTypeForFileType (pResponse , fileName);
-
+    il_getFileMimeType (&pResponse->contentType ,  fileName);
+    
     len = fread (buf, 1 , sizeof(buf) , fp);
     while (len > 0 ) {
         putChunk (pResponse, buf, len);         

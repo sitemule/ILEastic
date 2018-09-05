@@ -36,8 +36,16 @@
             dcl-s file varchar(256);
             dcl-s err  ind;
 
-            // lCopy - copy from the internal HTTP pointers
-            file = lCopy(request.resource);
+            // Get the resource a.k.a. the file name 
+            file = il_getRequestResource(request);
+
+            // add route for IFS:
+            file = '/www/ext-6.0.0/build/examples/admin-dashboard' + file;
+
+            // No resource then default to: index.htmml
+            if %subst(file:%len(file):1) = '/';  // terminates at a / 
+                file += 'index.html';
+            endif; 
 
             // Serve any static files from the IFS
             err = il_serveStatic (response : file);
