@@ -7,9 +7,9 @@
         // -----------------------------------------------------------------------------     
         ctl-opt copyright('Sitemule.com  (C), 2018');
         ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-        ctl-opt debug(*yes) bndDir('ILEASTIC');
+        ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
         ctl-opt thread(*CONCURRENT);
-        /include ./include/ILEastic.rpgle
+        /include ./headers/ILEastic.rpgle
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
@@ -36,13 +36,14 @@
             dcl-s file varchar(256);
             dcl-s err  ind;
 
+
             // Get the resource a.k.a. the file name 
             file = il_getRequestResource(request);
 
             // add route for IFS:
             file = '/www/ext-6.0.0/build/examples/admin-dashboard' + file;
 
-            // No resource then default to: index.htmml
+            // No resource then default to: index.html
             if %subst(file:%len(file):1) = '/';  // terminates at a / 
                 file += 'index.html';
             endif; 
