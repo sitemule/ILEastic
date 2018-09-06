@@ -16,8 +16,8 @@ compile:
 	export QIBM_CCSID=277
 	liblist -a $(BIN_LIB)
 	liblist -a noxdb
-	liblist -a icebreak
-	system -i "CRTBNDRPG  PGM($(BIN_LIB)/demo03) SRCSTMF('demo03.rpgle') $(RPG_OPT)" 
+	liblist
+	system -i "CRTBNDRPG  PGM($(BIN_LIB)/demo03) SRCSTMF('demo03.rpgle') $(RPG_OPT)" > error.txt
 	EOF
        
 .PHONY: compile

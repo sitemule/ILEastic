@@ -96,3 +96,9 @@
             pResponse   likeds(responseDS);
             fileName    varchar(256) options(*varsize) const;    
         end-pr;
+
+        dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');
+            pResponse   likeds(responseDS);
+            pStream     pointer value;
+        end-pr;
+

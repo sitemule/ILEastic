@@ -12,4 +12,5 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.1')
     EXPORT SYMBOL("il_getRequestHeaders")
     EXPORT SYMBOL("il_getFileMimeType")
     EXPORT SYMBOL("il_getFileExtension")
+    EXPORT SYMBOL("il_responseWriteStream")    
 ENDPGMEXP                                                 

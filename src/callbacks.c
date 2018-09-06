@@ -39,6 +39,8 @@
 #include "varchar.h"
 #include "sysdef.h"
 #include "strUtil.h"
+#include "streamer.h"
+
 
 /* --------------------------------------------------------------------------- */
 // Getters - curtesy procedures 
@@ -73,6 +75,22 @@ void il_getRequestHeaders (PLVARCHAR out , PREQUEST pRequest)
 void il_responseWrite (PRESPONSE pResponse, PLVARCHAR buf)
 {
     putChunk (pResponse, buf->String, buf->Length);         
+}
+
+/* --------------------------------------------------------------------------- */
+static LONG streamWriter (PSTREAM pStream , PUCHAR buf , ULONG len)
+{
+    PRESPONSE pResponse = pStream->output;
+    putChunkXlate (pResponse, buf, len);         
+    return len;
+}
+/* --------------------------------------------------------------------------- */
+void il_responseWriteStream (PRESPONSE pResponse, PSTREAM pStream)
+{
+    pStream->writer = streamWriter;
+    pStream->output = pResponse;
+    pStream->runner(pStream);
+    stream_delete (pStream);
 }
 
 /* --------------------------------------------------------------------------- */

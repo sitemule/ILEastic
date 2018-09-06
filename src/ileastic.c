@@ -41,6 +41,8 @@
 #include "sndpgmmsg.h"
 #include "strUtil.h"
 #include "e2aa2e.h"
+#include "xlate.h"
+
 
 
 /* --------------------------------------------------------------------------- */
@@ -71,6 +73,36 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     memcpy (wrkBuf , buf, len);                            
     wrkBuf += len;                                         
                                                             
+    *(wrkBuf++) =  0x0d;                                   
+    *(wrkBuf++) =  0x0a;                                   
+    rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
+    free (tempBuf);                                        
+                                                            
+}
+/* --------------------------------------------------------------------------- */
+void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)         
+{        
+    int rc;                                                 
+    LONG   lenleni;     
+    int outlen = len * 4;                                   
+    PUCHAR tempBuf = malloc ( outlen + 16);                   
+    PUCHAR wrkBuf = tempBuf; 
+    PUCHAR input;
+    size_t inbytesleft, outbytesleft;
+                              
+
+    putHeader (pResponse); // if not put yet
+
+    lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
+    meme2a( wrkBuf , wrkBuf , lenleni);              
+    wrkBuf += lenleni;                                     
+
+    input = buf;
+	inbytesleft = len;
+	outbytesleft = outlen;
+                                                        
+    rc = iconv ( pResponse->pConfig->e2a->Iconv , &input , &inbytesleft, &wrkBuf , &outbytesleft);
+	                                                        
     *(wrkBuf++) =  0x0d;                                   
     *(wrkBuf++) =  0x0a;                                   
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
@@ -363,6 +395,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     BOOL     resetSocket = TRUE;
 
     setMaxSockets();
+    pConfig->a2e = XlateXdOpen (1208, 0);
+    pConfig->e2a = XlateXdOpen (0 , 1208);
 
     // tInitSSL(pConfig);
 

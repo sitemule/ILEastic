@@ -28,29 +28,25 @@
 
         end-proc;
         // -----------------------------------------------------------------------------
-        // Servlet call back implementation
+        // Servlet call back implementation 
         // -----------------------------------------------------------------------------     
         dcl-proc myservlet;
 
             dcl-pi *n;
                 request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);
+                response likeds(RESPONSEDS);    
             end-pi;
 
-            dcl-s pInput    pointer;
             dcl-s pOutput   pointer;
 
+            response.contentType = 'application/json';
 
-            pInput = json_parseString (request.queryString);
-
-            
             pOutput = json_sqlResultSet(' -
-                select * from product     -
+                select * from qiws.QCUSTCDT    -
             ');
 
-            il_responseWrite(response: json_astext (pOutput));
-            
-            json_delete(pInput);
+            il_responseWriteStream(response : json_stream(pOutput));
+
             json_delete(pOutput);
             
 

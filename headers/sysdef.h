@@ -2,6 +2,7 @@
 #define  SYSDEF_H
 
 #include "ostypes.h"
+#include "xlate.h"
 
 #define  SOCMAXREAD 650000
 
@@ -36,7 +37,8 @@ typedef _Packed struct _CONFIG  {
     UCHAR     rmtHost [32];
     ULONG     rmtTcpIp;
     int       rmtPort;
-    
+    PXLATEDESC e2a;
+    PXLATEDESC a2e;
 } CONFIG,  *PCONFIG;
 
 
