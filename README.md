@@ -3,15 +3,15 @@ It is a self contained web application server for the ILE environment on IBM i r
 
 ILEastic is a service program that provides a simple, blazing fast programmable HTTP server for your application so you easy can plug your RPG code into a services infrastructure or make simple web applications without the need of any third party webserver products.
 
-Basicly it is a HTTP application server you can bind into your own ILE RPG projects, 
+Basically it is a HTTP application server you can bind into your own ILE RPG projects, 
 to give you a easy deploy mechanism, that fits into DevOps and microservices alike environments.
 
 The self contained web application server makes it so much easier to develop web application. 
 
 Simply compile and submit. Yes - You don't need GCI, Apache, nginx or IceBreak - simply compile and submit.
 
-The design paradigm is the same as found in Node.JS hence the name. Where Node.JS uses 
-JavaScript, Node.RPG aims for any ILE language where RPG are the most popular.
+The design paradigm is the same as found in Node.JS - so project was initially called node.RPG but the name was subject to some discussion, so ILEastic it is.
+Where Node.JS uses JavaScript, ILEastic aims for any ILE language where RPG are the most popular.
 
 Except for initialization, It only requires two lines of code:
 ```
@@ -26,7 +26,7 @@ callback procedure that takes a request and a response parameter
 ![](image.png)
 
 
-The idea is that you deploy your (open source of cause) RPG packages at NPM so the RPG community can benefit from each others work. The NPM echosystem is the same for Node.JS and ILEastic.    
+The idea is that you deploy your (open source of cause) RPG packages at NPM so the RPG community can benefit from each others work. The NPM ecosystem is the same for Node.JS and ILEastic.    
 
 
 Example: 
@@ -119,11 +119,11 @@ change .vsCode/task.json file to point
 to your IBMi address. The compile feature requires that you have SSH stated: `STRTCPSVR *SSHD` 
 
 # Moving on
-In this first commit we have only implemented the `il_listen` and `il_responseWrite`, so there is not much use for real world application, however - all the plumbing arround with git / compile / deploy are working. We at Sitemule.com are striving to move the core of the IceBreak server into the ILEastic project over the next couple of months. So stay tuned.
+In this first commit we have only implemented the `il_listen` and `il_responseWrite`, so there is not much use for real world application, however - all the plumbing around with git / compile / deploy are working. We at Sitemule.com are striving to move the core of the IceBreak server into the ILEastic project over the next couple of months. So stay tuned.
 
 
 # Note
-This project was initially call Node.RPG, however people could not find the node.js code :) so obvously it was a bad name. Thanks for the feedback pointing me into a better direection.
+This project was initially call Node.RPG, however people could not find the node.js code :) so obvously it was a bad name. Thanks for the feedback pointing me into a better direction.
 
 Happy ILEastic coding
 
