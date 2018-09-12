@@ -36,7 +36,6 @@
             dcl-s file varchar(256);
             dcl-s err  ind;
 
-
             // Get the resource a.k.a. the file name 
             file = il_getRequestResource(request);
 

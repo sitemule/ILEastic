@@ -41,6 +41,10 @@ typedef _Packed struct _CONFIG  {
     PXLATEDESC a2e;
 } CONFIG,  *PCONFIG;
 
+typedef _Packed struct _HEADERLIST  {
+    LVARPUCHAR  key;     
+    LVARPUCHAR  value;
+} HEADERLIST , *PHEADERLIST;
 
 typedef _Packed struct _REQUEST  {
     PCONFIG     pConfig;
@@ -52,9 +56,11 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  headers;
     LVARPUCHAR  content;
     VARCHAR256  contentType;
+    ULONG       contentLength;
     LVARPUCHAR  completeHeader;
-
+    PHEADERLIST headerList;
 } REQUEST , *PREQUEST;
+
 
 typedef _Packed struct _RESPONSE  {
     PCONFIG     pConfig;
@@ -83,6 +89,8 @@ typedef _Packed struct _INSTANCE  {
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);   
 void putHeader (PRESPONSE pResponse);
 int socketWait (int sd , int sec);
+PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key);
+
       
 
 #endif

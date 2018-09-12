@@ -49,8 +49,7 @@ void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->resource);
 }         
-void il_getRequestMethod
- (PVARCHAR out , PREQUEST pRequest)
+void il_getRequestMethod (PVARCHAR out , PREQUEST pRequest)
 {
     lvpc2vc (out, &pRequest->method);
 }         
@@ -69,14 +68,23 @@ void il_getRequestProtocol (PVARCHAR out , PREQUEST pRequest)
 void il_getRequestHeaders (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->headers);
+}
+void il_getRequestHeader (PLVARCHAR out , PREQUEST pRequest, PUCHAR header)
+{
+    getHeaderValue(out->String , pRequest->headerList ,  header);
+    out->Length = strlen(out->String);
 }         
+void il_getContent (PLVARCHAR out , PREQUEST pRequest)
+{
+    lvpc2lvc (out, &pRequest->content);
+}         
+         
 
 /* --------------------------------------------------------------------------- */
 void il_responseWrite (PRESPONSE pResponse, PLVARCHAR buf)
 {
     putChunk (pResponse, buf->String, buf->Length);         
 }
-
 /* --------------------------------------------------------------------------- */
 static LONG streamWriter (PSTREAM pStream , PUCHAR buf , ULONG len)
 {

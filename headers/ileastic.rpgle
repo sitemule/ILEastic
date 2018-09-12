@@ -66,6 +66,16 @@
             pRequest likeds(RequestDS);    
         end-pr;
 
+        dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm
+                        extproc(*CWIDEN:'il_getRequestHeader');
+            pRequest likeds(RequestDS); 
+            header   pointer value options(*string);   
+        end-pr;
+
+        dcl-pr il_getContent  varchar(524284:4)  ccsid(*utf8) rtnparm
+                        extproc(*CWIDEN:'il_getContent');
+            pRequest likeds(RequestDS);    
+        end-pr;
 
         dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm
                         extproc(*CWIDEN:'il_getFileMimeType');
@@ -99,6 +109,7 @@
 
         dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');
             pResponse   likeds(responseDS);
-            pStream     pointer value;
+            pStream     pointer value; // Pointer returned by i.e. json_stream from noxDB
         end-pr;
+
 

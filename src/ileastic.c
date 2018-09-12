@@ -11,6 +11,7 @@
 
 // max number of concurrent threads
 #define FD_SETSIZE 4096
+#define MAXHEADERS 4096
 
 #include <os2.h>
 #include <pthread.h>
@@ -43,8 +44,21 @@
 #include "e2aa2e.h"
 #include "xlate.h"
 
-
-
+/* --------------------------------------------------------------------------- */
+// TOOLS - TODO move to own files:
+/* --------------------------------------------------------------------------- */
+// atoi - real ascii version - the stdlib is running in EBCDIC
+LONG a2i (PUCHAR s)
+{
+    LONG res = 0;
+    for (;*s;s++) {
+        // Is real ascii number?
+        if (*s >= 0x30 && *s <= 0x39) {
+            res = 10*res + (*s - 0x30);
+        }
+    }
+    return res;
+}
 /* --------------------------------------------------------------------------- */
 // end of chunks                                               
 void putChunkEnd (PRESPONSE pResponse)
@@ -141,8 +155,83 @@ void putHeader (PRESPONSE pResponse)
     pResponse->firstWrite = false;
              
 }
-                                                         
+/* --------------------------------------------------------------------------- 
+   Split the url at "?" into resource, and queryString
+   --------------------------------------------------------------------------- */
+static void parseQuesryString (PREQUEST pRequest)
+{
+    pRequest->resource.String = pRequest->url.String;
+    pRequest->queryString.String = memchr(pRequest->url.String, 0x3F, pRequest->url.Length);
+    if (pRequest->queryString.String) {
+        pRequest->queryString.Length = pRequest->protocol.String - pRequest->url.String;
+        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String;
+    } else {
+        pRequest->resource.Length = pRequest->url.Length;
+    }
+}
+/* --------------------------------------------------------------------------- 
+   Produce a key/value list of the request headers
+   --------------------------------------------------------------------------- */
+static void parseHeaders (PREQUEST pRequest)
+{
+    char eol [2]  = { 0x0d , 0x0a};
+    
+    HEADERLIST headerList   [MAXHEADERS];
+    PUCHAR headend , begin, end, split;
+    SHORT  hIx =0;
 
+    begin =  pRequest->headers.String;
+    headend = begin + pRequest->headers.Length; 
+    while (begin < headend) {
+        for (;*begin == 0x20; begin ++); // Skip blank(s)
+        end  = memmem(begin, headend - begin , eol , 2); // Find end of line
+        split= memchr(begin, 0x3A, end - begin ); // Split at the : colon
+        if (split == null) break;
+
+        // Got the components, now store in the array
+        headerList[hIx].key.String = begin;
+        headerList[hIx].key.Length = split - begin;
+ 
+        split++;
+        for (;*split == 0x20; split++); // Skip blank(s)
+        headerList[hIx].value.String = split;
+        headerList[hIx].value.Length = end - split;
+
+        // Next iteration
+        begin = end + 2; // After the eol mark
+        hIx ++;
+    }
+    // Store the header list in the request structure
+    pRequest->headerList = malloc((hIx +1) * sizeof(HEADERLIST)); // plus room for the termination zero
+    memcpy ( pRequest->headerList , headerList , hIx * sizeof(HEADERLIST));
+    memset ( &pRequest->headerList[hIx], 0 , sizeof(HEADERLIST)); 
+}
+/* --------------------------------------------------------------------------- 
+   Return string of header values
+   Note - the keys are in ASCII so we have to convert. memicmp only works on EBCDIC 
+   --------------------------------------------------------------------------- */
+PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key)
+{
+    PHEADERLIST header = headerList;
+    UCHAR aKey [256];
+    int keyLen = strlen(key);
+    for (;;) {
+        if (header == null || header->key.Length == 0) {
+            *value = '\0';
+            return value;
+        }
+
+        if (keyLen == header->key.Length) {
+            mema2e(aKey , header->key.String , keyLen); // The headers are in ASCII
+            if (memicmp (key , aKey , keyLen) == 0) {
+                substr(value , header->value.String ,  header->value.Length);
+                return value;
+            }
+        }
+        // Get next
+        header += 1;
+    }
+} 
 /* --------------------------------------------------------------------------- 
    Parse this: 
    GET / HTTP/1.1██Host: dksrv133:44001██Con
@@ -153,8 +242,10 @@ static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     ULONG beforeHeadersLen;
     PUCHAR begin , next;
     char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
+    UCHAR temp [256];
     PUCHAR eoh = memmem ( buf ,bufLen , eol , 4);
 
+    // No end-of-headers in this buffer, the just continue
     if (eoh == NULL)      return false;
 
     // got the end of header; Now parse the HTTP header
@@ -188,23 +279,53 @@ static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     next  = memmem ( begin  , beforeHeadersLen , eol , 2);
     pRequest->protocol.Length = next - begin;
 
-    // Next step is to split the url at "?" into resource, and queryString
-    pRequest->resource.String = pRequest->url.String;
-    pRequest->queryString.String = memchr(pRequest->url.String, 0x3F, pRequest->url.Length);
-    if (pRequest->queryString.String) {
-        pRequest->queryString.Length = pRequest->protocol.String - pRequest->url.String;
-        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String;
-    } else {
-        pRequest->resource.Length = pRequest->url.Length;
+
+    // The request is now parsed into raw components:
+    parseQuesryString (pRequest);
+    parseHeaders (pRequest);
+
+    pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
+
+    // Only what is recived so far - the rest is returned in "receivePayload"
+    if (pRequest->contentLength > 0) {
+        pRequest->content.String = eoh + 4;
+        pRequest->content.Length = bufLen - ( pRequest->content.String - buf );
     }
-
-    pRequest->content.String = eoh + 4;
-
+    
     return true;
 
 }
 /* --------------------------------------------------------------------------- */
 static BOOL receivePayload (PREQUEST pRequest)
+{
+    PUCHAR buf = malloc (pRequest->contentLength +1); // Add a zero terniation
+    PUCHAR bufwin , end;
+    LONG   rc;
+
+    // What is already receved:
+    memcpy ( buf , pRequest->content.String , pRequest->content.Length);
+    bufwin = buf + pRequest->content.Length;
+
+    // Build up the previous and the rest
+    buf [pRequest->contentLength] = '\0';  // Enshure It will always be a zeroterminted string if used that way
+    pRequest->content.String = buf;
+    pRequest->content.Length = pRequest->contentLength;
+
+    end = buf + pRequest->contentLength;
+    while (bufwin < end) {
+        socketWait (pRequest->pConfig->clientSocket, 60);
+        rc = read(pRequest->pConfig->clientSocket , bufwin , end - bufwin);
+        if (rc <= 0) {
+            return true;
+        }
+        bufwin += rc;
+    }
+
+    return false;
+}
+
+/* --------------------------------------------------------------------------- */
+static BOOL receiveHeader (PREQUEST pRequest)
 {
     PUCHAR buf = malloc (SOCMAXREAD);
     PUCHAR bufWin = buf;
@@ -225,6 +346,9 @@ static BOOL receivePayload (PREQUEST pRequest)
         bufWin += rc;
         if (isLookingForHeaders) {
             if (lookForHeaders ( pRequest , buf, bufLen)) {
+                if (pRequest->contentLength) {
+                    receivePayload (pRequest);
+                }
                 isLookingForHeaders = false;
                 return false; // TODO - Now only GET - no payload 
             }
@@ -243,7 +367,7 @@ static void * serverThread (PINSTANCE pInstance)
         memset(&response , 0, sizeof(RESPONSE));
         request.pConfig = &pInstance->config;
         response.pConfig = &pInstance->config;
-        if (receivePayload(&request)) {
+        if (receiveHeader(&request)) {
             break;
         }
         response.firstWrite = true;
@@ -253,9 +377,17 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.statusText  , "OK");
         pInstance->servlet (&request , &response);
         putChunkEnd (&response);
+
+        // Clean up this transaction 
+        if (request.headerList) {
+            free(request.headerList);
+        } 
         if (request.completeHeader.String) {
             free(request.completeHeader.String);
         } 
+        if (request.content.String) {
+            free(request.content.String);
+        }
     }
     close(response.pConfig->clientSocket);
     free(pInstance);
