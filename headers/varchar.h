@@ -111,4 +111,10 @@ void vccatmem  (PVARCHAR out , PUCHAR s , LONG len);
 void vcprintf  ( PVAR_CHAR VarChar, PUCHAR Ctlstr , ...);
 void vccatf    ( PVAR_CHAR VarChar, PUCHAR Ctlstr , ...);
 #define VARCHAR2PUCHAR(a) ((PVARCHAR) a)->String; ((PVARCHAR) a)->String[((PVARCHAR) a)->Length] = '\0';
+
+// Long versions
+void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in);
+void lvpc2vc  (PVARCHAR out, PLVARPUCHAR in);
+
+
 #endif

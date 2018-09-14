@@ -3,15 +3,16 @@
         // Note: It requires your RPG code to be reentrant and compiled
         // for multithreading. Each client request is handled by a seperate thread.
         // Start it:
-        // SBMJOB CMD(CALL PGM(DEMO02)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+        // SBMJOB CMD(CALL PGM(DEMO03)) JOB(ILEASTIC3) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
         // -----------------------------------------------------------------------------     
-        ctl-opt copyright('Sitemule.com  (C), 2018');
+        ctl-opt copyright('Sitemule.com (C), 2018');
         ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-        ctl-opt debug(*yes) bndDir('ILEASTIC');
+        ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
         ctl-opt thread(*CONCURRENT);
-        
+
         /include ./headers/ILEastic.rpgle
-        
+        /include ./headers/JSONparser.rpgle
+                
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
@@ -19,62 +20,32 @@
 
             dcl-ds config likeds(configDS);
 
-            config.port = 13337; 
+            config.port = 44003; 
             config.host = '*ANY';
 
             il_listen (config : %paddr(myservlet));
 
         end-proc;
         // -----------------------------------------------------------------------------
-        // Servlet call back implementation
+        // Servlet call back implementation 
         // -----------------------------------------------------------------------------     
         dcl-proc myservlet;
 
             dcl-pi *n;
                 request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);
+                response likeds(RESPONSEDS);    
             end-pi;
-  
-            dcl-s counter int(10);
 
-            il_responseWrite(response:
-                            'method: ' + 
-                            lcopy(request.method)
-                             + '<br>');
+            dcl-s pOutput   pointer;
 
-            il_responseWrite(response:
-                            'url: ' + 
-                            lcopy(request.url)
-                             + '<br>');
+            response.contentType = 'application/json';
 
-            il_responseWrite(response:
-                            'resource: ' + 
-                            lcopy(request.resource)
-                             + '<br>');
+            pOutput = json_sqlResultSet(' -
+                select * from qiws.QCUSTCDT    -
+            ');
 
-            il_responseWrite(response:
-                            'queryString: ' + 
-                            lcopy(request.queryString)
-                             + '<br>');
-                             
-            il_responseWrite(response:
-                            'protocol: ' + 
-                            lcopy(request.protocol)
-                             + '<br>');
-                             
-            il_responseWrite(response:
-                            'content: ' + 
-                            lcopy(request.content)
-                             + '<br>');
-                             
-            il_responseWrite(response:
-                            'contentType: ' + 
-                            request.contentType
-                             + '<br>');
-i
-            for counter = 1 to 10;
-                il_responseWrite(response: 'counter : ' + %char(counter)
-                                            + ' <br>');
-            endfor;
+            il_responseWriteStream(response : json_stream(pOutput));
 
+            json_delete(pOutput);
+           
         end-proc;

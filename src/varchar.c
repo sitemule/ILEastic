@@ -16,7 +16,18 @@
 #include "varchar.h"
 
 /* ------------------------------------------------------------- */
+// LONG (  4 byte length)
+/* ------------------------------------------------------------- */ 
 void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in)
+{
+   out->Length = in->Length;
+   memcpy(out->String , in->String, in->Length);
+   out->String[in->Length] = '\0'; 
+}
+/* ------------------------------------------------------------- */
+// SHORT (  2 byte length)
+/* ------------------------------------------------------------- */
+void lvpc2vc (PVARCHAR out, PLVARPUCHAR in)
 {
    out->Length = in->Length;
    memcpy(out->String , in->String, in->Length);

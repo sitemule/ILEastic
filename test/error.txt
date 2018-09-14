@@ -1,275 +1,4 @@
-qsh <<EOF 
-export QIBM_CCSID=277
-liblist -a ILEASTIC 
-system -i "CRTBNDRPG  PGM(ILEASTIC/demo01) SRCSTMF('demo01.rpgle') DBGVIEW(*LIST) INCDIR('./..')" 
-system -i "CRTBNDRPG  PGM(ILEASTIC/demo02) SRCSTMF('demo02.rpgle') DBGVIEW(*LIST) INCDIR('./..')" 
-EOF
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      1
-   Command  . . . . . . . . . . . . :   CRTBNDRPG
-     Issued by  . . . . . . . . . . :     NLI
-   Program  . . . . . . . . . . . . :   DEMO01
-     Library  . . . . . . . . . . . :     ILEASTIC
-   Text 'description' . . . . . . . :   *SRCMBRTXT
-   Source stream file   . . . . . . :   demo01.rpgle
-     CCSID  . . . . . . . . . . . . :     500
-   Text 'description' . . . . . . . :
-   Last Change  . . . . . . . . . . :   29-08-18  19:04:40
-   Generation severity level  . . . :   10
-   Default activation group . . . . :   *YES
-   Compiler options . . . . . . . . :   *XREF      *GEN       *NOSECLVL  *SHOWCPY
-                                        *EXPDDS    *EXT       *NOSHOWSKP *NOSRCSTMT
-                                        *DEBUGIO   *UNREF     *NOEVENTF
-   Debugging views  . . . . . . . . :   *LIST
-   Debug encryption key . . . . . . :   *NONE
-   Output . . . . . . . . . . . . . :   *PRINT
-   Optimization level . . . . . . . :   *NONE
-   Source listing indentation . . . :   *NONE
-   Type conversion options  . . . . :   *NONE
-   Sort sequence  . . . . . . . . . :   *HEX
-   Language identifier  . . . . . . :   *JOBRUN
-   Replace program  . . . . . . . . :   *YES
-   User profile . . . . . . . . . . :   *USER
-   Authority  . . . . . . . . . . . :   *LIBCRTAUT
-   Truncate numeric . . . . . . . . :   *YES
-   Fix numeric  . . . . . . . . . . :   *NONE
-   Target release . . . . . . . . . :   *CURRENT
-   Allow null values  . . . . . . . :   *NO
-   Define condition names . . . . . :   *NONE
-   Enable performance collection  . :   *PEP
-   Profiling data . . . . . . . . . :   *NOCOL
-   Licensed Internal Code options . :
-   Generate program interface . . . :   *NO
-   Include directory  . . . . . . . :   ./..
-   Preprocessor options . . . . . . :   *NONE
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      2
- Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
- Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
-                           S o u r c e   L i s t i n g
-      1    // -----------------------------------------------------------------------------                                  000001
-      2    // This example runs a simple servlet using ILEastic framework                                                    000002
-      3    // Note: It requires your RPG code to be reentrant and compiled                                                   000003
-      4    // for multithreading. Each client request is handled by a seperate thread.                                       000004
-      5    // Start it:                                                                                                      000005
-      6    // SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)                                    000006
-      7    // -----------------------------------------------------------------------------                                  000007
-      8    ctl-opt copyright('Sitemule.com  (C), 2018');                                                                     000008
-      9    ctl-opt decEdit('0,') datEdit(*YMD.) main(main);                                                                  000009
-     10    ctl-opt debug(*yes) bndDir('ILEASTIC');                                                                           000010
-     11    ctl-opt thread(*CONCURRENT);                                                                                      000011
-     12    /include ./include/ILEastic.rpgle                                                                                 000012
-         *--------------------------------------------------------------------------------------------*
-         * RPG member name  . . . . . :  ILEastic.+                                                   *                     1
-         * External name  . . . . . . :  ./.././include/ILEastic.rpgle                                *                     1
-         * Last change  . . . . . . . :  29-08-18  18:19:23                                           *                     1
-         *--------------------------------------------------------------------------------------------*
-         *--------------------------------------------------------------------*
-         * Compiler Options in Effect:                                        *
-         *--------------------------------------------------------------------*
-         *  Text 'description' . . . . . . . :                                *
-         *  Generation severity level  . . . :   10                           *
-         *  Default activation group . . . . :   *NO                          *
-         *  Compiler options . . . . . . . . :   *XREF      *GEN              *
-         *                                       *NOSECLVL  *SHOWCPY          *
-         *                                       *EXPDDS    *EXT              *
-         *                                       *NOSHOWSKP *NOSRCSTMT        *
-         *                                       *DEBUGIO   *UNREF            *
-         *                                       *NOEVENTF                    *
-         *  Optimization level . . . . . . . :   *NONE                        *
-         *  Source listing indentation . . . :   *NONE                        *
-         *  Type conversion options  . . . . :   *NONE                        *
-         *  Sort sequence  . . . . . . . . . :   *HEX                         *
-         *  Language identifier  . . . . . . :   *JOBRUN                      *
-         *  User profile . . . . . . . . . . :   *USER                        *
-         *  Authority  . . . . . . . . . . . :   *LIBCRTAUT                   *
-         *  Truncate numeric . . . . . . . . :   *YES                         *
-         *  Fix numeric  . . . . . . . . . . :   *NONE                        *
-         *  Allow null values  . . . . . . . :   *NO                          *
-         *  Storage model . . .  . . . . . . :   *SNGLVL                      *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      3
- Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
- Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
-         *  Binding directory from Command . :   *NONE                        *
-         *  Binding directory from Source  . :   ILEASTIC                     *
-         *    Library  . . . . . . . . . . . :     *LIBL                      *
-         *  Activation group . . . . . . . . :   *STGMDL                      *
-         *  Enable performance collection  . :   *PEP                         *
-         *  Profiling data . . . . . . . . . :   *NOCOL                       *
-         *  Generate program interface . . . :   *NO                          *
-         *--------------------------------------------------------------------*
-     13+      dcl-ds  configDS qualified based(prototype_only);                                             ﻿             1000001
-     14+       host    varchar(64);                                                                                         1000002
-     15+       port    int(10);                                                                                             1000003
-     16+       filler  char(4096);                                                                                          1000004
-     17+   end-ds;                                                                                                          1000005
-     18+                                                                                                                    1000006
-     19+   dcl-ds requestDS qualified based(prototype_only);                                                                1000007
-     20+       pConfig      pointer;                                                                                        1000008
-     21+       pUrl         pointer;                                                                                        1000009
-     22+       pQueryString pointer;                                                                                        1000010
-     23+       pHeaders     pointer;                                                                                        1000011
-     24+       pContent     pointer;                                                                                        1000012
-     25+       contentType  char(128);                                                                                      1000013
-     26+       method       varchar(32);                                                                                    1000014
-     27+                                                                                                                    1000015
-     28+   end-ds;                                                                                                          1000016
-     29+                                                                                                                    1000017
-     30+   dcl-ds responseDS qualified based(prototype_only);                                                               1000018
-     31+       pConfig     pointer;                                                                                         1000019
-     32+       status      int(5);                                                                                          1000020
-     33+       statusText  varchar(128);                                                                                    1000021
-     34+       contentType varchar(128);                                                                                    1000022
-     35+       charset     varchar(32) ;                                                                                    1000023
-     36+   end-ds;                                                                                                          1000024
-     37+                                                                                                                    1000025
-     38+   dcl-pr il_listen extproc(*CWIDEN:'il_listen');                                                                   1000026
-     39+       pConfig     likeds(configDS);                                                                                1000027
-     40+       pServlet    pointer(*PROC) value;                                                                            1000028
-     41+   end-pr;                                                                                                          1000029
-     42+                                                                                                                    1000030
-     43+   dcl-pr il_responseWrite extproc(*CWIDEN:'il_responseWrite');                                                     1000031
-     44+       pResponse   likeds(responseDS);                                                                              1000032
-     45+       buf         varchar(32760:4) ccsid(*utf8) options(*varsize) const ;                                          1000033
-     46+   end-pr;                                                                                                          1000034
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      4
- Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
- Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
-     47+                                                                                                                    1000035
-     48+   dcl-pr il_responseWriteBin extproc(*CWIDEN:'il_responseWrite');                                                  1000036
-     49+       pResponse   likeds(responseDS);                                                                              1000037
-     50+       buf         varchar(32760:4) options(*varsize) const ;                                                       1000038
-     51+   end-pr;                                                                                                          1000039
-     52    // -----------------------------------------------------------------------------                                  000013
-     53    // Main                                                                                                           000014
-     54    // -----------------------------------------------------------------------------                                  000015
-     55    dcl-proc main;                                                                                                    000016
-     56                                                                                                                      000017
-     57        dcl-ds config likeds(configDS);                                                                               000018
-     58                                                                                                                      000019
-     59        config.port = 44001;                                                                                          000020
-     60        config.host = '*ANY';                                                                                         000021
-     61                                                                                                                      000022
-     62        node_listen (config : %paddr(myservlet));                                                                     000023
-     63                                                                                                                      000024
-     64    end-proc;                                                                                                         000025
-     65    // -----------------------------------------------------------------------------                                  000026
-     66    // Servlet call back implementation                                                                               000027
-     67    // -----------------------------------------------------------------------------                                  000028
-     68    dcl-proc myservlet;                                                                                               000029
-     69                                                                                                                      000030
-     70        dcl-pi *n;                                                                                                    000031
-     71            request  likeds(REQUESTDS);                                                                               000032
-     72            response likeds(RESPONSEDS);                                                                              000033
-     73        end-pi;                                                                                                       000034
-     74                                                                                                                      000035
-     75        il_responseWrite(response:'Hello world');                                                                     000036
-     76                                                                                                                      000037
-     77    end-proc;                                                                                                         000038
-        * * * * *   E N D   O F   S O U R C E   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      5
-           A d d i t i o n a l   D i a g n o s t i c   M e s s a g e s
-  Msg id  Sv Number Seq     Message text
- *RNF7030 30     62 000023  The name or indicator NODE_LI... is not defined.
- *RNF7503 30     62 000023  Expression contains an operand that is not defined.
-  * * * * *   E N D   O F   A D D I T I O N A L   D I A G N O S T I C   M E S S A G E S   * * * * *
-                             / C o p y   M e m b e r s
- Line   Src  RPG name   <-------- External name -------> CCSID  <- Last change ->
- Number Id              Library    File       Member            Date     Time
-     12    1 ILEastic.+ ./.././include/ILEastic.rpgle      819  29-08-18 18:19:23
-          * * * * *   E N D   O F   / C O P Y   M E M B E R S   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      6
-                           C r o s s   R e f e r e n c e
-       File and Record References:
-          File              Device             References (D=Defined)
-            Record
-          No references in the source.
-       Global Field References:
-          Field             Attributes         References (D=Defined M=Modified)
-          CONFIGDS          DS(4166)               13D     39      57
-                            BASED(PROTOTYPE+)
- *RNF7031   FILLER          A(4096)                16D
- *RNF7031   HOST            A(64)                  14D
-                            VARYING(2)
- *RNF7031   PORT            I(10,0)                15D
- *RNF7031 IL_LISTEN         PROTOTYPE              38D
-          IL_RESPONSEWRITE  PROTOTYPE              43D     75M
- *RNF7031 IL_RESPONSEWRITEBIN...
-                            PROTOTYPE              48D
-          MAIN              PROTOTYPE               9      55
-          MYSERVLET         PROTOTYPE              62      68
- *RNF7030 NODE_LISTEN       **UNDEF**              62M
-          PROTOTYPE_ONLY    *(16)                  13      19      30
-          REQUESTDS         DS(242)                19D     71
-                            BASED(PROTOTYPE+)
- *RNF7031   CONTENTTYPE     A(128)                 25D
- *RNF7031   METHOD          A(32)                  26D
-                            VARYING(2)
- *RNF7031   PCONFIG         *(16)                  20D
- *RNF7031   PCONTENT        *(16)                  24D
- *RNF7031   PHEADERS        *(16)                  23D
- *RNF7031   PQUERYSTRING    *(16)                  22D
- *RNF7031   PURL            *(16)                  21D
-          RESPONSEDS        DS(312)                30D     44      49      72
-                            BASED(PROTOTYPE+)
- *RNF7031   CHARSET         A(32)                  35D
-                            VARYING(2)
- *RNF7031   CONTENTTYPE     A(128)                 34D
-                            VARYING(2)
- *RNF7031   PCONFIG         *(16)                  31D
- *RNF7031   STATUS          I(5,0)                 32D
- *RNF7031   STATUSTEXT      A(128)                 33D
-                            VARYING(2)
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      7
-       Field References for subprocedure MAIN
-          Field             Attributes         References (D=Defined M=Modified)
-          CONFIG            DS(4166)               57D     59M     60M     62
-            HOST            A(64)                  60
-                            VARYING(2)
-            PORT            I(10,0)                59
-       Field References for subprocedure MYSERVLET
-          Field             Attributes         References (D=Defined M=Modified)
- *RNF7031 REQUEST           DS(242)                71D
-          RESPONSE          DS(312)                72D     75
-       Indicator References:
-          Indicator                            References (D=Defined M=Modified)
-        * * * * *   E N D   O F   C R O S S   R E F E R E N C E   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      8
-                       E x t e r n a l   R e f e r e n c e s
-       Statically bound procedures:
-          Procedure                            References
-          il_listen                                38
-          il_responseWrite                         43      48      75
-       Imported fields:
-          Field             Attributes         Defined
-          No references in the source.
-       Exported fields:
-          Field             Attributes         Defined
-          No references in the source.
-    * * * * *   E N D   O F   E X T E R N A L   R E F E R E N C E S   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page      9
-                           M e s s a g e   S u m m a r y
-  Msg id  Sv Number Message text
- *RNF7031 00     31 The name or indicator is not referenced.
- *RNF7030 30      1 The name or indicator is not defined.
- *RNF7503 30      1 Expression contains an operand that is not defined.
-        * * * * *   E N D   O F   M E S S A G E   S U M M A R Y   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO01          DKSRV133   29-08-18 19:05:49        Page     10
-                             F i n a l   S u m m a r y
-   Message Totals:
-     Information  (00) . . . . . . . :       31
-     Warning      (10) . . . . . . . :        0
-     Error        (20) . . . . . . . :        0
-     Severe Error (30+)  . . . . . . :        2
-     ---------------------------------  -------
-     Total . . . . . . . . . . . . . :       33
-   Source Totals:
-     Records . . . . . . . . . . . . :       77
-     Specifications  . . . . . . . . :       46
-     Data records  . . . . . . . . . :        0
-     Comments  . . . . . . . . . . . :       13
-          * * * * *   E N D   O F   F I N A L   S U M M A R Y   * * * * *
- Compilation stopped. Severity 30 errors found in program.
-           * * * * *   E N D   O F   C O M P I L A T I O N   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      1
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      1
    Command  . . . . . . . . . . . . :   CRTBNDRPG
      Issued by  . . . . . . . . . . :     NLI
    Program  . . . . . . . . . . . . :   DEMO02
@@ -278,7 +7,7 @@ EOF
    Source stream file   . . . . . . :   demo02.rpgle
      CCSID  . . . . . . . . . . . . :     500
    Text 'description' . . . . . . . :
-   Last Change  . . . . . . . . . . :   29-08-18  19:04:38
+   Last Change  . . . . . . . . . . :   12-09-18  03:10:23
    Generation severity level  . . . :   10
    Default activation group . . . . :   *YES
    Compiler options . . . . . . . . :   *XREF      *GEN       *NOSECLVL  *SHOWCPY
@@ -305,8 +34,9 @@ EOF
    Licensed Internal Code options . :
    Generate program interface . . . :   *NO
    Include directory  . . . . . . . :   ./..
+                                    :   /prj/noxdb
    Preprocessor options . . . . . . :   *NONE
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      2
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      2
  Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
  Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
                            S o u r c e   L i s t i n g
@@ -322,11 +52,11 @@ EOF
      10    ctl-opt debug(*yes) bndDir('ILEASTIC');                                                                           000010
      11    ctl-opt thread(*CONCURRENT);                                                                                      000011
      12                                                                                                                      000012
-     13    /include ./include/ILEastic.rpgle                                                                                 000013
+     13    /include ./headers/ILEastic.rpgle                                                                                 000013
          *--------------------------------------------------------------------------------------------*
          * RPG member name  . . . . . :  ILEastic.+                                                   *                     1
-         * External name  . . . . . . :  ./.././include/ILEastic.rpgle                                *                     1
-         * Last change  . . . . . . . :  29-08-18  18:19:23                                           *                     1
+         * External name  . . . . . . :  ./.././headers/ILEastic.rpgle                                *                     1
+         * Last change  . . . . . . . :  12-09-18  03:12:16                                           *                     1
          *--------------------------------------------------------------------------------------------*
          *--------------------------------------------------------------------*
          * Compiler Options in Effect:                                        *
@@ -350,7 +80,7 @@ EOF
          *  Truncate numeric . . . . . . . . :   *YES                         *
          *  Fix numeric  . . . . . . . . . . :   *NONE                        *
          *  Allow null values  . . . . . . . :   *NO                          *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      3
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      3
  Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
  Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
          *  Storage model . . .  . . . . . . :   *SNGLVL                      *
@@ -362,95 +92,183 @@ EOF
          *  Profiling data . . . . . . . . . :   *NOCOL                       *
          *  Generate program interface . . . :   *NO                          *
          *--------------------------------------------------------------------*
-     14+      dcl-ds  configDS qualified based(prototype_only);                                             ﻿             1000001
-     15+       host    varchar(64);                                                                                         1000002
-     16+       port    int(10);                                                                                             1000003
-     17+       filler  char(4096);                                                                                          1000004
-     18+   end-ds;                                                                                                          1000005
-     19+                                                                                                                    1000006
-     20+   dcl-ds requestDS qualified based(prototype_only);                                                                1000007
-     21+       pConfig      pointer;                                                                                        1000008
-     22+       pUrl         pointer;                                                                                        1000009
-     23+       pQueryString pointer;                                                                                        1000010
-     24+       pHeaders     pointer;                                                                                        1000011
-     25+       pContent     pointer;                                                                                        1000012
-     26+       contentType  char(128);                                                                                      1000013
-     27+       method       varchar(32);                                                                                    1000014
-     28+                                                                                                                    1000015
-     29+   end-ds;                                                                                                          1000016
-     30+                                                                                                                    1000017
-     31+   dcl-ds responseDS qualified based(prototype_only);                                                               1000018
-     32+       pConfig     pointer;                                                                                         1000019
-     33+       status      int(5);                                                                                          1000020
-     34+       statusText  varchar(128);                                                                                    1000021
-     35+       contentType varchar(128);                                                                                    1000022
-     36+       charset     varchar(32) ;                                                                                    1000023
-     37+   end-ds;                                                                                                          1000024
-     38+                                                                                                                    1000025
-     39+   dcl-pr il_listen extproc(*CWIDEN:'il_listen');                                                                   1000026
-     40+       pConfig     likeds(configDS);                                                                                1000027
-     41+       pServlet    pointer(*PROC) value;                                                                            1000028
-     42+   end-pr;                                                                                                          1000029
-     43+                                                                                                                    1000030
-     44+   dcl-pr il_responseWrite extproc(*CWIDEN:'il_responseWrite');                                                     1000031
-     45+       pResponse   likeds(responseDS);                                                                              1000032
-     46+       buf         varchar(32760:4) ccsid(*utf8) options(*varsize) const ;                                          1000033
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      4
+     14+   dcl-ds  LVARPUCHARDS  qualified based(prototype_only);                                                           1000001
+     15+       Length  int(10);                                                                                             1000002
+     16+       String  pointer;                                                                                             1000003
+     17+   end-ds;                                                                                                          1000004
+     18+                                                                                                                    1000005
+     19+   dcl-ds  configDS qualified based(prototype_only);                                                                1000006
+     20+       host    varchar(64);                                                                                         1000007
+     21+       port    int(10);                                                                                             1000008
+     22+       filler  char(4096);                                                                                          1000009
+     23+   end-ds;                                                                                                          1000010
+     24+                                                                                                                    1000011
+     25+   dcl-ds requestDS qualified based(prototype_only);                                                                1000012
+     26+       pConfig        pointer;                                                                                      1000013
+     27+       method         likeds(LVARPUCHARDS);                                                                         1000014
+     28+       url            likeds(LVARPUCHARDS);                                                                         1000015
+     29+       resource       likeds(LVARPUCHARDS);                                                                         1000016
+     30+       queryString    likeds(LVARPUCHARDS);                                                                         1000017
+     31+       protocol       likeds(LVARPUCHARDS);                                                                         1000018
+     32+       headers        likeds(LVARPUCHARDS);                                                                         1000019
+     33+       content        likeds(LVARPUCHARDS);                                                                         1000020
+     34+       contentType    varchar(256);                                                                                 1000021
+     35+       completeHeader likeds(LVARPUCHARDS);                                                                         1000022
+     36+   end-ds;                                                                                                          1000023
+     37+                                                                                                                    1000024
+     38+   dcl-ds responseDS qualified based(prototype_only);                                                               1000025
+     39+       pConfig     pointer;                                                                                         1000026
+     40+       status      int(5);                                                                                          1000027
+     41+       statusText  varchar(256);                                                                                    1000028
+     42+       contentType varchar(256);                                                                                    1000029
+     43+       charset     varchar(32) ;                                                                                    1000030
+     44+   end-ds;                                                                                                          1000031
+     45+                                                                                                                    1000032
+     46+   dcl-pr lCopy    varchar(524284:4) ccsid(*utf8) rtnparm                                                           1000033
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      4
  Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
  Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
-     47+   end-pr;                                                                                                          1000034
-     48+                                                                                                                    1000035
-     49+   dcl-pr il_responseWriteBin extproc(*CWIDEN:'il_responseWrite');                                                  1000036
-     50+       pResponse   likeds(responseDS);                                                                              1000037
-     51+       buf         varchar(32760:4) options(*varsize) const ;                                                       1000038
-     52+   end-pr;                                                                                                          1000039
-     53                                                                                                                      000014
-     54    // -----------------------------------------------------------------------------                                  000015
-     55    // Main                                                                                                           000016
-     56    // -----------------------------------------------------------------------------                                  000017
-     57    dcl-proc main;                                                                                                    000018
-     58                                                                                                                      000019
-     59        dcl-ds config likeds(configDS);                                                                               000020
-     60                                                                                                                      000021
-     61        config.port = 44002;                                                                                          000022
-     62        config.host = '*ANY';                                                                                         000023
-     63                                                                                                                      000024
-     64        il_listen (config : %paddr(myservlet));                                                                     000025
-     65                                                                                                                      000026
-     66    end-proc;                                                                                                         000027
-     67    // -----------------------------------------------------------------------------                                  000028
-     68    // Servlet call back implementation                                                                               000029
-     69    // -----------------------------------------------------------------------------                                  000030
-     70    dcl-proc myservlet;                                                                                               000031
-     71                                                                                                                      000032
-     72        dcl-pi *n;                                                                                                    000033
-     73            request  likeds(REQUESTDS);                                                                               000034
-     74            response likeds(RESPONSEDS);                                                                              000035
-     75        end-pi;                                                                                                       000036
-     76                                                                                                                      000037
-     77        dcl-s counter int(10);                                                                                        000038
-     78                                                                                                                      000039
-     79        for counter = 1 to 1000;                                                                 B01                  000040
-     80            il_responseWrite(response: 'counter : ' + %char(counter) + ' ');                      01                  000041
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      5
+     47+                   extproc(*CWIDEN:'lvpc2lvc');                                                                     1000034
+     48+       input       likeds(LVARPUCHARDS);                                                                            1000035
+     49+   end-pr;                                                                                                          1000036
+     50+                                                                                                                    1000037
+     51+                                                                                                                    1000038
+     52+   dcl-pr il_getRequestMethod  varchar(256:2) ccsid(*utf8) rtnparm                                                  1000039
+     53+                   extproc(*CWIDEN:'il_getRequestMethod');                                                          1000040
+     54+       pRequest likeds(RequestDS);                                                                                  1000041
+     55+   end-pr;                                                                                                          1000042
+     56+                                                                                                                    1000043
+     57+   dcl-pr il_getRequestUrl  varchar(524284:4) ccsid(*utf8) rtnparm                                                  1000044
+     58+                   extproc(*CWIDEN:'il_getRequestUrl');                                                             1000045
+     59+       pRequest likeds(RequestDS);                                                                                  1000046
+     60+   end-pr;                                                                                                          1000047
+     61+                                                                                                                    1000048
+     62+   dcl-pr il_getRequestResource  varchar(524284:4) ccsid(*utf8) rtnparm                                             1000049
+     63+                   extproc(*CWIDEN:'il_getRequestResource');                                                        1000050
+     64+       pRequest likeds(RequestDS);                                                                                  1000051
+     65+   end-pr;                                                                                                          1000052
+     66+                                                                                                                    1000053
+     67+   dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm                                          1000054
+     68+                   extproc(*CWIDEN:'il_getRequestQueryString');                                                     1000055
+     69+       pRequest likeds(RequestDS);                                                                                  1000056
+     70+   end-pr;                                                                                                          1000057
+     71+                                                                                                                    1000058
+     72+   dcl-pr il_getRequestProtocol  varchar(256:2)  ccsid(*utf8) rtnparm                                               1000059
+     73+                   extproc(*CWIDEN:'il_getRequestProtocol');                                                        1000060
+     74+       pRequest likeds(RequestDS);                                                                                  1000061
+     75+   end-pr;                                                                                                          1000062
+     76+                                                                                                                    1000063
+     77+   dcl-pr il_getRequestHeaders  varchar(524284:4)  ccsid(*utf8) rtnparm                                             1000064
+     78+                   extproc(*CWIDEN:'il_getRequestHeaders');                                                         1000065
+     79+       pRequest likeds(RequestDS);                                                                                  1000066
+     80+   end-pr;                                                                                                          1000067
+     81+                                                                                                                    1000068
+     82+   dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm                                              1000069
+     83+                   extproc(*CWIDEN:'il_getRequestHeader');                                                          1000070
+     84+       pRequest likeds(RequestDS);                                                                                  1000071
+     85+       header   pointer value options(*string);                                                                     1000072
+     86+   end-pr;                                                                                                          1000073
+     87+                                                                                                                    1000074
+     88+   dcl-pr il_getContent  varchar(524284:4)  ccsid(*utf8) rtnparm                                                    1000075
+     89+                   extproc(*CWIDEN:'il_getContent');                                                                1000076
+     90+       pRequest likeds(RequestDS);                                                                                  1000077
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      5
  Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
  Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
-     81        endfor;                                                                                  E01                  000042
-     82                                                                                                                      000043
-     83    end-proc;                                                                                                         000044
+     91+   end-pr;                                                                                                          1000078
+     92+                                                                                                                    1000079
+     93+   dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm                                                               1000080
+     94+                   extproc(*CWIDEN:'il_getFileMimeType');                                                           1000081
+     95+       fileName    varchar(256:2);                                                                                  1000082
+     96+   end-pr;                                                                                                          1000083
+     97+                                                                                                                    1000084
+     98+   dcl-pr il_getFileExtension  varchar(256:2)  rtnparm                                                              1000085
+     99+                   extproc(*CWIDEN:'il_getFileExtension');                                                          1000086
+    100+       fileName    varchar(256:2);                                                                                  1000087
+    101+   end-pr;                                                                                                          1000088
+    102+                                                                                                                    1000089
+    103+   dcl-pr il_listen extproc(*CWIDEN:'il_listen');                                                                   1000090
+    104+       pConfig     likeds(configDS);                                                                                1000091
+    105+       pServlet    pointer(*PROC) value;                                                                            1000092
+    106+   end-pr;                                                                                                          1000093
+    107+                                                                                                                    1000094
+    108+   dcl-pr il_responseWrite extproc(*CWIDEN:'il_responseWrite');                                                     1000095
+    109+       pResponse   likeds(responseDS);                                                                              1000096
+    110+       buf         varchar(524284:4) ccsid(*utf8) options(*varsize) const ;                                         1000097
+    111+   end-pr;                                                                                                          1000098
+    112+                                                                                                                    1000099
+    113+   dcl-pr il_responseWriteBin extproc(*CWIDEN:'il_responseWrite');                                                  1000100
+    114+       pResponse   likeds(responseDS);                                                                              1000101
+    115+       buf         varchar(524284:4) options(*varsize) const ;                                                      1000102
+    116+   end-pr;                                                                                                          1000103
+    117+                                                                                                                    1000104
+    118+   dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');                                                     1000105
+    119+       pResponse   likeds(responseDS);                                                                              1000106
+    120+       fileName    varchar(256) options(*varsize) const;                                                            1000107
+    121+   end-pr;                                                                                                          1000108
+    122+                                                                                                                    1000109
+    123+   dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');                                         1000110
+    124+       pResponse   likeds(responseDS);                                                                              1000111
+    125+       pStream     pointer value; // Pointer returned by i.e. json_stream from noxDB                                1000112
+    126+   end-pr;                                                                                                          1000113
+    127+                                                                                                                    1000114
+    128+                                                                                                                    1000115
+    129                                                                                                                      000014
+    130    // -----------------------------------------------------------------------------                                  000015
+    131    // Main                                                                                                           000016
+    132    // -----------------------------------------------------------------------------                                  000017
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      6
+ Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
+ Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
+    133    dcl-proc main;                                                                                                    000018
+    134                                                                                                                      000019
+    135        dcl-ds config likeds(configDS);                                                                               000020
+    136                                                                                                                      000021
+    137        config.port = 44002;                                                                                          000022
+    138        config.host = '*ANY';                                                                                         000023
+    139                                                                                                                      000024
+    140        il_listen (config : %paddr(myservlet));                                                                       000025
+    141                                                                                                                      000026
+    142    end-proc;                                                                                                         000027
+    143    // -----------------------------------------------------------------------------                                  000028
+    144    // Servlet call back implementation                                                                               000029
+    145    // -----------------------------------------------------------------------------                                  000030
+    146    dcl-proc myservlet;                                                                                               000031
+    147                                                                                                                      000032
+    148        dcl-pi *n;                                                                                                    000033
+    149            request  likeds(REQUESTDS);                                                                               000034
+    150            response likeds(RESPONSEDS);                                                                              000035
+    151        end-pi;                                                                                                       000036
+    152                                                                                                                      000037
+    153        dcl-s counter int(10);                                                                                        000038
+    154        dcl-s payload varchar(4096:4);                                                                                000039
+    155        dcl-s contentType varchar(256);                                                                               000040
+    156                                                                                                                      000041
+    157                                                                                                                      000042
+    158        // test payload:                                                                                              000043
+    159        payload     = il_getContent(request);                                                                         000044
+    160        contentType = il_getRequestHeader(request : 'content-type');                                                  000045
+    161                                                                                                                      000046
+    162                                                                                                                      000047
+    163        for counter = 1 to 10;                                                                   B01                  000048
+    164            il_responseWrite(response: 'counter : ' + %char(counter) + ' ');                      01                  000049
+    165        endfor;                                                                                  E01                  000050
+    166                                                                                                                      000051
+    167    end-proc;                                                                                                         000052
         * * * * *   E N D   O F   S O U R C E   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      6
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      7
+ Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
+ Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      8
            A d d i t i o n a l   D i a g n o s t i c   M e s s a g e s
   Msg id  Sv Number Seq     Message text
- *RNF7030 30     64 000025  The name or indicator NODE_LI... is not defined.
- *RNF7503 30     64 000025  Expression contains an operand that is not defined.
   * * * * *   E N D   O F   A D D I T I O N A L   D I A G N O S T I C   M E S S A G E S   * * * * *
                              / C o p y   M e m b e r s
  Line   Src  RPG name   <-------- External name -------> CCSID  <- Last change ->
  Number Id              Library    File       Member            Date     Time
-     13    1 ILEastic.+ ./.././include/ILEastic.rpgle      819  29-08-18 18:19:23
+     13    1 ILEastic.+ ./.././headers/ILEastic.rpgle     1208  12-09-18 03:12:16
           * * * * *   E N D   O F   / C O P Y   M E M B E R S   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      7
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page      9
                            C r o s s   R e f e r e n c e
        File and Record References:
           File              Device             References (D=Defined)
@@ -458,61 +276,143 @@ EOF
           No references in the source.
        Global Field References:
           Field             Attributes         References (D=Defined M=Modified)
-          CONFIGDS          DS(4166)               14D     40      59
+          CONFIGDS          DS(4166)               19D    104     135
                             BASED(PROTOTYPE+)
- *RNF7031   FILLER          A(4096)                17D
- *RNF7031   HOST            A(64)                  15D
+ *RNF7031   FILLER          A(4096)                22D
+ *RNF7031   HOST            A(64)                  20D
                             VARYING(2)
- *RNF7031   PORT            I(10,0)                16D
- *RNF7031 IL_LISTEN         PROTOTYPE              39D
-          IL_RESPONSEWRITE  PROTOTYPE              44D     80M
+ *RNF7031   PORT            I(10,0)                21D
+          IL_GETCONTENT     A(524284)              88D    159
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETFILEEXTENSION...
+                            A(256)                 98D
+                            VARYING(2)
+                            PROTOTYPE
+ *RNF7031 IL_GETFILEMIMETYPE...
+                            A(256)                 93D
+                            VARYING(2)
+                            PROTOTYPE
+          IL_GETREQUESTHEADER...
+                            A(524284)              82D    160
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTHEADERS...
+                            A(524284)              77D
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTMETHOD...
+                            A(256)                 52D
+                            VARYING(2)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTPROTOCOL...
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page     10
+                            A(256)                 72D
+                            VARYING(2)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTQUERYSTRING...
+                            A(524284)              67D
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTRESOURCE...
+                            A(524284)              62D
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+ *RNF7031 IL_GETREQUESTURL  A(524284)              57D
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+          IL_LISTEN         PROTOTYPE             103D    140M
+          IL_RESPONSEWRITE  PROTOTYPE             108D    164M
  *RNF7031 IL_RESPONSEWRITEBIN...
-                            PROTOTYPE              49D
-          MAIN              PROTOTYPE               9      57
-          MYSERVLET         PROTOTYPE              64      70
- *RNF7030 NODE_LISTEN       **UNDEF**              64M
-          PROTOTYPE_ONLY    *(16)                  14      20      31
-          REQUESTDS         DS(242)                20D     73
-                            BASED(PROTOTYPE+)
- *RNF7031   CONTENTTYPE     A(128)                 26D
- *RNF7031   METHOD          A(32)                  27D
+                            PROTOTYPE             113D
+ *RNF7031 IL_RESPONSEWRITESTREAM...
+                            PROTOTYPE             123D
+ *RNF7031 IL_SERVESTATIC    N(1)                  118D
+                            PROTOTYPE
+ *RNF7031 LCOPY             A(524284)              46D
+                            VARYING(4)
+                            CCSID(1208)
+                            PROTOTYPE
+          LVARPUCHARDS      DS(32)                 14D     27      28      29
+                            BASED(PROTOTYPE+)      30      31      32      33
+                                                   35      48
+ *RNF7031   LENGTH          I(10,0)                15D
+ *RNF7031   STRING          *(16)                  16D
+          MAIN              PROTOTYPE               9     133
+          MYSERVLET         PROTOTYPE             140     146
+          PROTOTYPE_ONLY    *(16)                  14      19      25      38
+          REQUESTDS         DS(544)                25D     54      59      64
+                            BASED(PROTOTYPE+)      69      74      79      84
+                                                   90     149
+ *RNF7031   COMPLETEHEADER  DS(32)                 35D
+ *RNF7031   CONTENT         DS(32)                 33D
+ *RNF7031   CONTENTTYPE     A(256)                 34D
                             VARYING(2)
- *RNF7031   PCONFIG         *(16)                  21D
- *RNF7031   PCONTENT        *(16)                  25D
- *RNF7031   PHEADERS        *(16)                  24D
- *RNF7031   PQUERYSTRING    *(16)                  23D
- *RNF7031   PURL            *(16)                  22D
-          RESPONSEDS        DS(312)                31D     45      50      74
-                            BASED(PROTOTYPE+)
- *RNF7031   CHARSET         A(32)                  36D
+ *RNF7031   HEADERS         DS(32)                 32D
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page     11
+ *RNF7031   METHOD          DS(32)                 27D
+ *RNF7031   PCONFIG         *(16)                  26D
+ *RNF7031   PROTOCOL        DS(32)                 31D
+ *RNF7031   QUERYSTRING     DS(32)                 30D
+ *RNF7031   RESOURCE        DS(32)                 29D
+ *RNF7031   URL             DS(32)                 28D
+          RESPONSEDS        DS(568)                38D    109     114     119
+                            BASED(PROTOTYPE+)     124     150
+ *RNF7031   CHARSET         A(32)                  43D
                             VARYING(2)
- *RNF7031   CONTENTTYPE     A(128)                 35D
+ *RNF7031   CONTENTTYPE     A(256)                 42D
                             VARYING(2)
- *RNF7031   PCONFIG         *(16)                  32D
- *RNF7031   STATUS          I(5,0)                 33D
- *RNF7031   STATUSTEXT      A(128)                 34D
+ *RNF7031   PCONFIG         *(16)                  39D
+ *RNF7031   STATUS          I(5,0)                 40D
+ *RNF7031   STATUSTEXT      A(256)                 41D
                             VARYING(2)
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      8
        Field References for subprocedure MAIN
           Field             Attributes         References (D=Defined M=Modified)
-          CONFIG            DS(4166)               59D     61M     62M     64
-            HOST            A(64)                  62
+          CONFIG            DS(4166)              135D    137M    138M    140
+            HOST            A(64)                 138
                             VARYING(2)
-            PORT            I(10,0)                61
+            PORT            I(10,0)               137
        Field References for subprocedure MYSERVLET
           Field             Attributes         References (D=Defined M=Modified)
-          COUNTER           I(10,0)                77D     79      80
- *RNF7031 REQUEST           DS(242)                73D
-          RESPONSE          DS(312)                74D     80
+          CONTENTTYPE       A(256)                155D    160M
+                            VARYING(2)
+          COUNTER           I(10,0)               153D    163     164
+          PAYLOAD           A(4096)               154D    159M
+                            VARYING(4)
+          REQUEST           DS(544)               149D    159     160
+                            BASED(_QRNL_PST+)
+          RESPONSE          DS(568)               150D    164
+                            BASED(_QRNL_PST+)
        Indicator References:
           Indicator                            References (D=Defined M=Modified)
         * * * * *   E N D   O F   C R O S S   R E F E R E N C E   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page      9
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page     12
                        E x t e r n a l   R e f e r e n c e s
        Statically bound procedures:
           Procedure                            References
-          il_listen                                39
-          il_responseWrite                         44      49      80
+          lvpc2lvc                                 47
+          il_listen                               103     140
+          il_getContent                            89     159
+          il_serveStatic                          118
+          il_getRequestUrl                         58
+          il_responseWrite                        108     113     164
+          il_getFileMimeType                       94
+          il_getRequestMethod                      53
+          il_getRequestHeader                      83     160
+          il_getFileExtension                      99
+          il_getRequestHeaders                     78
+          il_getRequestResource                    63
+          il_getRequestProtocol                    73
+          il_responseWriteStream                  123
+          il_getRequestQueryString                 68
        Imported fields:
           Field             Attributes         Defined
           No references in the source.
@@ -520,28 +420,25 @@ EOF
           Field             Attributes         Defined
           No references in the source.
     * * * * *   E N D   O F   E X T E R N A L   R E F E R E N C E S   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page     10
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page     13
                            M e s s a g e   S u m m a r y
   Msg id  Sv Number Message text
- *RNF7031 00     31 The name or indicator is not referenced.
- *RNF7030 30      1 The name or indicator is not defined.
- *RNF7503 30      1 Expression contains an operand that is not defined.
+ *RNF7031 00     80 The name or indicator is not referenced.
         * * * * *   E N D   O F   M E S S A G E   S U M M A R Y   * * * * *
-  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   29-08-18 19:05:49        Page     11
+  5770WDS V7R3M0  160422 RN        IBM ILE RPG             ILEASTIC/DEMO02          DKSRV133   12-09-18 03:12:23        Page     14
                              F i n a l   S u m m a r y
    Message Totals:
-     Information  (00) . . . . . . . :       31
+     Information  (00) . . . . . . . :       80
      Warning      (10) . . . . . . . :        0
      Error        (20) . . . . . . . :        0
-     Severe Error (30+)  . . . . . . :        2
+     Severe Error (30+)  . . . . . . :        0
      ---------------------------------  -------
-     Total . . . . . . . . . . . . . :       33
+     Total . . . . . . . . . . . . . :       80
    Source Totals:
-     Records . . . . . . . . . . . . :       83
-     Specifications  . . . . . . . . :       49
+     Records . . . . . . . . . . . . :      167
+     Specifications  . . . . . . . . :      113
      Data records  . . . . . . . . . :        0
-     Comments  . . . . . . . . . . . :       13
+     Comments  . . . . . . . . . . . :       14
           * * * * *   E N D   O F   F I N A L   S U M M A R Y   * * * * *
- Compilation stopped. Severity 30 errors found in program.
+ Program DEMO02 placed in library ILEASTIC. 00 highest severity. Created on 12-09-18 at 03:12:23.
            * * * * *   E N D   O F   C O M P I L A T I O N   * * * * *
-makefile:12: recipe for target 'compile' failed

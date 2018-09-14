@@ -2,6 +2,7 @@
 #define  SYSDEF_H
 
 #include "ostypes.h"
+#include "xlate.h"
 
 #define  SOCMAXREAD 650000
 
@@ -36,9 +37,14 @@ typedef _Packed struct _CONFIG  {
     UCHAR     rmtHost [32];
     ULONG     rmtTcpIp;
     int       rmtPort;
-    
+    PXLATEDESC e2a;
+    PXLATEDESC a2e;
 } CONFIG,  *PCONFIG;
 
+typedef _Packed struct _HEADERLIST  {
+    LVARPUCHAR  key;     
+    LVARPUCHAR  value;
+} HEADERLIST , *PHEADERLIST;
 
 typedef _Packed struct _REQUEST  {
     PCONFIG     pConfig;
@@ -49,23 +55,25 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  protocol;
     LVARPUCHAR  headers;
     LVARPUCHAR  content;
-    VARCHAR128  contentType;
+    VARCHAR256  contentType;
+    ULONG       contentLength;
     LVARPUCHAR  completeHeader;
-
+    PHEADERLIST headerList;
 } REQUEST , *PREQUEST;
+
 
 typedef _Packed struct _RESPONSE  {
     PCONFIG     pConfig;
     SHORT       status;
-    VARCHAR128  statusText;
-    VARCHAR128  contentType ;
+    VARCHAR256  statusText;
+    VARCHAR256  contentType ;
     VARCHAR32   charset;
     // private
     UCHAR   filler      [512];
     BOOL    firstWrite;  
 } RESPONSE , *PRESPONSE;
 
-/* function pointers */
+// function pointers
 typedef  void (* SERVLET) (PREQUEST pRequest, PRESPONSE pResponse);
 
 typedef _Packed struct _INSTANCE  {
@@ -81,6 +89,8 @@ typedef _Packed struct _INSTANCE  {
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);   
 void putHeader (PRESPONSE pResponse);
 int socketWait (int sd , int sec);
+PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key);
+
       
 
 #endif
