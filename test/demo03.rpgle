@@ -12,8 +12,7 @@
 
         /include ./headers/ILEastic.rpgle
         /include ./headers/JSONparser.rpgle
-        
-        
+                
         // -----------------------------------------------------------------------------
         // Main
         // -----------------------------------------------------------------------------     
@@ -48,6 +47,5 @@
             il_responseWriteStream(response : json_stream(pOutput));
 
             json_delete(pOutput);
-            
-
+           
         end-proc;
