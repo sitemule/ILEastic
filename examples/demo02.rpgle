@@ -17,7 +17,7 @@
         // -----------------------------------------------------------------------------     
         dcl-proc main;
 
-            dcl-ds config likeds(configDS);
+            dcl-ds config likeds(il_config);
 
             config.port = 44002; 
             config.host = '*ANY';
@@ -31,8 +31,8 @@
         dcl-proc myservlet;
 
             dcl-pi *n;
-                request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);
+                request  likeds(il_request);
+                response likeds(il_response);
             end-pi;
   
             dcl-s counter int(10);

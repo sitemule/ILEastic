@@ -1,17 +1,26 @@
 # ILEastic
-It is a self contained web application server for the ILE environment on IBM i running microservices. 
+It is a self contained web application server for the ILE environment on IBM i 
+running microservices. 
 
-ILEastic is a service program that provides a simple, blazing fast programmable HTTP server for your application so you easy can plug your RPG code into a services infrastructure or make simple web applications without the need of any third party webserver products.
+ILEastic is a service program that provides a simple, blazing fast programmable 
+HTTP server for your application so you easy can plug your RPG code into a services 
+infrastructure or make simple web applications without the need of any third party 
+webserver products.
 
 Basically it is a HTTP application server you can bind into your own ILE RPG projects, 
-to give you a easy deploy mechanism, that fits into DevOps and microservices alike environments.
+to give you a easy deploy mechanism, that fits into DevOps and microservices alike 
+environments.
 
-The self contained web application server makes it so much easier to develop web application. 
+The self contained web application server makes it so much easier to develop 
+web application. 
 
-Simply compile and submit. Yes - You don't need GCI, Apache, nginx or IceBreak - simply compile and submit.
+Simply compile and submit. Yes - You don't need GCI, Apache, nginx or IceBreak - 
+simply compile and submit.
 
-The design paradigm is the same as found in Node.JS - so project was initially called node.RPG but the name was subject to some discussion, so ILEastic it is.
-Where Node.JS uses JavaScript, ILEastic aims for any ILE language where RPG are the most popular.
+The design paradigm is the same as found in Node.JS - so project was initially 
+called node.RPG but the name was subject to some discussion, so ILEastic it is.
+Where Node.JS uses JavaScript, ILEastic aims for any ILE language where RPG are 
+the most popular.
 
 Except for initialization, It only requires two lines of code:
 ```
@@ -26,62 +35,66 @@ callback procedure that takes a request and a response parameter
 ![](image.png)
 
 
-The idea is that you deploy your (open source of cause) RPG packages at NPM so the RPG community can benefit from each others work. The NPM ecosystem is the same for Node.JS and ILEastic.    
+The idea is that you deploy your (open source of cause) RPG packages at NPM so 
+the RPG community can benefit from each others work. The NPM ecosystem is the 
+same for Node.JS and ILEastic.    
 
 
 Example: 
 ```
-        // -----------------------------------------------------------------------------
-        // This example runs a simple servlet using ILEastic
-        // Note: It requires your RPG code to be reentrant and compiled
-        // for multithreading. Each client request is handled by a seperate thread.
-        // Start it:
-        // SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
-        // -----------------------------------------------------------------------------     
-        ctl-opt copyright('Sitemule.com  (C), 2018');
-        ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
-        ctl-opt debug(*yes) bndDir('ILEASTIC');
-        ctl-opt thread(*CONCURRENT);
-        /include include/ileastic.rpgle
-        // -----------------------------------------------------------------------------
-        // Main
-        // -----------------------------------------------------------------------------     
-        dcl-proc main;
+**FREE
 
-            dcl-ds config likeds(configDS);
+// -----------------------------------------------------------------------------
+// This example runs a simple servlet using ILEastic
+// Note: It requires your RPG code to be reentrant and compiled
+// for multithreading. Each client request is handled by a seperate thread.
+// Start it:
+// SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// -----------------------------------------------------------------------------     
+ctl-opt copyright('Sitemule.com  (C), 2018');
+ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
+ctl-opt debug(*yes) bndDir('ILEASTIC');
+ctl-opt thread(*CONCURRENT);
+/include include/ileastic.rpgle
+// -----------------------------------------------------------------------------
+// Main
+// -----------------------------------------------------------------------------     
+dcl-proc main;
 
-            config.port = 44001;
-            config.host = '*ANY';
+    dcl-ds config likeds(configDS);
 
-            il_listen (config : %paddr(myservlet));
+    config.port = 44001;
+    config.host = '*ANY';
 
-        end-proc;
-        // -----------------------------------------------------------------------------
-        // Servlet call back implementation
-        // -----------------------------------------------------------------------------     
-        dcl-proc myservlet;
+    il_listen (config : %paddr(myservlet));
 
-            dcl-pi *n;
-                request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);
-            end-pi;
+end-proc;
+// -----------------------------------------------------------------------------
+// Servlet call back implementation
+// -----------------------------------------------------------------------------     
+dcl-proc myservlet;
+
+    dcl-pi *n;
+        request  likeds(il_request);
+        response likeds(il_response);
+    end-pi;
   
-            il_responseWrite(response:'Hello world');
+    il_responseWrite(response:'Hello world');
 
-        end-proc;
+end-proc;
 ```
 
  
 # Installation
 What you need before you start:
 
-* IBMI 7.3 TR3 ( obove or alike)
+* IBM i 7.3 TR3 ( obove or alike)
 * git and gmake ( 5733OPS or YUM)
 * ILE C 
 * ILE RPG compiler.
 
 
-From a IBMi menu prompt start the SSH deamon:`===> STRTCPSVR *SSHD`
+From a IBM i menu prompt start the SSH deamon:`===> STRTCPSVR *SSHD`
 Or start ssh from win/mac
 
 ```
@@ -95,8 +108,8 @@ gmake
 ```
 
 # Test it:
-Log on to your IBMi.
-from a IBMi menu prompt 
+Log on to your IBM i.
+from a IBM i menu prompt 
 ````
 CALL QCMD
 ADDLIBLE ILEASTIC
@@ -111,19 +124,24 @@ Now test it in a browser:
 A simple hello and list with a counter. Please note that the job requires `ALWMLTTHD(*YES)`
 
 
-# Develop:
-You compile the project with gmake, and I have also included a 
-setup folder for vsCode so you can compile any changes 
-with `Ctrl-shift-B` You need however to 
-change .vsCode/task.json file to point 
-to your IBMi address. The compile feature requires that you have SSH stated: `STRTCPSVR *SSHD` 
+# Develop
+You compile the project with gmake, and I have also included a setup folder for
+vsCode so you can compile any changes with `Ctrl-shift-B` You need however to 
+change .vsCode/task.json file to point to your IBM i address. The compile feature 
+requires that you have SSH stated: `STRTCPSVR *SSHD` 
 
 # Moving on
-In this first commit we have only implemented the `il_listen` and `il_responseWrite`, so there is not much use for real world application, however - all the plumbing around with git / compile / deploy are working. We at Sitemule.com are striving to move the core of the IceBreak server into the ILEastic project over the next couple of months. So stay tuned.
+In this first commit we have only implemented the `il_listen` and `il_responseWrite`, 
+so there is not much use for real world application, however - all the plumbing 
+around with git / compile / deploy are working. We at Sitemule.com are striving 
+to move the core of the IceBreak server into the ILEastic project over the next 
+couple of months. So stay tuned.
 
 
 # Note
-This project was initially call Node.RPG, however people could not find the node.js code :) so obvously it was a bad name. Thanks for the feedback pointing me into a better direction.
+This project was initially call Node.RPG, however people could not find the 
+node.js code :) so obvously it was a bad name. Thanks for the feedback pointing 
+me into a better direction.
 
 Happy ILEastic coding
 
