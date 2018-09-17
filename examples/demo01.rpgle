@@ -17,7 +17,7 @@ ctl-opt thread(*CONCURRENT);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(IL_CONFIG);
 
     config.port = 44001; 
     config.host = '*ANY';
@@ -31,8 +31,8 @@ end-proc;
 dcl-proc myservlet;
 
     dcl-pi *n;
-        request  likeds(il_request);
-        response likeds(il_response);
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
     end-pi;
 
     dcl-s file varchar(256);

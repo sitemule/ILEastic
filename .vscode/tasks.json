@@ -48,6 +48,16 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "Compile current example file",
+            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake compile SRC=${fileBasename} OBJ=${fileBasenameNoExtension}'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         }
     ]
 }

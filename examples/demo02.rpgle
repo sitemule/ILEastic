@@ -46,39 +46,52 @@
 
             // Simple printout
             il_responseWrite(response:
-                            'method: ' + 
-                            lcopy(request.method)
-                             + '<br>');
+                'method: ' + 
+                il_getRequestMethod (request)
+                + '<br>'
+            );
 
             il_responseWrite(response:
-                            'url: ' + 
-                            lcopy(request.url)
-                             + '<br>');
+                'url: ' + 
+                il_getRequestUrl  (request)
+                    + '<br>'
+            );
 
             il_responseWrite(response:
-                            'resource: ' + 
-                            lcopy(request.resource)
-                             + '<br>');
+                'resource: ' + 
+                il_getRequestResource(request)
+                    + '<br>'
+            );
 
             il_responseWrite(response:
-                            'queryString: ' + 
-                            lcopy(request.queryString)
-                             + '<br>');
+                'queryString: ' + 
+                il_getRequestQueryString (request)
+                    + '<br>'
+            );
                              
             il_responseWrite(response:
-                            'protocol: ' + 
-                            lcopy(request.protocol)
-                             + '<br>');
-                             
+                'protocol: ' + 
+                il_getRequestProtocol(request)
+                    + '<br>'
+            );
+
             il_responseWrite(response:
-                            'content: ' + 
-                            lcopy(request.content)
-                             + '<br>');
-                             
+                'All headers : ' + 
+                il_getRequestHeaders (request)
+                    + '<br>'
+            );
+
             il_responseWrite(response:
-                            'contentType: ' + 
-                            request.contentType
-                             + '<br>');
+                'content: ' + 
+                il_getContent (request)
+                    + '<br>'
+            );
+                    
+            il_responseWrite(response:
+                'contentType: ' + 
+                il_getRequestHeader (request : 'content-type')
+                + '<br>'
+            );
 
             for counter = 1 to 10;
                 il_responseWrite(response: 'counter : ' + %char(counter) + ' ');

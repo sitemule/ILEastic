@@ -18,7 +18,7 @@
         // -----------------------------------------------------------------------------     
         dcl-proc main;
 
-            dcl-ds config likeds(configDS);
+            dcl-ds config likeds(IL_CONFIG);
 
             config.port = 44003; 
             config.host = '*ANY';
@@ -32,8 +32,8 @@
         dcl-proc myservlet;
 
             dcl-pi *n;
-                request  likeds(REQUESTDS);
-                response likeds(RESPONSEDS);    
+                request  likeds(IL_REQUEST);
+                response likeds(IL_RESPONSE);    
             end-pi;
 
             dcl-s pOutput   pointer;
