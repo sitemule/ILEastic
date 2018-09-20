@@ -158,7 +158,7 @@ void putHeader (PRESPONSE pResponse)
 /* --------------------------------------------------------------------------- 
    Split the url at "?" into resource, and queryString
    --------------------------------------------------------------------------- */
-static void parseQuesryString (PREQUEST pRequest)
+static void parseQueryString (PREQUEST pRequest)
 {
     pRequest->resource.String = pRequest->url.String;
     pRequest->queryString.String = memchr(pRequest->url.String, 0x3F, pRequest->url.Length);
@@ -281,7 +281,7 @@ static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 
 
     // The request is now parsed into raw components:
-    parseQuesryString (pRequest);
+    parseQueryString (pRequest);
     parseHeaders (pRequest);
 
     pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
