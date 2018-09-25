@@ -109,8 +109,12 @@ end-pr;
 ///
 // Get request URL
 // 
-// Returns the full request URL.
-// 
+// Returns the request URL consisting of the resource and the query string.
+// http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return
+// /api/v1/iledocs/search?q=map&scope=full .
+// <br/><br/>
+// Any fragment entered in the request URL is not part of the return value.
+//
 // @param Request
 // @return URL
 ///
@@ -122,7 +126,9 @@ end-pr;
 ///
 // Get request resource
 //
-// ???
+// Return the full resources path excluding the query string and the fragment.
+// http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return
+// /api/v1/iledocs/search .
 //
 // @param Request
 // @return Resource
@@ -137,8 +143,9 @@ end-pr;
 //
 // Returns the request query string (without the starting ? separator). So for
 // a request like http://localhost:8080/path?query=string you would get 
-// query=string as the return value. If the URL does not contain a query string
-// a zero length string is returned.
+// query=string as the return value. The ? sign as a separator of the resource
+// path and the query string is not part of the return value. If the URL does 
+// not contain a query string a zero length string is returned.
 //
 // @param Request
 // @return Query string
@@ -151,7 +158,7 @@ end-pr;
 ///
 // Get request protocol
 //
-// Returns the request protocol.
+// Returns the request protocol, f. e. HTTP/1.1 .
 //
 // @param Request
 // @return Protocol
@@ -191,7 +198,10 @@ end-pr;
 ///
 // Get request content
 //
-// Returns the body content of the HTTP message.
+// Returns the body content of the HTTP message. If the content exceeds
+// the length of the return value the subfield <em>content</em> of the 
+// request data structure can be accessed directly to process the 
+// content block by block, see il_request.content.
 //
 // @param Request
 // @return HTTP message content
