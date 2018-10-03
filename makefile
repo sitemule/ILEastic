@@ -33,7 +33,7 @@ compile:
 	system "CRTCMOD MODULE($(BIN_LIB)/stream) SRCSTMF('src/stream.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('src/ileastic.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('src/varchar.c') $(CCFLAGS) "
-	system "CRTCMOD MODULE($(BIN_LIB)/callbacks) SRCSTMF('src/callbacks.c') $(CCFLAGS)"
+	system "CRTCMOD MODULE($(BIN_LIB)/api) SRCSTMF('src/api.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/sndpgmmsg) SRCSTMF('src/sndpgmmsg.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/strUtil) SRCSTMF('src/strUtil.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('src/e2aa2e.c') $(CCFLAGS)"
