@@ -185,6 +185,9 @@ static void parseHeaders (PREQUEST pRequest)
     while (begin < headend) {
         for (;*begin == 0x20; begin ++); // Skip blank(s)
         end  = memmem(begin, headend - begin , eol , 2); // Find end of line
+        if (end == null) { // end of line not found => end of headers
+          end = headend;
+        }
         split= memchr(begin, 0x3A, end - begin ); // Split at the : colon
         if (split == null) break;
 
@@ -199,7 +202,7 @@ static void parseHeaders (PREQUEST pRequest)
 
         // Next iteration
         begin = end + 2; // After the eol mark
-        hIx ++;
+        hIx++;
     }
     // Store the header list in the request structure
     pRequest->headerList = malloc((hIx +1) * sizeof(HEADERLIST)); // plus room for the termination zero
@@ -236,7 +239,7 @@ PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key)
    Parse this: 
    GET / HTTP/1.1██Host: dksrv133:44001██Con
    --------------------------------------------------------------------------- */
-static BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
+BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 {
 
     ULONG beforeHeadersLen;

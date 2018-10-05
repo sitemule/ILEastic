@@ -62,7 +62,9 @@ dcl-ds il_request qualified template;
     headers        likeds(il_varchar);
     content        likeds(il_varchar);
     contentType    varchar(256);
+    contentLength  uns(20);
     completeHeader likeds(il_varchar);
+    headerList     pointer;
 end-ds;
 
 ///

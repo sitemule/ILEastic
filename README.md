@@ -7,9 +7,9 @@ HTTP server for your application so you easy can plug your RPG code into a servi
 infrastructure or make simple web applications without the need of any third party 
 webserver products.
 
-Basically it is a HTTP application server you can bind into your own ILE RPG projects, 
-to give you a easy deploy mechanism, that fits into DevOps and microservices alike 
-environments.
+Basically it is a HTTP application server you can bind into your own ILE RPG 
+projects, to give you a easy deploy mechanism, that fits into DevOps and 
+microservices alike environments.
 
 The self contained web application server makes it so much easier to develop 
 web application. 
@@ -91,20 +91,20 @@ What you need before you start:
 * IBM i 7.3 TR3 ( obove or alike)
 * git and gmake ( 5733OPS or YUM)
 * ILE C 
-* ILE RPG compiler.
+* ILE RPG compiler
 
 
 From a IBM i menu prompt start the SSH deamon:`===> STRTCPSVR *SSHD`
-Or start ssh from win/mac
+Or start ssh from win/mac/linux
 
 ```
 mkdir /prj
 cd /prj 
-git -c http.sslVerify=false clone https://github.com/NielsLiisberg/ILEastic.git
+git -c http.sslVerify=false clone https://github.com/sitemule/ILEastic.git
 cd ILEastic
-gmake 
+make 
 cd test 
-gmake
+make
 ```
 
 # Test it:
@@ -121,14 +121,19 @@ Now test it in a browser:
 * http://myibmi:44998
 * http://myibmi:44999
 
-A simple hello and list with a counter. Please note that the job requires `ALWMLTTHD(*YES)`
+A simple hello and list with a counter. Please note that the job requires 
+`ALWMLTTHD(*YES)`.
 
 
 # Develop
 You compile the project with gmake, and I have also included a setup folder for
-vsCode so you can compile any changes with `Ctrl-shift-B` You need however to 
+vsCode so you can compile any changes with `Ctrl-Shift-B` You need however to 
 change .vsCode/task.json file to point to your IBM i address. The compile feature 
-requires that you have SSH stated: `STRTCPSVR *SSHD` 
+requires that you have SSH started: `STRTCPSVR *SSHD` 
+
+# Unit Tests
+For executing the unit tests located in the folder _unittests_ you need to 
+previously install either [iRPGUnit][iru] or [RPGUnit][ru].
 
 # Moving on
 In this first commit we have only implemented the `il_listen` and `il_responseWrite`, 
@@ -144,4 +149,7 @@ node.js code :) so obvously it was a bad name. Thanks for the feedback pointing
 me into a better direction.
 
 Happy ILEastic coding
+
+[iru]: https://irpgunit.sourceforge.net
+[ru]: https://rpgunit.sourceforge.net
 
