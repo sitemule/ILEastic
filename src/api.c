@@ -33,6 +33,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <spawn.h>
+#include <regex.h>
+
 
 
 #include "ostypes.h"
@@ -40,6 +42,11 @@
 #include "sysdef.h"
 #include "strUtil.h"
 #include "streamer.h"
+#include "simplelist.h"
+#include "sndpgmmsg.h"
+#include "parms.h"
+
+
 
 
 /* --------------------------------------------------------------------------- */
@@ -168,5 +175,47 @@ LGL il_serveStatic (PRESPONSE pResponse, PVARCHAR fileName)
     fclose (fp);   
     return OFF;
 }
+/* --------------------------------------------------------------------------- *\
+    Handle :
+    il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
+\* --------------------------------------------------------------------------- */
+void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCHAR routeReg , PVARCHAR contentReg )
+{
+    PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
+    LONG rc;
+    UCHAR msg  [100];
+    ULONG options =  REG_NOSUB + REG_EXTENDED + REG_ICASE;
+    ROUTING routing;
 
+    if (pConfig->router == NULL) {
+        pConfig->router = sList_new ();
+    }
+
+    routing.routeReg   = NULL;
+    routing.contentReg = NULL;
+    routing.servlet    = servlet;
+    routing.routeType  = pParms->OpDescList->NbrOfParms >= 3 ? routeType : IL_ANY;
+
+    if (pParms->OpDescList->NbrOfParms >= 4) {
+        routing.routeReg   = malloc(sizeof(regex_t));
+        rc = regcomp(routing.routeReg, vc2str(routeReg) , options );
+        if (rc) {
+            regerror(rc, routing.routeReg  , msg , 100);
+            joblog( "Could not compile regex %s for routing. reason : %s " , vc2str(routeReg) , msg);
+            exit(0);
+        }
+    }
+    
+    if (pParms->OpDescList->NbrOfParms >= 5) {
+        routing.contentReg = malloc(sizeof(regex_t));
+        rc = regcomp(routing.contentReg, vc2str(contentReg) , options );
+        if (rc) {
+            regerror(rc, routing.contentReg  , msg , 100);
+            joblog( "Could not compile regex %s for content type. reason : %s " , vc2str(contentReg) , msg);
+            exit(0);
+        }
+    }
+
+    sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
+}        
 
