@@ -251,7 +251,7 @@ end-pr;
 ///
 dcl-pr il_listen extproc(*CWIDEN:'il_listen');
     config      likeds(il_config);
-    servlet     pointer(*PROC) value;    
+    servlet     pointer(*PROC) value options(*nopass) ;    
 end-pr;
 
 ///
@@ -317,4 +317,19 @@ end-pr;
 dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');
     response    likeds(il_response);
     stream      pointer value; // Pointer returned by i.e. json_stream from noxDB
+end-pr;
+
+// Methods ( can be added like IL_GET + IL_POST)
+dcl-c IL_GET     const(1);
+dcl-c IL_POST    const(2);
+dcl-c IL_DELETE  const(4);
+dcl-c IL_PUT     const(8);
+dcl-c IL_ANY     const(1023);
+
+dcl-pr il_addRoute  extproc(*CWIDEN:'il_addRoute');
+    config       likeds(il_config);
+    servlet      pointer(*PROC) value;
+    methods      int(5) value options(*nopass);  
+    route        varchar(1024) const options(*nopass);
+    contentstype varchar(1024) const options(*nopass);
 end-pr;

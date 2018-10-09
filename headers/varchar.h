@@ -115,6 +115,9 @@ void vccatf    ( PVAR_CHAR VarChar, PUCHAR Ctlstr , ...);
 // Long versions
 void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in);
 void lvpc2vc  (PVARCHAR out, PLVARPUCHAR in);
+BOOL vpcIsEqual(PVARPUCHAR p1, PVARPUCHAR p2);
+BOOL lvpcIsEqual(PLVARPUCHAR p1, PLVARPUCHAR p2);
+
 
 
 #endif

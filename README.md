@@ -61,7 +61,7 @@ ctl-opt thread(*CONCURRENT);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(configDS);
+    dcl-ds config likeds(IL_CONFIG);
 
     config.port = 44001;
     config.host = '*ANY';
@@ -75,8 +75,8 @@ end-proc;
 dcl-proc myservlet;
 
     dcl-pi *n;
-        request  likeds(il_request);
-        response likeds(il_response);
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
     end-pi;
   
     il_responseWrite(response:'Hello world');
@@ -102,10 +102,9 @@ mkdir /prj
 cd /prj 
 git -c http.sslVerify=false clone https://github.com/sitemule/ILEastic.git
 cd ILEastic
-make 
-cd test 
-make
-```
+gmake 
+cd examples 
+gmake
 
 # Test it:
 Log on to your IBM i.
@@ -115,14 +114,18 @@ CALL QCMD
 ADDLIBLE ILEASTIC
 SBMJOB CMD(CALL PGM(DEMO01)) ALWMLTTHD(*YES) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) 
 SBMJOB CMD(CALL PGM(DEMO02)) ALWMLTTHD(*YES) JOB(ILEASTIC2) JOBQ(QSYSNOMAX) 
+SBMJOB CMD(CALL PGM(DEMO03)) ALWMLTTHD(*YES) JOB(ILEASTIC3) JOBQ(QSYSNOMAX) 
+SBMJOB CMD(CALL PGM(DEMO04)) ALWMLTTHD(*YES) JOB(ILEASTIC4) JOBQ(QSYSNOMAX) 
 ````
 Now test it in a browser:
 
-* http://myibmi:44998
-* http://myibmi:44999
+* http://myibmi:44001  Simple website demo
+* http://myibmi:44002  Listing of all HTTP header send by the client  
+* http://myibmi:44003  A real SQL based microservice, bulding a list of customers 
+* http://myibmi:44004  A router example. A webserver with 404 - file not found. and "about"
 
-A simple hello and list with a counter. Please note that the job requires 
-`ALWMLTTHD(*YES)`.
+
+Please note that the job requires `ALWMLTTHD(*YES)`
 
 
 # Develop
@@ -136,8 +139,9 @@ For executing the unit tests located in the folder _unittests_ you need to
 previously install either [iRPGUnit][iru] or [RPGUnit][ru].
 
 # Moving on
-In this first commit we have only implemented the `il_listen` and `il_responseWrite`, 
-so there is not much use for real world application, however - all the plumbing 
+So far we have implemented the basic features like `il_listen` , `il_responseWrite` and
+`il_addRoute` - look at the prototypes in `ILEastic.rpgle` header file for the complete 
+list of features. There are still much work to do, however - all the plumbing 
 around with git / compile / deploy are working. We at Sitemule.com are striving 
 to move the core of the IceBreak server into the ILEastic project over the next 
 couple of months. So stay tuned.

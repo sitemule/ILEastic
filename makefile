@@ -46,6 +46,7 @@ compile:
 	system "CRTCMOD MODULE($(BIN_LIB)/strUtil) SRCSTMF('src/strUtil.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/e2aa2e) SRCSTMF('src/e2aa2e.c') $(CCFLAGS)"
 	system "CRTCMOD MODULE($(BIN_LIB)/xlate) SRCSTMF('src/xlate.c') $(CCFLAGS)"
+	system "CRTCMOD MODULE($(BIN_LIB)/simplelist) SRCSTMF('src/simplelist.c') $(CCFLAGS)"
 
 bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"

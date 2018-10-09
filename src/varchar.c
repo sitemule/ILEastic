@@ -15,6 +15,7 @@
 #include "strUtil.h"
 #include "varchar.h"
 
+
 /* ------------------------------------------------------------- */
 // LONG (  4 byte length)
 /* ------------------------------------------------------------- */ 
@@ -227,6 +228,14 @@ VARPUCHAR vpcSetString(PUCHAR s)
 }
 /* ---------------------------------------------------------------------------------------- */
 BOOL vpcIsEqual(PVARPUCHAR p1, PVARPUCHAR p2)
+{
+   return (
+       (p1->Length == p2->Length)
+   &&  (memicmp (p1->String , p2->String ,p2->Length) == 0)
+   );
+}
+/* ---------------------------------------------------------------------------------------- */
+BOOL lvpcIsEqual(PLVARPUCHAR p1, PLVARPUCHAR p2)
 {
    return (
        (p1->Length == p2->Length)

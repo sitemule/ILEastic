@@ -13,14 +13,14 @@
 #define FD_SETSIZE 4096
 #define MAXHEADERS 4096
 
-#include <os2.h>
+#include "os2.h"
 #include <pthread.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <decimal.h>
+#include "decimal.h"
 #include <fcntl.h>
 
 
@@ -43,6 +43,8 @@
 #include "strUtil.h"
 #include "e2aa2e.h"
 #include "xlate.h"
+#include "simplelist.h"
+#include "parms.h"
 
 /* --------------------------------------------------------------------------- */
 // TOOLS - TODO move to own files:
@@ -358,8 +360,46 @@ static BOOL receiveHeader (PREQUEST pRequest)
         }
     }
 }
-/* --------------------------------------------------------------------------- */
 
+/* --------------------------------------------------------------------------- *\
+    Handle :
+    il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
+\* --------------------------------------------------------------------------- */
+void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
+{
+    int rc;
+    UCHAR msgbuf[100];
+    PSLIST pRouts;
+	PSLISTNODE pRouteNode;
+    PUCHAR resource = malloc(pRequest->resource.Length +1);
+
+    if (pRequest->pConfig->router == NULL) return;
+
+    // get the ebcdic version of the resource
+    mema2e(resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
+    resource[pRequest->resource.Length] = '\0';  // Need it as a string
+
+    pRouts    =  pRequest->pConfig->router;
+	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
+    
+        PROUTING pRouting = pRouteNode->payloadData;
+
+        // Execute regular expression
+        // If non is given then it is a match as well. That counts for a "match all"
+        rc = pRouting->routeReg == NULL ? 0 :regexec(pRouting->routeReg, resource, 0, NULL, 0);
+        if (rc == 0) { // Match found
+            if  (ON == pRouting->servlet ( pRequest, pResponse)) {
+                free (resource);
+                return;
+            };
+        }
+    }
+
+    joblog( "No routing found for request:  %s " , resource);
+    free (resource);
+
+}
+/* --------------------------------------------------------------------------- */
 static void * serverThread (PINSTANCE pInstance)
 {
     REQUEST  request;
@@ -378,7 +418,11 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.contentType , "text/html");
         str2vc(&response.charset     , "UTF-8");
         str2vc(&response.statusText  , "OK");
-        pInstance->servlet (&request , &response);
+        if (pInstance->servlet) {
+            pInstance->servlet (&request , &response);
+        } else {
+            runServletByRouting (&request , &response);
+        }
         putChunkEnd (&response);
 
         // Clean up this transaction 
@@ -527,6 +571,7 @@ void setMaxSockets(void)
 /* ------------------------------------------------------------- */
 void il_listen (PCONFIG pConfig, SERVLET servlet)
 {
+    PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
     BOOL     resetSocket = TRUE;
 
     setMaxSockets();
@@ -576,7 +621,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         pInstance = malloc(sizeof(INSTANCE));
         memcpy(&pInstance->config , pConfig , sizeof(CONFIG));
         pInstance->config.clientSocket   = clientSocket;
-        pInstance->servlet = servlet;
+        pInstance->servlet = pParms->OpDescList->NbrOfParms >= 2 ? servlet : NULL;
+
         rc = pthread_create(&pServerThread , NULL, serverThread , pInstance);
         if (rc) {
             joblog("Thread not started");
