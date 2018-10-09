@@ -126,7 +126,7 @@ Now test it in a browser:
 * http://myibmi:44004  A router example. A webserver with 404 - file not found. and "about"
 
 
-A simple hello and list with a counter. Please note that the job requires `ALWMLTTHD(*YES)`
+Please note that the job requires `ALWMLTTHD(*YES)`
 
 
 # Develop
