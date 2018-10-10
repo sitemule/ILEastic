@@ -8,9 +8,10 @@
 // SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // -----------------------------------------------------------------------------     
 ctl-opt copyright('Sitemule.com  (C), 2018');
-ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
+ctl-opt decEdit('0,') datEdit(*YMD.) ;
 ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
 ctl-opt thread(*CONCURRENT);
+ctl-opt main(main);
 /include ./headers/ILEastic.rpgle
 // -----------------------------------------------------------------------------
 // Main
@@ -18,12 +19,11 @@ ctl-opt thread(*CONCURRENT);
 dcl-proc main;
 
     dcl-ds config likeds(IL_CONFIG);
-
     config.port = 44001; 
     config.host = '*ANY';
 
     il_listen (config : %paddr(myservlet));
-
+ 
 end-proc;
 // -----------------------------------------------------------------------------
 // Servlet call back implementation

@@ -38,8 +38,8 @@
             ]
         },
         {
-            "label": "Compile Test modules for ILEastic",
-            "command": "ssh dksrv133 'cd /prj/ILEastic/test/;gmake'",
+            "label": "Compile all example files",
+            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake '",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -51,7 +51,7 @@
         },
         {
             "label": "Compile current example file",
-            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake compile SRC=${fileBasename} OBJ=${fileBasenameNoExtension}'",
+            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake ${fileBasename} '",
             "type": "shell",
             "group": {
                 "kind": "build",
