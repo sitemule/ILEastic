@@ -1,25 +1,25 @@
 ﻿#
 # Build test cases for ILEastic
-#
+# This works for:
+#  gmake                  compiles all RPGLE file 
+#  gmake   demo01.rpgle   only compiles this single file
 BIN_LIB=ILEASTIC
-
-
-
-
-# to this folder the header files (prototypes) are copied in the install step
-#	system -i "CRTBNDRPG  PGM($(BIN_LIB)/demo01) SRCSTMF('demo01.rpgle') $(RPG_OPT)" 
-#	system -i "CRTBNDRPG  PGM($(BIN_LIB)/demo02) SRCSTMF('demo02.rpgle') $(RPG_OPT)" 
 RPG_OPT=DBGVIEW(*LIST) INCDIR('./..' '/prj/noxdb')
-    
-all: compile
+
+pgm := $(wildcard *.rpgle) 
+
 .ONESHELL:
-compile: 
+.PHONY: compile
+compile: $(pgm)
+
+$(pgm): always
+	@echo "---- Compiling program $(basename $@) from source $@ ---- Look for errors in 'error.txt' if needed"
 	qsh <<EOF 
 	export QIBM_CCSID=277
 	liblist -a noxdb
 	liblist -a $(BIN_LIB)
-	system -i "CRTBNDRPG  PGM($(BIN_LIB)/$(OBJ)) SRCSTMF('$(SRC)') $(RPG_OPT)" > error.txt
+	system -i "CRTBNDRPG  PGM($(BIN_LIB)/$(basename $@)) SRCSTMF('$@') $(RPG_OPT)" > error.txt
 	EOF
-       
-.PHONY: compile
 
+# The trick is 'always' is empty and trigger target to run always since we dont have an output object
+always:
