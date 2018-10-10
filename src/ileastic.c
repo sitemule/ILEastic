@@ -20,8 +20,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "decimal.h"
+#include <decimal.h>
 #include <fcntl.h>
+#include <time.h>       /* time_t, struct tm, time, localtime, strftime */
 
 
 /* in qsysinc library */
@@ -124,7 +125,32 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
     free (tempBuf);                                        
                                                             
-}                                                         
+}               
+/* --------------------------------------------------------------------------- */
+/*  Sun, 06 Nov 1994 08:49:37 GMT    ; IMF-fixdate */
+/* --------------------------------------------------------------------------- */
+PUCHAR imfTimeString(PUCHAR buf)
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+    static const UCHAR * dayname   [] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+    static const UCHAR * monthname [] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov","Dec"};
+
+    time (&rawtime);
+    timeinfo = gmtime (&rawtime);
+
+    sprintf( 
+        buf,"%s, %02d %s %4d %02d:%02d:%02d GMT",
+        dayname[timeinfo->tm_wday],
+        timeinfo->tm_mday,
+        monthname[timeinfo->tm_mon],
+        timeinfo->tm_year + 1900,
+        timeinfo->tm_hour,
+        timeinfo->tm_min,
+        timeinfo->tm_sec
+    );
+    return buf;
+}                                          
 /* --------------------------------------------------------------------------- */
 void putHeader (PRESPONSE pResponse)
 {
@@ -135,17 +161,20 @@ void putHeader (PRESPONSE pResponse)
     UCHAR  w3 [256];
     PUCHAR p = header;
     LONG len;
+    UCHAR timeBuffer [128];
+
 
     if (!pResponse->firstWrite) return;
 
     p += sprintf(p ,
         "HTTP/1.1 %d %s\r\n"
-        "Date: Tue, 05 Jun 2018 22:45:51 GMT\r\n" // Todo !!! Real timestamp
+        "Date: %s\r\n" // Todo !!! Real timestamp
         "Transfer-Encoding: chunked\r\n"
         "Content-type: %s;charset=%s\r\n"
         "\r\n",
         pResponse->status,
         vc2str(&pResponse->statusText),
+        imfTimeString(timeBuffer),
         vc2str(&pResponse->contentType),
         vc2str(&pResponse->charset)
     );
