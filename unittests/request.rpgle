@@ -31,6 +31,10 @@ dcl-pr test_parseGetMultipleHeader end-pr;
 dcl-pr test_headerCaseInsensitivity end-pr;
 dcl-pr test_headerNotExist end-pr;
 dcl-pr test_headerEmptyHeaderValue end-pr;
+dcl-pr test_noQueryString end-pr;
+dcl-pr test_emptyQueryString end-pr;
+dcl-pr test_fullQueryString end-pr;
+
 
 // BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 dcl-pr lookForHeaders extproc(*CWIDEN:*dclcase);
@@ -131,6 +135,57 @@ dcl-proc test_headerEmptyHeaderValue export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getRequestHeader(request : 'Host'));
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
+end-proc;
+
+
+dcl-proc test_noQueryString export;
+  dcl-s abnormallyEnded ind;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds request likeds(il_request);
+  
+  request = createRequest();
+  
+  httpMessage = 'GET /index.html HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('') : il_getRequestQueryString(request));
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
+end-proc;
+
+
+dcl-proc test_emptyQueryString export;
+  dcl-s abnormallyEnded ind;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds request likeds(il_request);
+  
+  request = createRequest();
+  
+  httpMessage = 'GET /index.html? HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('') : il_getRequestQueryString(request));
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
+end-proc;
+
+
+dcl-proc test_fullQueryString export;
+  dcl-s abnormallyEnded ind;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds request likeds(il_request);
+  
+  request = createRequest();
+  
+  httpMessage = 'GET /index.html?callback=angular.callback.1 HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('callback=angular.callback.1') : il_getRequestQueryString(request));
   
   on-exit abnormallyEnded;
     disposeRequest(request);
