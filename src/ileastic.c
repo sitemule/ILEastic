@@ -197,7 +197,8 @@ static void parseQueryString (PREQUEST pRequest)
         // don't need the query string delimiter ? in the query string value
         pRequest->queryString.String++;
         pRequest->queryString.Length = pRequest->protocol.String - pRequest->queryString.String;
-        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String;
+        // -1 because we don't want the delimiter (?) in the resource url
+        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String - 1;
     } else {
         pRequest->resource.Length = pRequest->url.Length;
     }

@@ -34,6 +34,11 @@ dcl-pr test_headerEmptyHeaderValue end-pr;
 dcl-pr test_noQueryString end-pr;
 dcl-pr test_emptyQueryString end-pr;
 dcl-pr test_fullQueryString end-pr;
+dcl-pr test_queryStringWithReservedChars end-pr;
+dcl-pr test_simpleResource end-pr;
+dcl-pr test_rootResource end-pr;
+dcl-pr test_deeplyStructuredResource end-pr;
+dcl-pr test_resouceWithQueryStringWithReservedChars end-pr;
 
 
 // BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
@@ -45,16 +50,14 @@ end-pr;
 
 dcl-s CRLF char(2) inz(x'0d0a') ccsid(819); 
 
+dcl-ds request likeds(il_request);
+
 
 //
 // Procedures
 //
 dcl-proc test_parseSimpleRequest export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
-  
-  request = createRequest();
   
   httpMessage = 'GET /index.html HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
@@ -62,16 +65,11 @@ dcl-proc test_parseSimpleRequest export;
   aEqual(utf8('GET') : il_getRequestMethod(request));
   aEqual(utf8('localhost') : il_getRequestHeader(request : 'Host'));
   aEqual(utf8('/index.html') : il_getRequestResource(request));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_parseGetMultipleHeader export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -81,16 +79,11 @@ dcl-proc test_parseGetMultipleHeader export;
   aEqual(utf8('GET') : il_getRequestMethod(request));
   aEqual(utf8('localhost') : il_getRequestHeader(request : 'Host'));
   aEqual(utf8('application/json') : il_getRequestHeader(request : 'Accept'));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_headerCaseInsensitivity export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -101,16 +94,11 @@ dcl-proc test_headerCaseInsensitivity export;
   aEqual(utf8('application/json') : il_getRequestHeader(request : 'accept'));
   aEqual(utf8('application/json') : il_getRequestHeader(request : 'ACCEPT'));
   aEqual(utf8('application/json') : il_getRequestHeader(request : 'aCCept'));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_headerNotExist export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -118,16 +106,11 @@ dcl-proc test_headerNotExist export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getRequestHeader(request : 'NotExistingHeader'));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_headerEmptyHeaderValue export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -135,16 +118,11 @@ dcl-proc test_headerEmptyHeaderValue export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getRequestHeader(request : 'Host'));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_noQueryString export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -152,16 +130,11 @@ dcl-proc test_noQueryString export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getRequestQueryString(request));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_emptyQueryString export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -169,16 +142,11 @@ dcl-proc test_emptyQueryString export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getRequestQueryString(request));
-  
-  on-exit abnormallyEnded;
-    disposeRequest(request);
 end-proc;
 
 
 dcl-proc test_fullQueryString export;
-  dcl-s abnormallyEnded ind;
   dcl-s httpMessage varchar(1000) ccsid(819);
-  dcl-ds request likeds(il_request);
   
   request = createRequest();
   
@@ -186,9 +154,57 @@ dcl-proc test_fullQueryString export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('callback=angular.callback.1') : il_getRequestQueryString(request));
+end-proc;
+
+
+dcl-proc test_queryStringWithReservedChars export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
   
-  on-exit abnormallyEnded;
-    disposeRequest(request);
+  httpMessage = 'GET /api/v1/books?category=/books/romance/?&rows=20 HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('category=/books/romance/?&rows=20') : il_getRequestQueryString(request));
+end-proc;
+
+
+dcl-proc test_rootResource export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  request = createRequest();
+  
+  httpMessage = 'GET / HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('/') : il_getRequestResource(request));
+end-proc;
+
+dcl-proc test_simpleResource export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /index.html HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('/index.html') : il_getRequestResource(request));
+end-proc;
+
+
+dcl-proc test_deeplyStructuredResource export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /api/v1/books HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('/api/v1/books') : il_getRequestResource(request));
+end-proc;
+
+
+dcl-proc test_resouceWithQueryStringWithReservedChars export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /api/v1/books?category=/books/romance/?&rows=20 HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('/api/v1/books') : il_getRequestResource(request));
 end-proc;
 
 
@@ -228,10 +244,10 @@ end-proc;
 
 
 dcl-proc setup export;
-
+  request = createRequest();
 end-proc;
 
 
 dcl-proc teardown export;
-
+  disposeRequest(request);
 end-proc;
