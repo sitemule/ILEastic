@@ -34,7 +34,6 @@ env:
 	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 
-
 compile: 
 	system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1208)"
 	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
@@ -52,7 +51,7 @@ bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)"
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')"
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(BIN_LIB)/*ALL) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')"
 
 clean:
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/STREAM) OBJTYPE(*MODULE)"
@@ -70,6 +69,6 @@ current: env
 	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('src/$(SRC).c') $(CCFLAGS2) "
 
 install:
-	-mkdir $(INCLUDE)/ILEastic
+	-mkdir $(USRINCDIR)/ILEastic
 	cp headers/ileastic.rpgle $(USRINCDIR)/ILEastic/
 

@@ -312,24 +312,49 @@ end-pr;
 // Writes the content of the stream to the response message.
 //
 // @param Response
-// @param Stream
+// @param Stream - Pointer returned by i.e. json_stream from noxDB
 ///
 dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');
     response    likeds(il_response);
-    stream      pointer value; // Pointer returned by i.e. json_stream from noxDB
+    stream      pointer value;
 end-pr;
 
-// Methods ( can be added like IL_GET + IL_POST)
+///
+// HTTP method GET
+///
 dcl-c IL_GET     const(1);
+///
+// HTTP method POST
+///
 dcl-c IL_POST    const(2);
+///
+// HTTP method DELETE
+///
 dcl-c IL_DELETE  const(4);
+///
+// HTTP method PUT
+///
 dcl-c IL_PUT     const(8);
+///
+// Any HTTP method (used for adding servlets to the server for any HTTP method)
+///
 dcl-c IL_ANY     const(1023);
 
-dcl-pr il_addRoute  extproc(*CWIDEN:'il_addRoute');
+///
+// Add servlet to server
+//
+// A servlet is added to the server with the passed routing information.
+//
+// @param Configuration
+// @param Servlet
+// @param HTTP Method (multiple methods can be specified like this: IL_GET + IL_POST, default: IL_ANY)
+// @param Path (default: / )
+// @param Content type (default: application/json)
+///
+dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test if OPDESC keyword is needed
     config       likeds(il_config);
     servlet      pointer(*PROC) value;
-    methods      int(5) value options(*nopass);  
+    httpMethods  int(5) value options(*nopass);  
     route        varchar(1024) const options(*nopass);
-    contentstype varchar(1024) const options(*nopass);
+    contentType  varchar(1024) const options(*nopass);
 end-pr;

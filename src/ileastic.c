@@ -194,8 +194,11 @@ static void parseQueryString (PREQUEST pRequest)
     pRequest->resource.String = pRequest->url.String;
     pRequest->queryString.String = memchr(pRequest->url.String, 0x3F, pRequest->url.Length);
     if (pRequest->queryString.String) {
-        pRequest->queryString.Length = pRequest->protocol.String - pRequest->url.String;
-        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String;
+        // don't need the query string delimiter ? in the query string value
+        pRequest->queryString.String++;
+        pRequest->queryString.Length = pRequest->protocol.String - pRequest->queryString.String;
+        // -1 because we don't want the delimiter (?) in the resource url
+        pRequest->resource.Length = pRequest->queryString.String - pRequest->url.String - 1;
     } else {
         pRequest->resource.Length = pRequest->url.Length;
     }
