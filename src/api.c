@@ -45,6 +45,7 @@
 #include "simplelist.h"
 #include "sndpgmmsg.h"
 #include "parms.h"
+#include "e2aa2e.h"
 
 
 
@@ -85,8 +86,57 @@ void il_getContent (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->content);
 }         
-         
+/* --------------------------------------------------------------------------- */
+static UCHAR hex2bin (UCHAR c)
+{
+    if (c >= 0x30 && c <= 0x39) return (c - 0x30);
+    if (c >= 0x41 && c <= 0x46) return (c - 0x41 + 10);
+    if (c >= 0x61 && c <= 0x66) return (c - 0x61 + 10);
+    return 0;
+}
+/* --------------------------------------------------------------------------- */
+static int urldecodeBuf (PUCHAR out , PUCHAR in , int inLen) 
+{
+    PUCHAR outBegin = out;
+    PUCHAR end = in + inLen;
+    for (;in < end; in ++) {
+        // % escape? 
+        if (*in == 0x25) {
+            UCHAR c = hex2bin(*(++in)) * 16+
+                      hex2bin(*(++in));
+            *(out ++) = c;
+        } else {
+            *(out ++) = *in;
+        } 
 
+    }
+    return out - outBegin;
+}
+/* --------------------------------------------------------------------------- */
+void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
+{
+ 	PSLISTNODE pNode;
+    int  keyLen= strlen(parmName);
+    UCHAR aKey [256];
+    UCHAR temp [256];
+    int len;
+    
+    PSLIST pParmList = pRequest->parmList; 
+
+	for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
+		PSLISTKEYVAL parm = pNode->payloadData;
+        if (keyLen == parm->key.Length) {
+            len = urldecodeBuf( temp  , parm->key.String , keyLen);
+            mema2e(aKey , temp, len ); // The parms are in ASCII
+            if (memicmp (parmName , aKey , keyLen) == 0) {
+                out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
+                return ;
+            }
+        }
+	}
+    out->Length = dft->Length;
+    substr(out->String , dft->String , dft->Length); 
+}
 /* --------------------------------------------------------------------------- */
 void il_responseWrite (PRESPONSE pResponse, PLVARCHAR buf)
 {

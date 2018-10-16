@@ -157,6 +157,24 @@ dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm
     request likeds(il_request);    
 end-pr;
 
+//
+// Get parm as string from querystring
+//
+// Returns the starting value for a request query string So for
+// a request like http://localhost:8080/path?query=string you would get 
+// 'string' as the return value for the input of 'query'. The ? sign as a separator of the resource
+// path and the query string is not part of the return value. If the URL does 
+// not contain a query string the default string is returned
+//
+// @param Request
+// @return Query string
+///
+dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
+                extproc(*CWIDEN:'il_getParmStr');
+    request       likeds(il_request);    
+    parmName      pointer value options(*string);
+    default       varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const ;    
+end-pr;
 ///
 // Get request protocol
 //

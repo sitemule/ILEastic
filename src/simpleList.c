@@ -119,7 +119,7 @@ void sList_lookupLVPC (PLVARCHAR pRetVal , PSLIST pSlist , PLVARCHAR key)
 		return;
 	}
 
-	for (pNode = pSlist->pHead; pNode; pNode->pNext) {
+	for (pNode = pSlist->pHead; pNode; pNode = pNode->pNext) {
 		PSLISTKEYVAL pKeyAndValue = pNode->payloadData;
 		if (lvpcIsEqual(&pKeyAndValue->key, &vkey)) {
 			lvpc2lvc (pRetVal ,&pKeyAndValue->value);

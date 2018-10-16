@@ -58,7 +58,8 @@ typedef _Packed struct _REQUEST  {
     VARCHAR256  contentType;
     ULONG       contentLength;
     LVARPUCHAR  completeHeader;
-    PHEADERLIST headerList;
+    PSLIST      headerList;
+    PSLIST      parmList;
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
@@ -106,6 +107,6 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);
 void putHeader (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);         
 int socketWait (int sd , int sec);
-PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key);
+PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
 
 #endif

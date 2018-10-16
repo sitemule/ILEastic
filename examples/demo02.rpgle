@@ -38,6 +38,8 @@
             dcl-s counter int(10);
             dcl-s payload varchar(4096:4);
             dcl-s contentType varchar(256);
+            dcl-s text   varchar(256);
+            
             
 
             // test payload:
@@ -96,5 +98,11 @@
             for counter = 1 to 10;
                 il_responseWrite(response: 'counter : ' + %char(counter) + ' ');
             endfor;
+
+            text = il_getParmStr  (request : 'text' : 'demoæøå');
+            il_responseWrite(response:
+                'Parm value is : ' + text 
+                + '<br>'
+            );
 
         end-proc;

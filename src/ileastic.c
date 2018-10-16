@@ -203,6 +203,54 @@ static void parseQueryString (PREQUEST pRequest)
         pRequest->resource.Length = pRequest->url.Length;
     }
 }
+
+/* --------------------------------------------------------------------------- 
+   Produce a key/value list of form or query string 
+   
+   --------------------------------------------------------------------------- */
+static PSLIST parseParms ( LVARPUCHAR parmString)
+{
+    PSLIST pParmList; 
+    PUCHAR parmEnd, begin, end, split;
+    if (parmString.String == NULL) {
+        return NULL;
+    }
+
+    pParmList = sList_new ();
+    
+    begin =  parmString.String;
+    end    = begin + parmString.Length; 
+    while (begin < end) {
+
+        LVARPUCHAR key;
+        LVARPUCHAR value;
+        
+        parmEnd = memchr(begin, 0x26, end - begin ); // Split at the & 
+        
+        // last parameter?
+        if (parmEnd == NULL) {
+            parmEnd = end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
+        }
+
+        split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the = 
+        if (split == null) break;
+
+        // Got the components, now store in the list 
+        key.String = begin;
+        key.Length = split - begin;
+ 
+        split++;
+        value.String = split;
+        value.Length = parmEnd - split;
+
+        // The key / value pair are ready
+        sList_pushLVPC (pParmList , &key , &value);
+
+        // Next iteration
+        begin = parmEnd + 1; // After the ? mark
+    }
+    return pParmList;
+}
 /* --------------------------------------------------------------------------- 
    Produce a key/value list of the request headers
    --------------------------------------------------------------------------- */
@@ -210,54 +258,52 @@ static void parseHeaders (PREQUEST pRequest)
 {
     char eol [2]  = { 0x0d , 0x0a};
     
-    HEADERLIST headerList   [MAXHEADERS];
     PUCHAR headend , begin, end, split;
-    SHORT  hIx =0;
+
+    pRequest->headerList = sList_new ();
 
     begin =  pRequest->headers.String;
     headend = begin + pRequest->headers.Length; 
     while (begin < headend) {
+        LVARPUCHAR key;
+        LVARPUCHAR value;
+
         for (;*begin == 0x20; begin ++); // Skip blank(s)
         end  = memmem(begin, headend - begin , eol , 2); // Find end of line
         if (end == null) { // end of line not found => end of headers
-          end = headend;
+            end = headend;
         }
         split= memchr(begin, 0x3A, end - begin ); // Split at the : colon
         if (split == null) break;
 
-        // Got the components, now store in the array
-        headerList[hIx].key.String = begin;
-        headerList[hIx].key.Length = split - begin;
+        // Got the components, now store in the list 
+        key.String = begin;
+        key.Length = split - begin;
  
         split++;
         for (;*split == 0x20; split++); // Skip blank(s)
-        headerList[hIx].value.String = split;
-        headerList[hIx].value.Length = end - split;
+        value.String = split;
+        value.Length = end - split;
+
+        // The key / value pair are ready
+        sList_pushLVPC (pRequest->headerList , &key , &value);
 
         // Next iteration
         begin = end + 2; // After the eol mark
-        hIx++;
     }
-    // Store the header list in the request structure
-    pRequest->headerList = malloc((hIx +1) * sizeof(HEADERLIST)); // plus room for the termination zero
-    memcpy ( pRequest->headerList , headerList , hIx * sizeof(HEADERLIST));
-    memset ( &pRequest->headerList[hIx], 0 , sizeof(HEADERLIST)); 
 }
 /* --------------------------------------------------------------------------- 
    Return string of header values
    Note - the keys are in ASCII so we have to convert. memicmp only works on EBCDIC 
    --------------------------------------------------------------------------- */
-PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key)
+PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
 {
-    PHEADERLIST header = headerList;
+ 	PSLISTNODE pNode;
+    int  keyLen= strlen(key);
     UCHAR aKey [256];
-    int keyLen = strlen(key);
-    for (;;) {
-        if (header == null || header->key.Length == 0) {
-            *value = '\0';
-            return value;
-        }
 
+	for (pNode = headerList->pHead; pNode; pNode=pNode->pNext) {
+		PSLISTKEYVAL header = pNode->payloadData;
         if (keyLen == header->key.Length) {
             mema2e(aKey , header->key.String , keyLen); // The headers are in ASCII
             if (memicmp (key , aKey , keyLen) == 0) {
@@ -265,10 +311,10 @@ PUCHAR getHeaderValue(PUCHAR  value, PHEADERLIST headerList ,  PUCHAR key)
                 return value;
             }
         }
-        // Get next
-        header += 1;
-    }
-} 
+	}
+    *value = '\0';
+    return value;
+}
 /* --------------------------------------------------------------------------- 
    Parse this: 
    GET / HTTP/1.1██Host: dksrv133:44001██Con
@@ -320,6 +366,8 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     // The request is now parsed into raw components:
     parseQueryString (pRequest);
     parseHeaders (pRequest);
+    pRequest->parmList = parseParms  (pRequest->queryString);
+
 
     pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
 
@@ -458,9 +506,9 @@ static void * serverThread (PINSTANCE pInstance)
         putChunkEnd (&response);
 
         // Clean up this transaction 
-        if (request.headerList) {
-            free(request.headerList);
-        } 
+        sList_free (request.headerList);
+        sList_free (request.parmList);
+        
         if (request.completeHeader.String) {
             free(request.completeHeader.String);
         } 
