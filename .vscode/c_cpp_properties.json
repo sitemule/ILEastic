@@ -1,26 +1,32 @@
 {
+    "env" : {
+        "myDefaultIncludePath": [
+            "${workspaceFolder}",
+            "${workspaceFolder}/headers"
+        ],
+        "myCompilerPath": "/usr/local/bin/gcc-7"
+    },
     "configurations": [
         {
             "name": "Mac",
-            "browse": {
-                "path": [
-                    "${workspaceFolder}"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            },
-            "includePath": [
-                "${workspaceFolder}",
-                "${workspaceFolder}"
-            ],
-            "defines": [],
-            "macFrameworkPath": [
-                "/System/Library/Frameworks",
-                "/Library/Frameworks"
-            ],
+            "intelliSenseMode": "clang-x64",
+            "includePath": [ "${myDefaultIncludePath}", "/another/path" ],
+            "macFrameworkPath": [ "/System/Library/Frameworks" ],
+            "defines": [ "FOO", "BAR=100" ],
+            "forcedInclude": [ "${workspaceFolder}/include/config.h" ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
+            "compileCommands": "/path/to/compile_commands.json",
+            "browse": {
+                "path": [ 
+                    "${workspaceFolder}" ,
+                    "${workspaceFolder}/headers",
+                    "~/Desktop/DKSRV133/QIBM/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
         }
     ],
     "version": 4

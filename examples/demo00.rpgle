@@ -19,7 +19,7 @@ ctl-opt thread(*CONCURRENT);
 dcl-proc main;
 
     dcl-ds config likeds(il_config);
-
+    
     config.port = 44000; 
     config.host = '*ANY';
 
@@ -35,7 +35,7 @@ dcl-proc myservlet;
         request  likeds(IL_REQUEST);
         response likeds(IL_RESPONSE);
     end-pi;
-
+    
     il_responseWrite(response: 'Hello world. Time is ' + %char(%timestamp));
     
 end-proc;

@@ -3,6 +3,9 @@
         "*.sqlrpgle": "rpg",
         "*.dmd": "json",
         "*.widget": "javascript",
-        "strutil.h": "c"
+        "strutil.h": "c",
+        "xlate.h": "c",
+        "sndpgmmsg.h": "c",
+        "ostypes.h": "c"
     }
 }

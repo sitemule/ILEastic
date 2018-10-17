@@ -16,12 +16,15 @@
                 "owner": "c",
                 "fileLocation": ["relative", "${workspaceRoot}"],
                 "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    //"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    // src/ileastic.c, 241.2: CZM0045(30) Undeclared identifier a.
+                    
+                    "regexp": "^(.*), (\\d+)\\.(\\d+):\\s+(.*)$",
                     "file": 1,
                     "line": 2,
                     "column": 3,
-                    "severity": 4,
-                    "message": 5
+                    // "severity": 4,
+                    "message": 4
                 }
             }
         },
@@ -47,7 +50,8 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            
         },
         {
             "label": "Compile current example file",
@@ -57,7 +61,20 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": []
+            // Use the standard less compilation problem matcher.
+            "problemMatcher": {
+                "owner": "c",
+                "fileLocation": ["relative", "${workspaceRoot}/examples"],
+                "pattern": {
+                    // FileName: *RNF7030 30    399 000022  The name or indicator A is not defined.
+                    "regexp": "^(.*):.*\\s{3,6}(\\d+)\\s{1}(\\d+)\\s{1}\\s+(.*)$",
+                    "file": 1,
+                    "line": 3,
+                    //"column": 3,
+                    // "severity": 4,
+                    "message": 4
+                }
+            }
         }
     ]
 }

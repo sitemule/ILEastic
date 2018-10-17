@@ -13,14 +13,14 @@
 #define FD_SETSIZE 4096
 #define MAXHEADERS 4096
 
-#include "os2.h"
+//#include "os2.h"
 #include <pthread.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <decimal.h>
+//#include <decimal.h>
 #include <fcntl.h>
 #include <time.h>       /* time_t, struct tm, time, localtime, strftime */
 
@@ -84,7 +84,7 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     putHeader (pResponse); // if not put yet
 
     lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
-    meme2a( wrkBuf , wrkBuf , lenleni);              
+    meme2a( wrkBuf , wrkBuf , lenleni);  
     wrkBuf += lenleni;                                     
                                                             
     memcpy (wrkBuf , buf, len);                            
@@ -249,6 +249,7 @@ static PSLIST parseParms ( LVARPUCHAR parmString)
         // Next iteration
         begin = parmEnd + 1; // After the ? mark
     }
+
     return pParmList;
 }
 /* --------------------------------------------------------------------------- 

@@ -19,7 +19,7 @@ $(pgm): always
 	liblist -a noxdb
 	liblist -a $(BIN_LIB)
 	system -i "CHGATR OBJ('$@') ATR(*CCSID) VALUE(1252)"
-	system -i "CRTBNDRPG  PGM($(BIN_LIB)/$(basename $@)) SRCSTMF('$@') $(RPG_OPT)"  | grep '*RNF' | grep -v '*RNF7031'
+	system -i "CRTBNDRPG  PGM($(BIN_LIB)/$(basename $@)) SRCSTMF('$@') $(RPG_OPT)"  | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
 	EOF
 
 # The trick is 'always' is empty and trigger target to run always since we dont have an output object
