@@ -31,9 +31,10 @@
 // This data structure holds a string with variable length.
 ///
 dcl-ds il_varchar qualified template;
-    length  int(10);
+    length  uns(10);
     string  pointer;
 end-ds;
+
 
 ///
 // Configuration
@@ -65,6 +66,8 @@ dcl-ds il_request qualified template;
     contentLength  uns(20);
     completeHeader likeds(il_varchar);
     headerList     pointer;
+    parameterList  pointer;
+    threadLocal    pointer;
 end-ds;
 
 ///
@@ -157,7 +160,7 @@ dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm
     request likeds(il_request);    
 end-pr;
 
-//
+///
 // Get parm as string from querystring
 //
 // Returns the starting value for a request query string So for
@@ -340,19 +343,23 @@ end-pr;
 ///
 // HTTP method GET
 ///
-dcl-c IL_GET     const(1);
+dcl-c IL_GET     1;
 ///
 // HTTP method POST
 ///
-dcl-c IL_POST    const(2);
+dcl-c IL_POST    2;
 ///
 // HTTP method DELETE
 ///
-dcl-c IL_DELETE  const(4);
+dcl-c IL_DELETE  4;
 ///
 // HTTP method PUT
 ///
-dcl-c IL_PUT     const(8);
+dcl-c IL_PUT     8;
+///
+// HTTP method OPTIONS
+///
+dcl-c IL_OPTIONS 16;
 ///
 // Any HTTP method (used for adding servlets to the server for any HTTP method)
 ///
@@ -378,22 +385,29 @@ dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test if OPDESC keywo
 end-pr;
 
 ///
-// Add plugin  server
+// Defining plugin execution time for a plugin before the request has been handed to the endpoint.
+///
+dcl-c IL_PREREQUEST   1;
+///
+// Defining plugin execution time for a plugin after the last response part has been sent.
+///
+dcl-c IL_POSTRESPONSE 2;
+
+
+///
+// Add plugin server
 //
-// A servlet that can handle pre and pos request. A prerequet can return *OFF to stop futher process 
+// A servlet that can handle pre and post request. A prerequest can return *OFF to stop futher processing. 
 //
 // @param Configuration
-// @param Servlet
-// @param type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be either/or simply add together 
+// @param Plugin
+// @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be either/or simply add together 
 ///
 ///
 // Plugin types:
 ///
-dcl-c IL_PREREQUEST     const(1);
-dcl-c IL_POSTRESPONSE   const(2);
-
 dcl-pr il_addPlugin  extproc(*CWIDEN:'il_addPlugin');  
     config       likeds(il_config);
-    servlet      pointer(*PROC) value;
+    plugin       pointer(*PROC) value;
     pluginType   int(5) value;
 end-pr;

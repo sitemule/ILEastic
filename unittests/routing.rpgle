@@ -26,37 +26,46 @@ ctl-opt nomain;
 //
 dcl-pr setup end-pr;
 dcl-pr teardown end-pr;
-dcl-pr test_parseSimpleRequest end-pr;
+dcl-pr test_exactMatch end-pr;
 
 // SERVLET findRoute(PSLIST pRouts, LVARPUCHAR resource);
 dcl-pr findRoute pointer(*proc) extproc(*dclcase);
-  router pointer value;
-  resource pointer value;
+  config pointer value;
+  resource likeds(il_varchar) value;
 end-pr;
 
 dcl-s CRLF char(2) inz(x'0d0a') ccsid(819); 
+dcl-ds config likeds(il_config) inz;
 
+dcl-pr memcpy pointer extproc('memcpy');
+  dest pointer value;
+  source pointer value;
+  count  uns(10) value;
+end-pr;
 
-dcl-pr test_exactMatch end-pr;
-
-
+     
+//
+// Test Procedures
+//
 dcl-proc test_exactMatch export;
-  dcl-ds config likeds(il_config) inz;
+  dcl-s abnormallyEnded ind;
   dcl-ds resource likeds(il_varchar) inz;
   dcl-s matchingRoute pointer(*proc);
+  dcl-s path char(100) ccsid(*utf8);
   
-  resouce.string = %alloc(100);
-  %str(resource.string) = '/index.html';
-  resource.length = 11;
+  path = '/index.html';
+  resource.string = %alloc(100);
+  memcpy(resource.string : %addr(path) : %len(%trimr(path)));
+  resource.length = %len(%trimr(path));
   
-  il_addRoute(config : %paddr(routeIndex) : IL_ANY : '/index.html');
-  il_addRoute(config : %paddr(routeTime) : IL_GET : '/time');
-  il_addRoute(config : %paddr(routeDate) : IL_GET : '/date');
+  matchingRoute = findRoute(%addr(config) : resource);
+  if (matchingRoute = *null);
+    dsply 'nothing';
+  endif;
+  assert(matchingRoute = %paddr(routeIndex) : 'Returned wrong end point.');
   
-  matchingRoute = findRoute(config, %addr(resource));
-  assert(matchingRoute = %paddr(routeIndex));
-  
-  dealloc resource.string;
+  on-exit abnormallyEnded;
+    dealloc resource.string;
 end-proc;
 
 
@@ -96,12 +105,14 @@ end-proc;
 
 
 dcl-proc setup export;
-  request = createRequest();
+  il_addRoute(config : %paddr(routeIndex) : IL_ANY : '/index.html');
+  il_addRoute(config : %paddr(routeTime) : IL_GET : '/time');
+  il_addRoute(config : %paddr(routeDate) : IL_GET : '/date');
 end-proc;
 
 
 dcl-proc teardown export;
-  disposeRequest(request);
+  
 end-proc;
 
 
