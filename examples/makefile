@@ -13,7 +13,7 @@ pgm := $(wildcard *.rpgle)
 compile: $(pgm)
 
 $(pgm): always
-	@echo "---- Compiling program $(basename $@) from source $@ ---- Look for errors in 'error.txt' if needed"
+	@echo "---- Compiling program $(basename $@) from source $@ ----"
 	qsh <<EOF 
 	export QIBM_CCSID=277
 	liblist -a noxdb
