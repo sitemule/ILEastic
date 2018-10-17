@@ -17,4 +17,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.1')
     EXPORT SYMBOL("il_getRequestHeader")  
     EXPORT SYMBOL("il_addRoute")
     EXPORT SYMBOL("il_getParmStr")
+    EXPORT SYMBOL("il_addPlugin")
+    EXPORT SYMBOL("il_allocThreadMem")
+    EXPORT SYMBOL("il_getThreadMem")
 ENDPGMEXP                                                 

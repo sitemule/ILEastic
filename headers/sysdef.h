@@ -27,18 +27,21 @@ typedef _Packed struct _APIRTN  {
 } APIRTN   , *PAPIRTN;
 
 typedef _Packed struct _CONFIG  {
-    VARCHAR64  interface;
-    int        port;
-    UCHAR      filler[1024];
+    VARCHAR64   interface;
+    int         port;
+    UCHAR       filler[1024];
     // Private:
-    int        mainSocket;
-    int        clientSocket;
-    UCHAR      rmtHost [32];
-    ULONG      rmtTcpIp;
-    int        rmtPort;
-    PXLATEDESC e2a;
-    PXLATEDESC a2e;
-    PSLIST     router;
+    int         mainSocket;
+    int         clientSocket;
+    UCHAR       rmtHost [32];
+    ULONG       rmtTcpIp;
+    int         rmtPort;
+    PXLATEDESC  e2a;
+    PXLATEDESC  a2e;
+    PSLIST      router;
+    PSLIST      pluginPreRequest;
+    PSLIST      pluginPostResponse;
+
 } CONFIG,  *PCONFIG;
 
 typedef _Packed struct _HEADERLIST  {
@@ -60,6 +63,7 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  completeHeader;
     PSLIST      headerList;
     PSLIST      parmList;
+    PVOID       threadMem;
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
@@ -98,6 +102,18 @@ typedef struct _ROUTING  {
     regex_t *  contentReg;
     SERVLET servlet; 
 } ROUTING, * PROUTING;
+
+#pragma enum     (2)
+typedef enum _PLUGINTYPE  {
+    IL_PREREQUEST   = 1, 
+    IL_POSTRESPONSE = 2
+} PLUGINTYPE , *PPLUGINTYPE ;
+#pragma enum     (pop)
+
+typedef struct _PLUGIN  {
+    PLUGINTYPE  pluginType; 
+    SERVLET     servlet; 
+} PLUGIN, * PPLUGIN;
 
 
 /* ------------------------------------------------------------- */

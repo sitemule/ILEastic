@@ -376,3 +376,24 @@ dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test if OPDESC keywo
     route        varchar(1024) const options(*nopass);
     contentType  varchar(1024) const options(*nopass);
 end-pr;
+
+///
+// Add plugin  server
+//
+// A servlet that can handle pre and pos request. A prerequet can return *OFF to stop futher process 
+//
+// @param Configuration
+// @param Servlet
+// @param type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be either/or simply add together 
+///
+///
+// Plugin types:
+///
+dcl-c IL_PREREQUEST     const(1);
+dcl-c IL_POSTRESPONSE   const(2);
+
+dcl-pr il_addPlugin  extproc(*CWIDEN:'il_addPlugin');  
+    config       likeds(il_config);
+    servlet      pointer(*PROC) value;
+    pluginType   int(5) value;
+end-pr;

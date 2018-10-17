@@ -227,6 +227,44 @@ LGL il_serveStatic (PRESPONSE pResponse, PVARCHAR fileName)
 }
 /* --------------------------------------------------------------------------- *\
     Handle :
+    il_addPlugin  (config : myServives: IL_PREREQUEST + IL_POSTRESPONSE)
+\* --------------------------------------------------------------------------- */
+void il_addPlugin (PCONFIG pConfig, SERVLET servlet, PLUGINTYPE pluginType)
+{
+    PLUGIN plugin;
+
+    if (pluginType & IL_PREREQUEST) {
+        if (pConfig->pluginPreRequest == NULL) {
+            pConfig->pluginPreRequest = sList_new();
+        }
+        plugin.servlet = servlet;
+        plugin.pluginType = IL_PREREQUEST;
+        sList_push (pConfig->pluginPreRequest   , sizeof(PLUGIN), &plugin, false);
+    } 
+    if (pluginType & IL_POSTRESPONSE) {
+        if (pConfig->pluginPostResponse == NULL) {
+            pConfig->pluginPostResponse = sList_new();
+        }
+        plugin.servlet = servlet;
+        plugin.pluginType = IL_POSTRESPONSE;
+        sList_push (pConfig->pluginPostResponse , sizeof(PLUGIN), &plugin, false);
+    } 
+}
+/* --------------------------------------------------------------------------- *\
+\* --------------------------------------------------------------------------- */
+PVOID il_allocThreadMem  (PREQUEST pRequest , ULONG size)
+{
+    pRequest->threadMem = calloc(1, size);
+    return pRequest->threadMem;
+}
+/* --------------------------------------------------------------------------- *\
+\* --------------------------------------------------------------------------- */
+PVOID il_getThreadMem  (PREQUEST pRequest)
+{
+    return pRequest->threadMem;
+}
+/* --------------------------------------------------------------------------- *\
+    Handle :
     il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
 \* --------------------------------------------------------------------------- */
 void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCHAR routeReg , PVARCHAR contentReg )

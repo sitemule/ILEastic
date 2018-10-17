@@ -13,7 +13,7 @@
 #define FD_SETSIZE 4096
 #define MAXHEADERS 4096
 
-//#include "os2.h"
+#include "os2.h"
 #include <pthread.h>
 
 #include <stdio.h>
@@ -481,10 +481,26 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
 
 }
 /* --------------------------------------------------------------------------- */
+static BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
+{
+    PSLISTNODE pPluginNode;
+
+    if (plugins) {
+        for (pPluginNode = plugins->pHead; pPluginNode ; pPluginNode = pPluginNode->pNext) {
+            PPLUGIN  pPlugin =  pPluginNode->payloadData;
+            if  (OFF == pPlugin->servlet ( pRequest, pResponse)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+/* --------------------------------------------------------------------------- */
 static void * serverThread (PINSTANCE pInstance)
 {
     REQUEST  request;
     RESPONSE response;
+    BOOL     allSaysGo;
 
     while (pInstance->config.clientSocket > 0) {
         memset(&request  , 0, sizeof(REQUEST));
@@ -499,17 +515,26 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.contentType , "text/html");
         str2vc(&response.charset     , "UTF-8");
         str2vc(&response.statusText  , "OK");
-        if (pInstance->servlet) {
-            pInstance->servlet (&request , &response);
-        } else {
-            runServletByRouting (&request , &response);
+
+        allSaysGo = runPlugins (request.pConfig->pluginPreRequest , &request , &response);
+        if (allSaysGo) {
+            if (pInstance->servlet) {
+                pInstance->servlet (&request , &response);
+            } else {
+                runServletByRouting (&request , &response);
+            }
+            runPlugins (request.pConfig->pluginPostResponse , &request , &response);
         }
+
         putChunkEnd (&response);
 
         // Clean up this transaction 
         sList_free (request.headerList);
         sList_free (request.parmList);
         
+        if (request.threadMem) {
+            free(request.threadMem);
+        }
         if (request.completeHeader.String) {
             free(request.completeHeader.String);
         } 

@@ -6,6 +6,7 @@
         "strutil.h": "c",
         "xlate.h": "c",
         "sndpgmmsg.h": "c",
-        "ostypes.h": "c"
+        "ostypes.h": "c",
+        "sysdef.h": "c"
     }
 }
