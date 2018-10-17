@@ -448,38 +448,53 @@ static BOOL receiveHeader (PREQUEST pRequest)
 \* --------------------------------------------------------------------------- */
 void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
 {
-    int rc;
     UCHAR msgbuf[100];
-    PSLIST pRouts;
-	PSLISTNODE pRouteNode;
-    PUCHAR resource = malloc(pRequest->resource.Length +1);
-
+    SERVLET matchingServlet;
+    
     if (pRequest->pConfig->router == NULL) return;
 
-    // get the ebcdic version of the resource
-    mema2e(resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
-    resource[pRequest->resource.Length] = '\0';  // Need it as a string
+    matchingServlet = findRoute(pRequest->pConfig, pRequest->resource);
+    if (matchingServlet == NULL) {
+        joblog( "No routing found for request"); // TODO add resource to output
+        pResponse->status = 404;
+        putChunk(pResponse, "", 0); // TODO add not found message
+    }   
+    else {
+        matchingServlet(pRequest, pResponse);
+    }
+}
 
-    pRouts    =  pRequest->pConfig->router;
+SERVLET findRoute(PCONFIG pConfig, LVARPUCHAR resource) {
+    SERVLET matchingServlet = NULL;
+    PSLIST pRouts;
+	PSLISTNODE pRouteNode;
+    PUCHAR l_resource = malloc(resource.Length +1);
+
+    pRouts = pConfig->router;
+
+    // get the ebcdic version of the resource
+    mema2e(l_resource ,  resource.String , resource.Length); // The headers are in ASCII
+    l_resource[resource.Length] = '\0';  // Need it as a string
+
 	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
     
         PROUTING pRouting = pRouteNode->payloadData;
 
         // Execute regular expression
         // If non is given then it is a match as well. That counts for a "match all"
-        rc = pRouting->routeReg == NULL ? 0 :regexec(pRouting->routeReg, resource, 0, NULL, 0);
+        int rc = pRouting->routeReg == NULL ? 0 : regexec(pRouting->routeReg, l_resource, 0, NULL, 0);
         if (rc == 0) { // Match found
-            if  (ON == pRouting->servlet ( pRequest, pResponse)) {
-                free (resource);
-                return;
-            };
+            matchingServlet = pRouting->servlet;
+            break;
         }
     }
 
-    joblog( "No routing found for request:  %s " , resource);
-    free (resource);
-
+    free (l_resource);
+    
+    return matchingServlet;
 }
+
+
 /* --------------------------------------------------------------------------- */
 static BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
 {

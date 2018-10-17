@@ -1,4 +1,4 @@
-﻿#ifndef SYSDEF_H
+#ifndef SYSDEF_H
 #define  SYSDEF_H
 
 #include <regex.h>
