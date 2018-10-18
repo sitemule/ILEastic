@@ -125,6 +125,6 @@ void putHeader (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);         
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
-SERVLET findRoute(PCONFIG pConfig, LVARPUCHAR resource);
+SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest);
 
 #endif

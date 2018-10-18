@@ -1,10 +1,9 @@
 **FREE
 
 ///
-// Request Test
+// Routing Test
 //
-// The parsing of the HTTP request and returning of the parts of the request
-// will be tested here.
+// The routing of the HTTP request is tested.
 //
 // @author Mihael Schmidt
 // @date   20.09.2018
@@ -26,93 +25,139 @@ ctl-opt nomain;
 //
 dcl-pr setup end-pr;
 dcl-pr teardown end-pr;
-dcl-pr test_exactMatch end-pr;
+dcl-pr test_simpleRegex end-pr;
+dcl-pr test_regexRange end-pr;
+dcl-pr test_notDefinedSubresource end-pr;
+dcl-pr test_root end-pr;
+dcl-pr test_caseSensitivity end-pr;
 
-// SERVLET findRoute(PSLIST pRouts, LVARPUCHAR resource);
+
+// SERVLET findRoute(PSLIST pRouts, PREQUEST pRequest);
 dcl-pr findRoute pointer(*proc) extproc(*dclcase);
   config pointer value;
-  resource likeds(il_varchar) value;
+  request pointer value;
+end-pr;
+
+// BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
+dcl-pr lookForHeaders extproc(*CWIDEN:*dclcase);
+  request pointer value;
+  buffer pointer value;
+  bufferLength uns(10) value;
 end-pr;
 
 dcl-s CRLF char(2) inz(x'0d0a') ccsid(819); 
+
 dcl-ds config likeds(il_config) inz;
 
-dcl-pr memcpy pointer extproc('memcpy');
-  dest pointer value;
-  source pointer value;
-  count  uns(10) value;
-end-pr;
+dcl-c REGEX_START u'005E';
+dcl-c BRACKET_OPEN u'005B';
+dcl-c BRACKET_CLOSE u'005D';
+dcl-c CURLY_OPEN u'007B';
+dcl-c CURLY_CLOSE u'007D';
 
      
 //
 // Test Procedures
 //
-dcl-proc test_exactMatch export;
+dcl-proc test_exactMatchSimpleRegex export;
   dcl-s abnormallyEnded ind;
-  dcl-ds resource likeds(il_varchar) inz;
+  dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
-  dcl-s path char(100) ccsid(*utf8);
+  dcl-s httpMessage varchar(1000) ccsid(819);
   
-  path = '/index.html';
-  resource.string = %alloc(100);
-  memcpy(resource.string : %addr(path) : %len(%trimr(path)));
-  resource.length = %len(%trimr(path));
+  httpMessage = 'GET /time HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : resource);
-  if (matchingRoute = *null);
-    dsply 'nothing';
-  endif;
-  assert(matchingRoute = %paddr(routeIndex) : 'Returned wrong end point.');
+  matchingRoute = findRoute(%addr(config) : %addr(request));
+  assert(matchingRoute = %paddr(routeTime) : 'Returned wrong end point.');
   
   on-exit abnormallyEnded;
-    dealloc resource.string;
+    disposeRequest(request);
+end-proc; 
+
+
+dcl-proc test_exactMatchRegexRange export;
+  dcl-s abnormallyEnded ind;
+  dcl-ds request likeds(il_request);
+  dcl-s matchingRoute pointer(*proc);
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /config/INVOICE HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  request = createRequest(httpMessage);
+  
+  matchingRoute = findRoute(%addr(config) : %addr(request));
+  assert(matchingRoute = %paddr(routeConfig) : 'Returned wrong end point.');
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
+end-proc; 
+
+
+dcl-proc test_notDefinedSubresource export;
+  dcl-s abnormallyEnded ind;
+  dcl-ds request likeds(il_request);
+  dcl-s matchingRoute pointer(*proc);
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /time/hour HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  request = createRequest(httpMessage);
+  
+  matchingRoute = findRoute(%addr(config) : %addr(request));
+  assert(matchingRoute = *null : 'Should have found no end point.');
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
 end-proc;
 
 
-dcl-proc utf8;
-  dcl-pi *n varchar(1024) ccsid(*utf8);
-    string varchar(1024) const;
-  end-pi;
+dcl-proc test_caseSensitivity export;
+  dcl-s abnormallyEnded ind;
+  dcl-ds request likeds(il_request);
+  dcl-s matchingRoute pointer(*proc);
+  dcl-s httpMessage varchar(1000) ccsid(819);
   
-  return string;
+  httpMessage = 'GET /Time HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  request = createRequest(httpMessage);
+  
+  matchingRoute = findRoute(%addr(config) : %addr(request));
+  if (matchingRoute = %paddr(routeTime));
+    dsply 'is route time';
+  endif;
+  assert(matchingRoute = *null : 'Should have found no end point.');
+  
+  on-exit abnormallyEnded;
+    disposeRequest(request);
 end-proc;
 
 
-dcl-proc createRequest;
-  dcl-pi *n likeds(il_request) end-pi;
 
-  dcl-ds request likeds(il_request) inz;
-  dcl-ds headerList likeds(il_varchar) based(headerListPtr);
+dcl-proc test_root export;
+  dcl-s abnormallyEnded ind;
+  dcl-ds request likeds(il_request);
+  dcl-s matchingRoute pointer(*proc);
+  dcl-s httpMessage varchar(1000) ccsid(819);
   
-  request.config = %alloc(%size(il_config));
+  httpMessage = 'GET / HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  request = createRequest(httpMessage);
   
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
+  matchingRoute = findRoute(%addr(config) : %addr(request));
+  assert(matchingRoute = %paddr(routeRoot) : 'Returned not root end point.');
   
-  return request;
-end-proc;
-
-
-dcl-proc disposeRequest;
-  dcl-pi *n;
-    request likeds(il_request);
-  end-pi;
-  
-  dealloc request.config;
-  dealloc request.headerList;
+  on-exit abnormallyEnded;
+    disposeRequest(request);
 end-proc;
 
 
 dcl-proc setup export;
-  il_addRoute(config : %paddr(routeIndex) : IL_ANY : '/index.html');
-  il_addRoute(config : %paddr(routeTime) : IL_GET : '/time');
-  il_addRoute(config : %paddr(routeDate) : IL_GET : '/date');
+  il_addRoute(config : %paddr(routeRoot) : IL_ANY : REGEX_START + '/$');
+  il_addRoute(config : %paddr(routeTime) : IL_GET : REGEX_START + '/time$');
+  il_addRoute(config : %paddr(routeConfig) : IL_GET : REGEX_START + '/config/' + 
+      BRACKET_OPEN + 'a-zA-Z0-9_' + BRACKET_CLOSE + CURLY_OPEN + '1,10' + CURLY_CLOSE +'$');
 end-proc;
 
 
 dcl-proc teardown export;
-  
+  clear config;
 end-proc;
 
 
@@ -136,11 +181,51 @@ dcl-proc routeDate;
 end-proc;
 
 
-dcl-proc routeIndex;
+dcl-proc routeRoot;
   dcl-pi *n;
     request  likeds(il_request);
     response likeds(il_response);
   end-pi;
 
   il_responseWrite(response : 'nothing');
+end-proc;
+
+
+dcl-proc routeConfig;
+  dcl-pi *n;
+    request  likeds(il_request);
+    response likeds(il_response);
+  end-pi;
+
+  il_responseWrite(response : 'configuration');
+end-proc;
+
+
+dcl-proc createRequest;
+  dcl-pi *n likeds(il_request);
+    httpMessage varchar(1000) ccsid(819);
+  end-pi;
+
+  dcl-ds request likeds(il_request) inz;
+  dcl-ds headerList likeds(il_varchar) based(headerListPtr);
+  
+  request.config = %alloc(%size(il_config));
+  
+  headerListPtr = %alloc(%size(il_varchar));
+  clear headerList;
+  request.headerList = headerListPtr;
+  
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  return request;
+end-proc;
+
+
+dcl-proc disposeRequest;
+  dcl-pi *n;
+    request likeds(il_request);
+  end-pi;
+  
+  dealloc request.config;
+  dealloc request.headerList;
 end-proc;
