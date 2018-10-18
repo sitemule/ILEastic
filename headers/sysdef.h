@@ -1,4 +1,4 @@
-﻿#ifndef SYSDEF_H
+#ifndef SYSDEF_H
 #define  SYSDEF_H
 
 #include <regex.h>
@@ -91,6 +91,7 @@ typedef enum _ROUTETYPE  {
     IL_POST     = 2,
     IL_DELETE   = 4,
     IL_PUT      = 8,
+    IL_OPTIONS  = 16,
     IL_ANY      = 0xffff
 } ROUTETYPE , *PROUTETYPE ;
 #pragma enum     (pop)
@@ -124,5 +125,6 @@ void putHeader (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);         
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
+SERVLET findRoute(PCONFIG pConfig, LVARPUCHAR resource);
 
 #endif
