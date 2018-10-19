@@ -453,7 +453,7 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
     
     if (pRequest->pConfig->router == NULL) return;
 
-    matchingServlet = findRoute(pRequest->pConfig, pRequest->resource);
+    matchingServlet = findRoute(pRequest->pConfig, pRequest);
     if (matchingServlet == NULL) {
         joblog( "No routing found for request"); // TODO add resource to output
         pResponse->status = 404;
@@ -464,17 +464,17 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
     }
 }
 
-SERVLET findRoute(PCONFIG pConfig, LVARPUCHAR resource) {
+SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     SERVLET matchingServlet = NULL;
     PSLIST pRouts;
 	PSLISTNODE pRouteNode;
-    PUCHAR l_resource = malloc(resource.Length +1);
+    PUCHAR l_resource = malloc(pRequest->resource.Length +1);
 
     pRouts = pConfig->router;
 
     // get the ebcdic version of the resource
-    mema2e(l_resource ,  resource.String , resource.Length); // The headers are in ASCII
-    l_resource[resource.Length] = '\0';  // Need it as a string
+    mema2e(l_resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
+    l_resource[pRequest->resource.Length] = '\0';  // Need it as a string
 
 	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
     
