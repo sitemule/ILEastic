@@ -2,7 +2,7 @@
 # User-defined part start
 #
 
-# note: ILE compilers don't support UTF-8, so we use win-1252;
+# note: ILE RPG compilers don't support UTF-8, so we use win-1252; However ILE C supports UTF-8
 
 # BIN_LIB is the destination library for the service program.
 # The rpg modules and the binder source file are also created in BIN_LIB.
@@ -37,8 +37,8 @@ env:
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 
 compile: 
-	system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1252)"
-	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1252)"
+	system "CHGATR OBJ('src/*') ATR(*CCSID) VALUE(1208)"
+	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 	system "CRTCMOD MODULE($(BIN_LIB)/stream) SRCSTMF('src/stream.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/ileastic) SRCSTMF('src/ileastic.c') $(CCFLAGS) "
 	system "CRTCMOD MODULE($(BIN_LIB)/varchar) SRCSTMF('src/varchar.c') $(CCFLAGS) "
