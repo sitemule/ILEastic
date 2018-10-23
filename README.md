@@ -121,6 +121,7 @@ SBMJOB CMD(CALL PGM(DEMO04)) ALWMLTTHD(*YES) JOB(ILEASTIC4) JOBQ(QSYSNOMAX)
 ```
 Now test it in a browser:
 
+* http://myibmi:44000  Hello world
 * http://myibmi:44001  Simple website demo
 * http://myibmi:44002  Listing of all HTTP header send by the client  
 * http://myibmi:44003  A real SQL based microservice, bulding a list of customers 
