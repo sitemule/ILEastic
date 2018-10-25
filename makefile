@@ -62,6 +62,7 @@ clean:
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/API) OBJTYPE(*MODULE)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/SNDPGMMSG) OBJTYPE(*MODULE)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/STRUTIL) OBJTYPE(*MODULE)"
+	-system -q "DLTOBJ OBJ($(BIN_LIB)/SIMPLELIST) OBJTYPE(*MODULE)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/E2AA2E) OBJTYPE(*MODULE)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/XLATE) OBJTYPE(*MODULE)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
@@ -74,3 +75,4 @@ install:
 	-mkdir $(USRINCDIR)/ILEastic
 	cp headers/ileastic.rpgle $(USRINCDIR)/ILEastic/
 
+.PHONY:

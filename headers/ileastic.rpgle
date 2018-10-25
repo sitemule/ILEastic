@@ -165,19 +165,21 @@ end-pr;
 //
 // Returns the starting value for a request query string So for
 // a request like http://localhost:8080/path?query=string you would get 
-// 'string' as the return value for the input of 'query'. The ? sign as a separator of the resource
-// path and the query string is not part of the return value. If the URL does 
-// not contain a query string the default string is returned
+// 'string' as the return value for the input of 'query'. The ? sign as a 
+// separator of the resource path and the query string is not part of the 
+// return value. If the URL does not contain a query string the default string 
+// is returned
 //
 // @param Request
 // @return Query string
 ///
 dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getParmStr');
-    request       likeds(il_request);    
-    parmName      pointer value options(*string);
-    default       varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const ;    
+    request     likeds(il_request);    
+    parmName    pointer value options(*string);
+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
 end-pr;
+
 ///
 // Get request protocol
 //
@@ -372,11 +374,12 @@ dcl-c IL_ANY     const(1023);
 //
 // @param Configuration
 // @param Servlet
-// @param HTTP Method (multiple methods can be specified like this: IL_GET + IL_POST, default: IL_ANY)
+// @param HTTP Method (multiple methods can be specified like this: 
+//        IL_GET + IL_POST, default: IL_ANY)
 // @param Path (default: / )
 // @param Content type (default: application/json)
 ///
-dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test if OPDESC keyword is needed
+dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test for OPDESC 
     config       likeds(il_config);
     servlet      pointer(*PROC) value;
     httpMethods  int(5) value options(*nopass);  
@@ -385,11 +388,13 @@ dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test if OPDESC keywo
 end-pr;
 
 ///
-// Defining plugin execution time for a plugin before the request has been handed to the endpoint.
+// Defining plugin execution time for a plugin before the request has been 
+// handed to the endpoint.
 ///
 dcl-c IL_PREREQUEST   1;
 ///
-// Defining plugin execution time for a plugin after the last response part has been sent.
+// Defining plugin execution time for a plugin after the last response part 
+// has been sent.
 ///
 dcl-c IL_POSTRESPONSE 2;
 
@@ -397,14 +402,13 @@ dcl-c IL_POSTRESPONSE 2;
 ///
 // Add plugin server
 //
-// A servlet that can handle pre and post request. A prerequest can return *OFF to stop futher processing. 
+// A servlet that can handle pre and post request. A prerequest can return 
+// *OFF to stop futher processing. 
 //
 // @param Configuration
 // @param Plugin
-// @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be either/or simply add together 
-///
-///
-// Plugin types:
+// @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be 
+//        either/or simply add together 
 ///
 dcl-pr il_addPlugin  extproc(*CWIDEN:'il_addPlugin');  
     config       likeds(il_config);
