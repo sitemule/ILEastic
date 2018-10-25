@@ -99,7 +99,7 @@
                 il_responseWrite(response: 'counter : ' + %char(counter) + ' ');
             endfor;
 
-            text = il_getParmStr  (request : 'text' : 'demo���');
+            text = il_getParmStr  (request : 'text' : 'demo');
             il_responseWrite(response:
                 'Parm value is : ' + text 
                 + '<br>'
