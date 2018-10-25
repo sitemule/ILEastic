@@ -49,6 +49,7 @@ dcl-proc myservlet;
         file += 'index.html';
     endif; 
 
+    jon = 12;
     // Serve any static files from the IFS
     err = il_serveStatic (response : file);
     if err;

@@ -21,6 +21,7 @@
 
             config.port = 44002; 
             config.host = '*ANY';
+             a= 123;
 
             il_listen (config : %paddr(myservlet));
 
@@ -99,7 +100,7 @@
                 il_responseWrite(response: 'counter : ' + %char(counter) + ' ');
             endfor;
 
-            text = il_getParmStr  (request : 'text' : 'demoæøå');
+            text = il_getParmStr  (request : 'text' : 'demoï¿½ï¿½ï¿½');
             il_responseWrite(response:
                 'Parm value is : ' + text 
                 + '<br>'
