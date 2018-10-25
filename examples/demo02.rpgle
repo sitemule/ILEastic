@@ -21,8 +21,7 @@
 
             config.port = 44002; 
             config.host = '*ANY';
-             a= 123;
-
+            
             il_listen (config : %paddr(myservlet));
 
         end-proc;
