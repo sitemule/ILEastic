@@ -1,20 +1,32 @@
 **FREE
 
-// -----------------------------------------------------------------------------
-// This example runs a simple servlet using ILEastic framework
-// Note: It requires your RPG code to be reentrant and compiled
-// for multithreading. Each client request is handled by a seperate thread.
+///
+// Serving Static Files Example
+//
+// This example shows how to service static files which reside on the IFS.
+//
 // Start it:
-// SBMJOB CMD(CALL PGM(DEMO01)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
-// -----------------------------------------------------------------------------     
+// SBMJOB CMD(CALL PGM(STATICFILE)) JOB(ILEASTIC2) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// 
+// The web service can be tested with the browser by entering the following URL:
+// http://my_ibm_i:44001/index.html
+//
+// @info: It requires your RPG code to be reentrant and compiled for 
+//        multithreading. Each client request is handled by a seperate thread.
+///
+   
 ctl-opt copyright('Sitemule.com  (C), 2018');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
-ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
+ctl-opt debug(*yes) bndDir('ILEASTIC');
 ctl-opt thread(*CONCURRENT);
 ctl-opt main(main);
+
+
 /include ./headers/ILEastic.rpgle
+
+
 // -----------------------------------------------------------------------------
-// Main
+// Program Entry Point
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
@@ -22,13 +34,14 @@ dcl-proc main;
     config.port = 44001; 
     config.host = '*ANY';
 
-    il_listen (config : %paddr(myservlet));
+    il_listen (config : %paddr(serveStaticFiles));
  
 end-proc;
+
 // -----------------------------------------------------------------------------
-// Servlet call back implementation
+// Servlet callback implementation
 // -----------------------------------------------------------------------------     
-dcl-proc myservlet;
+dcl-proc serveStaticFiles;
 
     dcl-pi *n;
         request  likeds(IL_REQUEST);
@@ -36,24 +49,19 @@ dcl-proc myservlet;
     end-pi;
 
     dcl-s file varchar(256);
-    dcl-s err  ind;
 
     // Get the resource a.k.a. the file name 
     file = il_getRequestResource(request);
 
-    // add route for IFS:
-    file = '/www/ext-6.0.0/build/examples/admin-dashboard' + file;
-
     // No resource then default to: index.html
-    if %subst(file:%len(file):1) = '/';  // terminates at a / 
+    if (%subst(file:%len(file):1) = '/');  // terminates at a / 
         file += 'index.html';
-    endif; 
+    endif;
 
     // Serve any static files from the IFS
-    err = il_serveStatic (response : file);
-    if err;
+    if (not il_serveStatic (response : file));
         response.status = 404;
-        il_responseWrite(response:'File ' + file + ' not found');
+        il_responseWrite(response : 'File ' + file + ' not found');
     endif;
 
 end-proc;

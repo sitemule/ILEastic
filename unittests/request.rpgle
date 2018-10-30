@@ -39,6 +39,7 @@ dcl-pr test_simpleResource end-pr;
 dcl-pr test_rootResource end-pr;
 dcl-pr test_deeplyStructuredResource end-pr;
 dcl-pr test_resouceWithQueryStringWithReservedChars end-pr;
+dcl-pr test_rootResourceWithMissingQueryStringValue end-pr;
 
 
 // BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
@@ -205,6 +206,16 @@ dcl-proc test_resouceWithQueryStringWithReservedChars export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('/api/v1/books') : il_getRequestResource(request));
+end-proc;
+
+
+dcl-proc test_rootResourceWithMissingQueryStringValue export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET / HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('') : il_getParmStr(request : 'client'));
 end-proc;
 
 
