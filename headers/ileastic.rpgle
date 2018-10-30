@@ -415,3 +415,15 @@ dcl-pr il_addPlugin  extproc(*CWIDEN:'il_addPlugin');
     plugin       pointer(*PROC) value;
     pluginType   int(5) value;
 end-pr;
+
+///
+// Enter mode for non threaded application like "normal" RPG / CLLE
+
+dcl-pr il_enterThreadSerialize  extproc(*CWIDEN:'il_enterThreadSerialize'); 
+end-pr; 
+
+///
+// Leave mode for non threaded application like "normal" RPG / CLLE
+dcl-pr il_exitThreadSerialize  extproc(*CWIDEN:'il_exitThreadSerialize'); 
+end-pr; 
+
