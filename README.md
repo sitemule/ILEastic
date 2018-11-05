@@ -102,9 +102,16 @@ mkdir /prj
 cd /prj 
 git -c http.sslVerify=false clone https://github.com/sitemule/ILEastic.git
 cd ILEastic
-gmake 
+make 
+```
+Now you have library ILEastic on your IBM i - and you are good to go. You can simply copy the serivce program
+to you own projects libraries along with the bind-dir and headerfiles.
+
+If you like to try the examples then you need to build them as well- as simple as:
+
+```
 cd examples 
-gmake
+make
 ```
 
 # Test it:
@@ -113,19 +120,16 @@ from a IBM i menu prompt
 ```
 CALL QCMD
 ADDLIBLE ILEASTIC
-SBMJOB CMD(CALL PGM(DEMO00)) ALWMLTTHD(*YES) JOB(ILEASTIC0) JOBQ(QSYSNOMAX) 
-SBMJOB CMD(CALL PGM(DEMO01)) ALWMLTTHD(*YES) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) 
-SBMJOB CMD(CALL PGM(DEMO02)) ALWMLTTHD(*YES) JOB(ILEASTIC2) JOBQ(QSYSNOMAX) 
-SBMJOB CMD(CALL PGM(DEMO03)) ALWMLTTHD(*YES) JOB(ILEASTIC3) JOBQ(QSYSNOMAX) 
-SBMJOB CMD(CALL PGM(DEMO04)) ALWMLTTHD(*YES) JOB(ILEASTIC4) JOBQ(QSYSNOMAX) 
+SBMJOB CMD(CALL PGM(helloworld)) ALWMLTTHD(*YES) JOB(helloworld) JOBQ(QSYSNOMAX) 
+SBMJOB CMD(CALL PGM(staticfile)) ALWMLTTHD(*YES) JOB(staticfile) JOBQ(QSYSNOMAX) 
 ```
+Look for the complete list in the examples folder - and observe which port they are "listening" at.
+
+
 Now test it in a browser: 
 
 * http://myibmi:44000  Hello world
 * http://myibmi:44001  Simple website demo
-* http://myibmi:44002  Listing of all HTTP header send by the client  
-* http://myibmi:44003  A real SQL based microservice, bulding a list of customers 
-* http://myibmi:44004  A router example. A webserver with 404 - file not found. and "about"
 
 
 Please note that the job requires `ALWMLTTHD(*YES)`

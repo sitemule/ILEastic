@@ -15,21 +15,26 @@ BIN_LIB=ILEASTIC
 
 # Inclucde directory for the noxDB headers
 NOXDBINC='/usr/local/include/noxdb'
+SHELL=/QOpenSys/usr/bin/qsh
 
 #
+# add this after CRTBNDRPG for build in vsCode:
+# | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
 # User-defined part end
 #-------------------------------------------------------------------------------
 
 
-RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST) INCDIR('./..' $(NOXDBINC))
-SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST) INCDIR(''./..'')
+RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR('./..' $(NOXDBINC))
+SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR(''./..'')
 
 .SUFFIXES: .rpgle .sqlrpgle
  
 # suffix rules
 .rpgle:
-	system -iK "CRTBNDRPG $(BIN_LIB)/$@ SRCSTMF('$<') $(RCFLAGS)"
-
+	liblist -a NOXDB;\
+	liblist -a $(BIN_LIB);\
+	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
+	
 .sqlrpgle:
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
 
