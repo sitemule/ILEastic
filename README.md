@@ -88,8 +88,8 @@ end-proc;
 # Installation
 What you need before you start:
 
-* IBM i 7.3 TR3 ( obove or alike)
-* git and gmake ( 5733OPS or YUM)
+* IBM i 7.3 TR3 (or higher)
+* git and gmake (5733OPS or YUM)
 * ILE C 
 * ILE RPG compiler
 
