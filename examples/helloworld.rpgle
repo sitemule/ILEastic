@@ -30,7 +30,7 @@ dcl-proc main;
 
     dcl-ds config likeds(il_config);
     
-    config.port = 44001; 
+    config.port = 44000; 
     config.host = '*ANY';
 
     il_listen (config : %paddr(myservlet));
