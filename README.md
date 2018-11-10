@@ -1,10 +1,10 @@
 # ILEastic
 It is a self contained web application server for the ILE environment on IBM i 
-running microservices. 
+to run microservices. 
 
 ILEastic is a service program that provides a simple, blazing fast programmable 
-HTTP server for your application so you easy can plug your RPG code into a services 
-infrastructure or make simple web applications without the need of any third party 
+HTTP server for your application. You can easily plug your RPG code into a services 
+infrastructure and make simple web applications without the need of any third party 
 webserver products.
 
 Basically it is a HTTP application server you can bind into your own ILE RPG 
@@ -12,9 +12,9 @@ projects, to give you a easy deploy mechanism, that fits into DevOps and
 microservices alike environments.
 
 The self contained web application server makes it so much easier to develop 
-web application. 
+web applications. 
 
-Simply compile and submit. Yes - You don't need GCI, Apache, nginx or IceBreak - 
+Simply compile and submit. No - You don't need GCI, Apache, nginx or IceBreak - 
 simply compile and submit.
 
 The design paradigm is the same as found in Node.JS - the project was initially 
@@ -28,7 +28,7 @@ Except for initialization, It only requires two lines of code:
  il_responseWrite ( pResponse);
 ```
 
-The `il_listen` are listening on the TCP/IP port and interface you define in the 
+The `il_listen` is listening on the TCP/IP port and interface you define in the 
 config structure. For each http request it will call your "servlet" which is a 
 callback procedure that takes a request and a response parameter
    
