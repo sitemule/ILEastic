@@ -20,4 +20,6 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_addPlugin")
     EXPORT SYMBOL("il_allocThreadMem")
     EXPORT SYMBOL("il_getThreadMem")
+    EXPORT SYMBOL("il_enterThreadSerialize")
+    EXPORT SYMBOL("il_exitThreadSerialize")
 ENDPGMEXP                                                 
