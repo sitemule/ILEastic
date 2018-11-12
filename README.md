@@ -1,10 +1,10 @@
 # ILEastic
 It is a self contained web application server for the ILE environment on IBM i 
-running microservices. 
+to run microservices. 
 
 ILEastic is a service program that provides a simple, blazing fast programmable 
-HTTP server for your application so you easy can plug your RPG code into a services 
-infrastructure or make simple web applications without the need of any third party 
+HTTP server for your application. You can easily plug your RPG code into a services 
+infrastructure and make simple web applications without the need of any third party 
 webserver products.
 
 Basically it is a HTTP application server you can bind into your own ILE RPG 
@@ -12,12 +12,12 @@ projects, to give you a easy deploy mechanism, that fits into DevOps and
 microservices alike environments.
 
 The self contained web application server makes it so much easier to develop 
-web application. 
+web applications. 
 
-Simply compile and submit. Yes - You don't need GCI, Apache, nginx or IceBreak - 
+Simply compile and submit. No - You don't need GCI, Apache, nginx or IceBreak - 
 simply compile and submit.
 
-The design paradigm is the same as found in Node.JS - so project was initially 
+The design paradigm is the same as found in Node.JS - the project was initially 
 called node.RPG but the name was subject to some discussion, so ILEastic it is.
 Where Node.JS uses JavaScript, ILEastic aims for any ILE language where RPG are 
 the most popular.
@@ -28,14 +28,14 @@ Except for initialization, It only requires two lines of code:
  il_responseWrite ( pResponse);
 ```
 
-The `il_listen` are listening on the TCP/IP port and interface you define in the 
+The `il_listen` is listening on the TCP/IP port and interface you define in the 
 config structure. For each http request it will call your "servlet" which is a 
 callback procedure that takes a request and a response parameter
    
 ![](image.png)
 
 
-The idea is that you deploy your (open source of cause) RPG packages at NPM so 
+The idea is that you deploy your (open source of course) RPG packages at NPM so 
 the RPG community can benefit from each others work. The NPM ecosystem is the 
 same for Node.JS and ILEastic.    
 
@@ -88,8 +88,8 @@ end-proc;
 # Installation
 What you need before you start:
 
-* IBM i 7.3 TR3 ( obove or alike)
-* git and gmake ( 5733OPS or YUM)
+* IBM i 7.3 TR3 (or higher)
+* git and gmake (5733OPS or YUM)
 * ILE C 
 * ILE RPG compiler
 
@@ -148,8 +148,8 @@ previously install either [iRPGUnit][iru] or [RPGUnit][ru].
 # Moving on
 So far we have implemented the basic features like `il_listen` , `il_responseWrite` and
 `il_addRoute` - look at the prototypes in `ILEastic.rpgle` header file for the complete 
-list of features. There are still much work to do, however - all the plumbing 
-around with git / compile / deploy are working. We at Sitemule.com are striving 
+list of features. There is still much work to do, however - all the plumbing 
+around with git / compile / deploy is working. We at Sitemule.com are striving 
 to move the core of the IceBreak server into the ILEastic project over the next 
 couple of months. So stay tuned.
 
