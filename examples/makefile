@@ -37,7 +37,7 @@ SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR(''./..'')
 	liblist -a $(BIN_LIB);\
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
 
-OBJECTS = helloworld staticfile datachunks invalidreq querystr multroutes plugin
+OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin
 
 all: compile
 
