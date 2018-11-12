@@ -21,6 +21,7 @@
 // @date 27.08.2018
 // @project ILEastic
 // @link https://github.com/sitemule/ILEastic Project page
+// @version 1.1.2
 ///
 
 
@@ -231,8 +232,8 @@ end-pr;
 // @param Request
 // @return HTTP message content
 ///
-dcl-pr il_getContent  varchar(524284:4)  ccsid(*utf8) rtnparm
-                extproc(*CWIDEN:'il_getContent');
+dcl-pr il_getRequestContent  varchar(524284:4)  ccsid(*utf8) rtnparm
+                extproc(*CWIDEN:'il_getRequestContent');
     request likeds(il_request);    
 end-pr;
 
@@ -379,7 +380,7 @@ dcl-c IL_ANY     const(1023);
 // @param Path (default: / )
 // @param Content type (default: application/json)
 ///
-dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');  // TODO test for OPDESC 
+dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');
     config       likeds(il_config);
     servlet      pointer(*PROC) value;
     httpMethods  int(5) value options(*nopass);  
@@ -410,20 +411,25 @@ dcl-c IL_POSTRESPONSE 2;
 // @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be 
 //        either/or simply add together 
 ///
-dcl-pr il_addPlugin  extproc(*CWIDEN:'il_addPlugin');  
+dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');  
     config       likeds(il_config);
     plugin       pointer(*PROC) value;
     pluginType   int(5) value;
 end-pr;
 
 ///
+// Enter thread safe mode
+// 
 // Enter mode for non threaded application like "normal" RPG / CLLE
-
-dcl-pr il_enterThreadSerialize  extproc(*CWIDEN:'il_enterThreadSerialize'); 
+///
+dcl-pr il_enterThreadSerialize extproc(*CWIDEN:'il_enterThreadSerialize'); 
 end-pr; 
 
 ///
+// Leave thread safe mode
+//
 // Leave mode for non threaded application like "normal" RPG / CLLE
-dcl-pr il_exitThreadSerialize  extproc(*CWIDEN:'il_exitThreadSerialize'); 
+///
+dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize'); 
 end-pr; 
 

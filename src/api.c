@@ -82,7 +82,7 @@ void il_getRequestHeader (PLVARCHAR out , PREQUEST pRequest, PUCHAR header)
     getHeaderValue(out->String , pRequest->headerList ,  header);
     out->Length = strlen(out->String);
 }         
-void il_getContent (PLVARCHAR out , PREQUEST pRequest)
+void il_getRequestContent (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->content);
 }         
