@@ -13,8 +13,7 @@
 # BIN_LIB is the destination library for the demo programs.
 BIN_LIB=ILEASTIC
 
-# Inclucde directory for the noxDB headers
-NOXDBINC='/usr/local/include/noxdb'
+# The shell we use
 SHELL=/QOpenSys/usr/bin/qsh
 
 #
@@ -24,18 +23,18 @@ SHELL=/QOpenSys/usr/bin/qsh
 #-------------------------------------------------------------------------------
 
 
-RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR('./..' $(NOXDBINC))
+RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR('./..')
 SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR(''./..'')
 
 .SUFFIXES: .rpgle .sqlrpgle
  
 # suffix rules
 .rpgle:
-	liblist -a NOXDB;\
 	liblist -a $(BIN_LIB);\
 	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
 	
 .sqlrpgle:
+	liblist -a $(BIN_LIB);\
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
 
 OBJECTS = helloworld staticfile datachunks invalidreq querystr multroutes plugin
