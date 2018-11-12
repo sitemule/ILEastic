@@ -26,8 +26,8 @@ MODULES = stream ileastic varchar api sndpgmmsg strutil e2aa2e xlate simpleList 
 .SUFFIXES: .c
 
 .c:
-	system "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1208)"
-	system "CRTCMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
+	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1208)"
+	system -i "CRTCMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
 	
 all: compile
 

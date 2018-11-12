@@ -38,7 +38,7 @@ typedef enum {
   #define FALSE 0
 #endif
 
-/* Logical boleans states C++ style*/
+/* Logical booleans states C++ style*/
 #ifndef true
   #define true  1
 #endif

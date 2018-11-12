@@ -38,7 +38,7 @@ env:
 	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
 compile: .PHONY
-	cd src && make $@
+	cd src && make
 
 bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
