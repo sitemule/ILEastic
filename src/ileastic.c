@@ -496,7 +496,7 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
 
 
 /* --------------------------------------------------------------------------- */
-static BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
+BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
 {
     PSLISTNODE pPluginNode;
 

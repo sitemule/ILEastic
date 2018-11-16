@@ -121,14 +121,13 @@ dcl-proc test_caseSensitivity export;
   
   matchingRoute = findRoute(%addr(config) : %addr(request));
   if (matchingRoute = %paddr(routeTime));
-    dsply 'is route time';
+    dsply 'is route /time';
   endif;
   assert(matchingRoute = *null : 'Should have found no end point.');
   
   on-exit abnormallyEnded;
     disposeRequest(request);
 end-proc;
-
 
 
 dcl-proc test_root export;
