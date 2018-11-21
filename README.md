@@ -161,6 +161,6 @@ me into a better direction.
 
 Happy ILEastic coding
 
-[iru]: https://irpgunit.sourceforge.net
-[ru]: https://rpgunit.sourceforge.net
+[iru]: https://irpgunit.sourceforge.io
+[ru]: https://rpgunit.sourceforge.io
 
