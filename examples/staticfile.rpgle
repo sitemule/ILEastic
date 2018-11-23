@@ -49,6 +49,7 @@ dcl-proc serveStaticFiles;
     end-pi;
 
     dcl-s file varchar(256);
+    dcl-c FILE_NOT_FOUND  '1';
 
     // Get the resource a.k.a. the file name 
     file = il_getRequestResource(request);
@@ -59,7 +60,7 @@ dcl-proc serveStaticFiles;
     endif;
 
     // Serve any static files from the IFS
-    if (not il_serveStatic (response : file));
+    if (FILE_NOT_FOUND = il_serveStatic (response : file));
         response.status = 404;
         il_responseWrite(response : 'File ' + file + ' not found');
     endif;
