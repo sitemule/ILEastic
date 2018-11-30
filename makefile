@@ -40,6 +40,9 @@ env:
 compile: .PHONY
 	cd src && make
 
+noxDB: .PHONY
+	cd noxDB && make
+	
 bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)"

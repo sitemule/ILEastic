@@ -100,12 +100,12 @@ Or start ssh from win/mac/linux
 ```
 mkdir /prj
 cd /prj 
-git -c http.sslVerify=false clone https://github.com/sitemule/ILEastic.git
+git -c http.sslVerify=false clone --recurse-submodules https://github.com/sitemule/ILEastic.git
 cd ILEastic
 make 
 ```
 Now you have library ILEastic on your IBM i - and you are good to go. You can simply copy the serivce program
-to you own projects libraries along with the bind-dir and headerfiles.
+to you own projects libraries along with the binding directory and header files.
 
 If you like to try the examples then you need to build them as well- as simple as:
 

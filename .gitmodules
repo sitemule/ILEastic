@@ -1,0 +1,3 @@
+[submodule "noxDB"]
+	path = noxDB
+	url = https://github.com/sitemule/noxDB
