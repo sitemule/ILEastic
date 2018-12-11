@@ -47,6 +47,10 @@
 #include "simplelist.h"
 #include "parms.h"
 
+
+void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
+
+
 /* --------------------------------------------------------------------------- */
 // TOOLS - TODO move to own files:
 /* --------------------------------------------------------------------------- */
@@ -516,7 +520,8 @@ static void * serverThread (PINSTANCE pInstance)
     REQUEST  request;
     RESPONSE response;
     BOOL     allSaysGo;
-
+    volatile PRESPONSE pResponse;
+    
     while (pInstance->config.clientSocket > 0) {
         memset(&request  , 0, sizeof(REQUEST));
         memset(&response , 0, sizeof(RESPONSE));
@@ -531,6 +536,9 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.charset     , "UTF-8");
         str2vc(&response.statusText  , "OK");
 
+        pResponse = &response;
+        
+        #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
         allSaysGo = runPlugins (request.pConfig->pluginPreRequest , &request , &response);
         if (allSaysGo) {
             if (pInstance->servlet) {
@@ -540,6 +548,7 @@ static void * serverThread (PINSTANCE pInstance)
             }
             runPlugins (request.pConfig->pluginPostResponse , &request , &response);
         }
+        #pragma disable_handler
 
         putChunkEnd (&response);
 
@@ -561,6 +570,14 @@ static void * serverThread (PINSTANCE pInstance)
     free(pInstance);
     pthread_exit(NULL);
 }
+
+void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms) {
+    PRESPONSE * pResponse = parms->Com_Area;
+    PRESPONSE response = *pResponse;
+    response->status = 500;
+    putChunkXlate(response, "Internal Server Error", 21); 
+}
+
 /* --------------------------------------------------------------------------- */
 static int montcp(int errcde)
 {
