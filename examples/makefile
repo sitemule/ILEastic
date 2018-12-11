@@ -18,20 +18,21 @@ SHELL=/QOpenSys/usr/bin/qsh
 
 #
 # add this after CRTBNDRPG for build in vsCode:
-# | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
+# | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
+# NOTE that OUTPUT are overridden by the make in the vsCode task.json 
+# to compile a single file and get erros to the editor
 # User-defined part end
 #-------------------------------------------------------------------------------
-
-
-RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR('./..')
-SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT(*NONE) INCDIR(''./..'')
+OUTPUT=*NONE
+RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR('./..')
+SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR(''./..'')
 
 .SUFFIXES: .rpgle .sqlrpgle
  
 # suffix rules
 .rpgle:
 	liblist -a $(BIN_LIB);\
-	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$@: &!"
+	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
 	
 .sqlrpgle:
 	liblist -a $(BIN_LIB);\

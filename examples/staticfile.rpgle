@@ -59,6 +59,11 @@ dcl-proc serveStaticFiles;
         file += 'index.html';
     endif;
 
+    // You can now concatenate the file to point to 
+    // any place on the IFS where your web content are located. i.e.:
+    // file = '/www/ext-6.5.0/build/examples/classic/desktop/' + file;
+    // file = '/www/ext-6.5.0/build/examples/admin-dashboard/' + file;
+
     // Serve any static files from the IFS
     if (FILE_NOT_FOUND = il_serveStatic (response : file));
         response.status = 404;
