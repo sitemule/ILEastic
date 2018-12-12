@@ -13,7 +13,7 @@
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
 ///
-   
+    
 ctl-opt copyright('Sitemule.com  (C), 2018');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
 ctl-opt debug(*yes) bndDir('ILEASTIC');
