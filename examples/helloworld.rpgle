@@ -10,7 +10,7 @@
 // SBMJOB CMD(CALL PGM(HELLOWORLD)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
-// http://my_ibm_i:44001
+// http://my_ibm_i:44000
 // 
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
