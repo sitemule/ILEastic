@@ -11,7 +11,9 @@
 #
 
 # BIN_LIB is the destination library for the demo programs.
+# NOTE: LIBLIST can be overwritten from the commandline, but defaults to the BIN_LIB
 BIN_LIB=ILEASTIC
+LIBLIST=$(BIN_LIB)
 
 # The shell we use
 SHELL=/QOpenSys/usr/bin/qsh
@@ -26,19 +28,24 @@ SHELL=/QOpenSys/usr/bin/qsh
 OUTPUT=*NONE
 RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR('./..')
 SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR(''./..'')
+FILTER=| grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
+NOFILTER=>errorlist.txt
 
 .SUFFIXES: .rpgle .sqlrpgle
  
 # suffix rules
 .rpgle:
-	liblist -a $(BIN_LIB);\
-	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" | grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
+	touch errorlist.txt ;\
+	setccsid 1252 errorlist.txt;\
+	liblist -a $(LIBLIST);\
+	setccsid 1252 $<;\
+	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" $(FILTER) ;\
 	
 .sqlrpgle:
-	liblist -a $(BIN_LIB);\
+	liblist -a $(LIBLIST);\
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
 
-OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin
+OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin josndata
 
 all: compile
 

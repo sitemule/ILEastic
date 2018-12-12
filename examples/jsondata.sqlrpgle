@@ -8,6 +8,9 @@
 // 
 // The demo customer file (QIWS/QCUSTCDT) is written to the response as 
 // json. The data is accessed via embedded SQL.
+// The main feature is to show that CLOB and BLOB are directly supported in ILEastic
+// making it easy to integrateILEastic and SQL. An even better solution is
+// to use noxDB which is 100% dynamic 
 //
 // Start it:
 // SBMJOB CMD(CALL PGM(JSONDATA)) JOB(JSONDATA) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)

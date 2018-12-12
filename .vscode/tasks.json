@@ -57,7 +57,7 @@
         // NOTE: OBJECT are overridden by the command line, so OBJECT will be "this" files 
         {
             "label": "Compile current example file",
-            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT'",
+            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC NOXDB\"'",
             "type": "shell",
             "group": {
                 "kind": "build",

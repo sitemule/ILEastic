@@ -5,7 +5,7 @@
 //
 //
 // Start it:
-// SBMJOB CMD(CALL PGM(STATICFILE)) JOB(ILEASTIC2) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// SBMJOB CMD(CALL PGM(NOXDBCUST)) JOB(NOXDBCUST) JOBQ(QSYSNOMAX)  ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
 // http://my_ibm_i:44001/index.html
@@ -16,12 +16,13 @@
    
 ctl-opt copyright('Sitemule.com  (C), 2018');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
-ctl-opt debug(*yes) bndDir('ILEASTIC');
+ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
 ctl-opt thread(*CONCURRENT);
 ctl-opt main(main);
 
 
 /include ./headers/ILEastic.rpgle
+/include ./noxdb/headers/jsonParser.rpgle
 
 
 // -----------------------------------------------------------------------------
@@ -33,40 +34,34 @@ dcl-proc main;
     config.port = 44001; 
     config.host = '*ANY';
 
-    il_listen (config : %paddr(serveStaticFiles));
+    il_listen (config : %paddr(customerList));
  
 end-proc;
 
 // -----------------------------------------------------------------------------
 // Servlet callback implementation
 // -----------------------------------------------------------------------------     
-dcl-proc serveStaticFiles;
+dcl-proc customerList;
 
     dcl-pi *n;
         request  likeds(IL_REQUEST);
         response likeds(IL_RESPONSE);
     end-pi;
 
-    dcl-s file varchar(256);
-    dcl-c FILE_NOT_FOUND  '1';
+    dcl-s pResult pointer;
 
-    // Get the resource a.k.a. the file name 
-    file = il_getRequestResource(request);
+    // Assume everything is OK
+    response.status = 200;
+    response.contentType = 'application/json';
 
-    // No resource then default to: index.html
-    if (%subst(file:%len(file):1) = '/');  // terminates at a / 
-        file += 'index.html';
-    endif;
+    // Use noxDB to produce a JSON resultset to return
+    pResult = json_sqlResultSet ('-
+        select *                  -
+        FROM QIWS/QCUSTCDT        -
+    ');
 
-    // You can now concatenate the file to point to 
-    // any place on the IFS where your web content are located. i.e.:
-    // file = '/www/ext-6.5.0/build/examples/classic/desktop/' + file;
-    // file = '/www/ext-6.5.0/build/examples/admin-dashboard/' + file;
+    // Use the stream to input data from noxdb and output it to ILEastic 
+    il_responseWriteStream(response : json_stream( pResult));
 
-    // Serve any static files from the IFS
-    if (FILE_NOT_FOUND = il_serveStatic (response : file));
-        response.status = 404;
-        il_responseWrite(response : 'File ' + file + ' not found');
-    endif;
 
 end-proc;
