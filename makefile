@@ -52,6 +52,9 @@ bind:
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
+test: .PHONY
+	cd unittests && make
+	
 # For vsCode 
 current: env
 	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('src/$(SRC).c') $(CCFLAGS2) "
