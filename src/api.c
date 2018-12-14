@@ -272,7 +272,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
     LONG rc;
     UCHAR msg  [100];
-    ULONG options =  REG_NOSUB + REG_EXTENDED + REG_ICASE;
+    ULONG options =  REG_NOSUB + REG_EXTENDED;
     ROUTING routing;
 
     if (pConfig->router == NULL) {

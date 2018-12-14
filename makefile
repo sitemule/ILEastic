@@ -27,7 +27,7 @@ INCLUDE='/QIBM/include' 'headers/'
 # CCFLAGS = C compiler parameter
 CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
 
-MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize 
+MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64
 	
 all: env compile bind
 
@@ -37,12 +37,15 @@ env:
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
-compile: .PHONY
+compile: base64 .PHONY
 	cd src && make
 
 noxDB: .PHONY
 	cd noxDB && make
-	
+
+base64: .PHONY
+	cd base64 && make
+		
 bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)"
@@ -52,6 +55,9 @@ bind:
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
+test: .PHONY
+	cd unittests && make
+	
 # For vsCode 
 current: env
 	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('src/$(SRC).c') $(CCFLAGS2) "
