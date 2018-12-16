@@ -431,5 +431,18 @@ end-pr;
 // Leave mode for non threaded application like "normal" RPG / CLLE
 ///
 dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize'); 
-end-pr; 
+end-pr;
 
+///
+// Base64 decode value
+//
+// Decodes a base64 encoded string.
+//
+// @param Encoded string (il_varchar)
+// @return Decoded string
+//
+// @info The character encoding for the original value is expected to be UTF-8.
+///
+dcl-pr il_decodeBase64 likeds(il_varchar) extproc(*CWIDEN : 'il_decodeBase64');
+  string pointer value;
+end-pr;

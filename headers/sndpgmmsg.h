@@ -1,4 +1,4 @@
-﻿#ifndef SNDPGMMSG_I
+#ifndef SNDPGMMSG_I
 #define SNDPGMMSG_I
 #include "qmhsndpm.h"
 #define ESCAPE  "*ESCAPE   "

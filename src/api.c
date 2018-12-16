@@ -1,4 +1,4 @@
-﻿/* ------------------------------------------------------------- */
+/* ------------------------------------------------------------- */
 /* Program . . . : ILEastic - main interface                     */
 /* Date  . . . . : 02.06.2018                                    */
 /* Design  . . . : Niels Liisberg                                */
@@ -46,6 +46,7 @@
 #include "sndpgmmsg.h"
 #include "parms.h"
 #include "e2aa2e.h"
+#include "base64/base64.h"
 
 
 
@@ -306,4 +307,16 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
 
     sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
 }        
+
+
+LVARPUCHAR il_decodeBase64(PLVARPUCHAR value) {
+    LVARPUCHAR decoded;
+    size_t decodedLength;
+    size_t encodedLength = value->Length;
+    char * encodedValue = value->String;
+    
+    decoded.String = base64_decode(value->String, value->Length, &decodedLength);
+    decoded.Length = decodedLength;
+    return decoded;
+}
 

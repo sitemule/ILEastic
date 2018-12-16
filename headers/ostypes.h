@@ -1,4 +1,4 @@
-﻿#ifndef OSTYPES_H
+#ifndef OSTYPES_H
 #define OSTYPES_H
 
 #ifndef   __decimal_h
