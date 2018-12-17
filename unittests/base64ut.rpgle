@@ -66,29 +66,17 @@ end-proc;
 
 
 dcl-proc test_il_decode export;
-  dcl-s abnormallyEnded ind;
-  dcl-s decodedValue varchar(100);
-  dcl-ds decoded likeds(il_varchar);
-  dcl-ds encoded likeds(il_varchar);
-  dcl-s string char(100) ccsid(*utf8);
+  dcl-s encoded varchar(100) ccsid(*utf8);
   
-  string = 'bXlfdXNlcm5hbWU6bXlfcGFzc3dv';
-  encoded.length = %len(%trimr(string));
-  encoded.string = %alloc(100);
-  memcpy(encoded.string : %addr(string) : encoded.length);
+  encoded = 'bXlfdXNlcm5hbWU6bXlfcGFzc3dv';
   
-  decoded = il_decodeBase64(%addr(encoded));
-  decodedValue = il_getVarcharValue(decoded);
+  aEqual(utf8('my_username:my_passwo') : il_decodeBase64(encoded));
+end-proc;
+
+dcl-proc utf8;
+  dcl-pi *n varchar(1024) ccsid(*utf8);
+    string varchar(1024) const;
+  end-pi;
   
-  aEqual('my_username:my_passwo' : decodedValue);
-  iEqual(21 : decoded.length);
-  
-  on-exit abnormallyEnded;
-    if (decoded.string <> *null);
-      dealloc decoded.string;
-    endif;
-    
-    if (encoded.string <> *null);
-      dealloc encoded.string;
-    endif;
+  return string;
 end-proc;

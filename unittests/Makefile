@@ -52,3 +52,5 @@ clean:
 	-system -i "DLTSRVPGM $(BIN_LIB)/ROUTING"
 	-system -i "DLTMOD $(BIN_LIB)/PLUGIN"
 	-system -i "DLTSRVPGM $(BIN_LIB)/PLUGIN"
+	-system -i "DLTMOD $(BIN_LIB)/BASE64UT"
+	-system -i "DLTSRVPGM $(BIN_LIB)/BASE64UT"

@@ -438,11 +438,12 @@ end-pr;
 //
 // Decodes a base64 encoded string.
 //
-// @param Encoded string (il_varchar)
+// @param Encoded string
 // @return Decoded string
 //
 // @info The character encoding for the original value is expected to be UTF-8.
 ///
-dcl-pr il_decodeBase64 likeds(il_varchar) extproc(*CWIDEN : 'il_decodeBase64');
-  string pointer value;
+dcl-pr il_decodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_decodeBase64') rtnparm;
+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
 end-pr;
+

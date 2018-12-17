@@ -19,7 +19,7 @@ BIN_LIB=ILEASTIC
 INCLUDE='/QIBM/include' '../headers/' '../'
 
 # CCFLAGS = C compiler parameter
-CCFLAGS=output(*print) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
+CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
 MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize
 
