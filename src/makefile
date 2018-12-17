@@ -16,7 +16,7 @@ BIN_LIB=ILEASTIC
 
 
 # system and application include folder
-INCLUDE='/QIBM/include' '../headers/'
+INCLUDE='/QIBM/include' '../headers/' '../'
 
 # CCFLAGS = C compiler parameter
 CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
@@ -27,7 +27,7 @@ MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList 
 
 .c:
 	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1208)"
-	system -i "CRTCMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
+	system -ik "CRTCMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
 	
 all: compile
 

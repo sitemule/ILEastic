@@ -1,4 +1,4 @@
-﻿#ifndef VARCHAR_H
+#ifndef VARCHAR_H
 #define  VARCHAR_H
 
 typedef _Packed struct  _VARCHARLIST {                 

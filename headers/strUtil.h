@@ -1,4 +1,4 @@
-﻿#ifndef STRUTIL_H
+#ifndef STRUTIL_H
 #define STRUTIL_H
 
 int     strIcmp (PUCHAR s1, PUCHAR s2);

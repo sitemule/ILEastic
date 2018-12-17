@@ -1,4 +1,4 @@
-﻿#ifndef E2AA2E_H
+#ifndef E2AA2E_H
 #define E2AA2E_H
 #include "ostypes.h"
 PUCHAR stra2e(PUCHAR out, PUCHAR in);
