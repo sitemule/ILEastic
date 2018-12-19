@@ -1,6 +1,6 @@
 {
 	"build": [{
 		"command": "gmake",
-		"args": ["BIN_LIB=ILEA_BLD"]
+		"args": ["BIN_LIB=ILEASTIC"]
 	}]
 }
