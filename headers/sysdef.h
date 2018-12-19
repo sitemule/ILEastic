@@ -92,6 +92,8 @@ typedef enum _ROUTETYPE  {
     IL_DELETE   = 4,
     IL_PUT      = 8,
     IL_OPTIONS  = 16,
+    IL_HEAD     = 32,
+    IL_PATCH    = 64, 
     IL_ANY      = 0xffff
 } ROUTETYPE , *PROUTETYPE ;
 #pragma enum     (pop)
