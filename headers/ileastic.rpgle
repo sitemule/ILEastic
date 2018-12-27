@@ -25,6 +25,7 @@
 ///
 
 
+dcl-s IL_LONGUTF8VARCHAR varchar(524284:4) ccsid(*utf8) template;
 
 ///
 // String
@@ -444,6 +445,20 @@ end-pr;
 // @info The character encoding for the original value is expected to be UTF-8.
 ///
 dcl-pr il_decodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_decodeBase64') rtnparm;
+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
+end-pr;
+
+///
+// Base64 encoding value
+//
+// Encodes a string into base64 .
+//
+// @param string to encode
+// @return Encoded string
+//
+// @info The character encoding for the original value is expected to be UTF-8.
+///
+dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_encodeBase64') rtnparm;
   string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
 end-pr;
 

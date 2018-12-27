@@ -37,14 +37,13 @@ env:
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
-compile: base64 .PHONY
+compile: .PHONY
 	cd src && make
 
 noxDB: .PHONY
 	cd noxDB && make
 
-base64: .PHONY
-	cd base64 && make
+
 		
 bind:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"

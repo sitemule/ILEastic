@@ -46,9 +46,6 @@
 #include "sndpgmmsg.h"
 #include "parms.h"
 #include "e2aa2e.h"
-#include "base64/base64.h"
-
-
 
 
 /* --------------------------------------------------------------------------- */
@@ -307,17 +304,3 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
 
     sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
 }        
-
-
-void il_decodeBase64(PLVARCHAR decoded, PLVARCHAR value) {
-    size_t decodedLength;
-    unsigned char * decodedValue;
-    size_t encodedLength = value->Length;
-    char * encodedValue = value->String;
-    
-    decodedValue = base64_decode(value->String, value->Length, &decodedLength);
-    decoded->Length = decodedLength;
-    substr(decoded->String , decodedValue , decodedLength);
-    decoded->Length = decodedLength;
-}
-

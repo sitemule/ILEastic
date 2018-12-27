@@ -128,5 +128,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
 SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest);
+BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
+void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
 
 #endif

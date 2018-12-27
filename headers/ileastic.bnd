@@ -23,4 +23,5 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_enterThreadSerialize")
     EXPORT SYMBOL("il_exitThreadSerialize")
     EXPORT SYMBOL("il_decodeBase64")
+    EXPORT SYMBOL("il_encodeBase64")
 ENDPGMEXP                                                 

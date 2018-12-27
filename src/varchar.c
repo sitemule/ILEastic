@@ -47,7 +47,7 @@ VARPUCHAR vc2varpuchar(PVARCHAR in)
 {
    VARPUCHAR res;
    res.Length = in->Length;
-   if (in->Length  == 32767) { // TODO - lengthe is set to zero if *BLANK is passed
+   if (in->Length  == 32767) { // TODO - lengtheis set to zero if *BLANK is passed
       if  (memcmp( in->String , "          " , 10 ) == 0) {
          res.Length = 0;
       }
@@ -240,5 +240,14 @@ BOOL lvpcIsEqual(PLVARPUCHAR p1, PLVARPUCHAR p2)
    return (
        (p1->Length == p2->Length)
    &&  (memicmp (p1->String , p2->String ,p2->Length) == 0)
+   );
+}
+/* ---------------------------------------------------------------------------------------- */
+BOOL lvpcIsEqualStr(PLVARPUCHAR p1, PUCHAR s)
+{
+   ULONG l = strlen(s);
+   return (
+       (p1->Length == l)
+   &&  (memcmp (p1->String , s ,l ) == 0)
    );
 }

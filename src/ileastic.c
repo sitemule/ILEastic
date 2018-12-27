@@ -48,19 +48,6 @@
 #include "parms.h"
 
 
-// need methods in ASCII because HTTP header is stored in ascii
-const char * IL_CHAR_GET = "\x47\x45\x54\x00";
-const char * IL_CHAR_PUT = "\x50\x55\x54\x00";
-const char * IL_CHAR_POST = "\x50\x4F\x53\x54\x00";
-const char * IL_CHAR_DELETE = "\x44\x45\x4C\x45\x54\x45\x00";
-const char * IL_CHAR_HEAD = "\x48\x45\x41\x44\x00";
-const char * IL_CHAR_PATCH = "\x50\x41\x54\x43\x48\x00";
-const char * IL_CHAR_OPTIONS = "\x4F\x50\x54\x49\x4F\x4E\x53\x00";
-
-
-void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
-BOOL httpMethodMatchesEndPoint(LVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
-
 
 /* --------------------------------------------------------------------------- */
 // TOOLS - TODO move to own files:
@@ -495,7 +482,7 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     
         PROUTING pRouting = pRouteNode->payloadData;
 
-        if (httpMethodMatchesEndPoint(pRequest->method, pRouting->routeType)) {
+        if (httpMethodMatchesEndPoint(&pRequest->method, pRouting->routeType)) {
           // Execute regular expression
           // If non is given then it is a match as well. That counts for a "match all"
           int rc = pRouting->routeReg == NULL ? 0 : regexec(pRouting->routeReg, l_resource, 0, NULL, 0);
@@ -510,32 +497,33 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     
     return matchingServlet;
 }
-
-BOOL httpMethodMatchesEndPoint(LVARPUCHAR requestMethod, ROUTETYPE endPointRouteType) {
+#pragma convert(1252)
+BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType) 
+{
     ROUTETYPE requestRouteType;
  
     if (endPointRouteType == IL_ANY) {
         return true;
     }
-    else if (requestMethod.Length == 3 && memcmp(requestMethod.String, IL_CHAR_GET, 3) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "GET")) {
         requestRouteType = IL_GET;
     }
-    else if (requestMethod.Length == 4 && memcmp(requestMethod.String, IL_CHAR_HEAD, 4) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "HEAD")) {
         requestRouteType = IL_HEAD;
     }
-    else if (requestMethod.Length == 3 && memcmp(requestMethod.String, IL_CHAR_PUT, 3) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "PUT")) {
         requestRouteType = IL_PUT;
     }
-    else if (requestMethod.Length == 4 && memcmp(requestMethod.String, IL_CHAR_POST, 4) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "POST")) {
         requestRouteType = IL_POST;
     }
-    else if (requestMethod.Length == 6 && memcmp(requestMethod.String, IL_CHAR_DELETE, 6) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "DELETE")) {
         requestRouteType = IL_DELETE;
     }
-    else if (requestMethod.Length == 5 && memcmp(requestMethod.String, IL_CHAR_PATCH, 5) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "PATCH")) {
         requestRouteType = IL_PATCH;
     }
-    else if (requestMethod.Length == 7 && memcmp(requestMethod.String, IL_CHAR_OPTIONS, 7) == 0) {
+    else if (lvpcIsEqualStr (requestMethod, "OPTIONS")) {
         requestRouteType = IL_OPTIONS;
     }
     else {
@@ -544,6 +532,7 @@ BOOL httpMethodMatchesEndPoint(LVARPUCHAR requestMethod, ROUTETYPE endPointRoute
  
     return endPointRouteType & requestRouteType;
 }
+#pragma convert(0)
 
 /* --------------------------------------------------------------------------- */
 BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
