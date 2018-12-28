@@ -45,7 +45,7 @@ NOFILTER=>errorlist.txt
 	liblist -a $(LIBLIST);\
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
 
-OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin jsondata
+OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin jsondata base64
 
 all: compile
 

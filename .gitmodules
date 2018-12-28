@@ -1,3 +1,7 @@
 [submodule "noxDB"]
 	path = noxDB
 	url = https://github.com/sitemule/noxDB
+
+[submodule "ILEfastCGI"]
+	path = ILEfastCGI
+	url = https://github.com/sitemule/ILEfastCGI
