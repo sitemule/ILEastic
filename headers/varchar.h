@@ -118,6 +118,8 @@ void lvpc2vc  (PVARCHAR out, PLVARPUCHAR in);
 BOOL vpcIsEqual(PVARPUCHAR p1, PVARPUCHAR p2);
 BOOL lvpcIsEqual(PLVARPUCHAR p1, PLVARPUCHAR p2);
 BOOL lvpcIsEqualStr(PLVARPUCHAR p1, PUCHAR s);
+void lvpcSetFromStr (PLVARPUCHAR out, PUCHAR in);
+
 
 
 

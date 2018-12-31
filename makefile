@@ -9,12 +9,17 @@
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
 BIN_LIB=ILEASTIC
+LIBLIST=$(BIN_LIB) ILEFCGI
+
+
+# The shell we use
+SHELL=/QOpenSys/usr/bin/qsh
 
 #
 # The folder where the copy books for ILEastic will be copied to with the 
 # install step (make install).
 #
-USRINCDIR=/usr/local/include
+USRINCDIR='/usr/local/include'  
 
 #
 # User-defined part end
@@ -22,12 +27,12 @@ USRINCDIR=/usr/local/include
 
 
 # system and application include folder
-INCLUDE='/QIBM/include' 'headers/'
+INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include'
 
 # CCFLAGS = C compiler parameter
 CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
 
-MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64
+MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI
 	
 all: env compile bind
 
@@ -43,13 +48,16 @@ compile: .PHONY
 noxDB: .PHONY
 	cd noxDB && make
 
+ILEfastCGI: .PHONY
+	cd ILEfastCGI && gmake
 
 		
 bind:
-	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
-	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)"
-	-system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)"
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')"
+	liblist -a $(LIBLIST);\
+	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
+	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
+	-system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM((ILEFCGI *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
 
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"

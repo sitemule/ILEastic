@@ -7,10 +7,10 @@
 /define ILEASTIC
 
 ///
-// ILEastic - Microservices for ILE on IBM i
+// ILEastic - Embedded applicationserver for ILE on IBM i
 //
 // It is a self contained web application server for the ILE environment on 
-// IBM i running microservices.
+// IBM i for implementing microservices alike applications.
 // <p>
 // ILEastic is a service program that provides a simple, blazing fast 
 // programmable HTTP server for your application so you easy can plug your RPG 
@@ -31,6 +31,7 @@ dcl-s IL_LONGUTF8VARCHAR varchar(524284:4) ccsid(*utf8) template;
 // String
 //
 // This data structure holds a string with variable length.
+// Note - it only ocopys as much data as required only with the length and pointer as overhead 
 ///
 dcl-ds il_varchar qualified template;
     length  uns(10);
@@ -39,12 +40,27 @@ end-ds;
 
 
 ///
+// Enumerates the protocol 
+// 0=Plain HTTP
+// 1=HTTPS   (Secure HTTP: Certificate and certificate password required)
+// 2=FastCGI (For application plugin to NGINX or APACHE)
+// 3=FastCGI secure (For application plugin to NGINX or APACHE.Certificate and certificate password required)
+///
+dcl-c IL_HTTP       0;
+dcl-c IL_HTTPS      1;
+dcl-c IL_FASTCGI    2;
+dcl-c IL_SECFASTCGI 3;
+
+///
 // Configuration
 ///
 dcl-ds il_config qualified template;
-    host    varchar(64);
-    port    int(10);
-    filler  char(4096);
+    host                varchar(64);
+    port                int(10);
+    protocol            int(10);
+    certificateFile     varchar(256);
+    certificatePassword varchar(64);
+    filler              char(4096); // required - contains the private internal handlers
 end-ds;
 
 ///

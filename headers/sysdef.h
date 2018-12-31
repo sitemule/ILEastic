@@ -5,6 +5,7 @@
 #include "ostypes.h"
 #include "xlate.h"
 #include "simplelist.h"
+#include "fcgi_stdio.h"
 
 
 #define  SOCMAXREAD 650000
@@ -26,9 +27,28 @@ typedef _Packed struct _APIRTN  {
     UCHAR   ApiMsgData[512];
 } APIRTN   , *PAPIRTN;
 
+#pragma enum     (2)
+typedef enum _PROTOCOL  {
+    PROT_HTTP       = 0,
+    PROT_HTTPS      = 1,
+    PROT_FASTCGI    = 2,
+    PROT_SECFASTCGI = 3
+} PROTOCOL , *PPROTOCOL ;
+#pragma enum     (pop)
+
+typedef _Packed struct  {
+    FCGX_Stream * out;
+    FCGX_Stream * in;
+    FCGX_Stream * err;
+    PUCHAR * envp ;
+} FCGI , * PFCGI;
+
 typedef _Packed struct _CONFIG  {
     VARCHAR64   interface;
     int         port;
+    PROTOCOL    protocol;
+    VARCHAR256  certificateFile;
+    VARCHAR64   certificatePassword;
     UCHAR       filler[1024];
     // Private:
     int         mainSocket;
@@ -41,7 +61,7 @@ typedef _Packed struct _CONFIG  {
     PSLIST      router;
     PSLIST      pluginPreRequest;
     PSLIST      pluginPostResponse;
-
+    FCGI        fcgi;
 } CONFIG,  *PCONFIG;
 
 typedef _Packed struct _HEADERLIST  {
@@ -130,5 +150,12 @@ PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
 SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest);
 BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
+BOOL fcgiReceiveHeader (PREQUEST pRequest);
+LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len); 
+PSLIST parseParms ( LVARPUCHAR parmString);
+
+
+
+
 
 #endif

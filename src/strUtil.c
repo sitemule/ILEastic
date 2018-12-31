@@ -787,3 +787,18 @@ LONG strTrimLen(PUCHAR str)
     }
     return len;
 }
+/* ---------------------------------------------------------------------------------------- */
+// atoi - real ascii version - the stdlib is running in EBCDIC
+/* ---------------------------------------------------------------------------------------- */
+LONG a2i (PUCHAR s)
+{
+    LONG res = 0;
+    for (;*s;s++) {
+        // Is real ascii number?
+        if (*s >= 0x30 && *s <= 0x39) {
+            res = 10*res + (*s - 0x30);
+        }
+    }
+    return res;
+}
+

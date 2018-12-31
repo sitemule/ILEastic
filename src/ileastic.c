@@ -48,21 +48,19 @@
 #include "parms.h"
 
 
+// callback function pointers
+LONG (*responseWriter) (PRESPONSE pResponse, PUCHAR buf , LONG len);
+BOOL (*receiveHeader)  (PREQUEST pRequest);
 
 /* --------------------------------------------------------------------------- */
 // TOOLS - TODO move to own files:
 /* --------------------------------------------------------------------------- */
-// atoi - real ascii version - the stdlib is running in EBCDIC
-LONG a2i (PUCHAR s)
-{
-    LONG res = 0;
-    for (;*s;s++) {
-        // Is real ascii number?
-        if (*s >= 0x30 && *s <= 0x39) {
-            res = 10*res + (*s - 0x30);
-        }
-    }
-    return res;
+/* --------------------------------------------------------------------------- */
+// response write
+/* --------------------------------------------------------------------------- */
+LONG responseSocketWriter (PRESPONSE pResponse, PUCHAR buf , LONG len)
+{                                                         
+    return  write(pResponse->pConfig->clientSocket, buf, len);
 }
 /* --------------------------------------------------------------------------- */
 // end of chunks                                               
@@ -210,7 +208,7 @@ static void parseQueryString (PREQUEST pRequest)
    Produce a key/value list of form or query string 
    
    --------------------------------------------------------------------------- */
-static PSLIST parseParms ( LVARPUCHAR parmString)
+PSLIST parseParms ( LVARPUCHAR parmString)
 {
     PSLIST pParmList; 
     PUCHAR parmEnd, begin, end, split;
@@ -413,7 +411,7 @@ static BOOL receivePayload (PREQUEST pRequest)
 }
 
 /* --------------------------------------------------------------------------- */
-static BOOL receiveHeader (PREQUEST pRequest)
+static BOOL receiveHeaderHTTP (PREQUEST pRequest)
 {
     PUCHAR buf = malloc (SOCMAXREAD);
     PUCHAR bufWin = buf;
@@ -444,6 +442,28 @@ static BOOL receiveHeader (PREQUEST pRequest)
     }
 }
 
+/* --------------------------------------------------------------------------- */
+// Depending of the protocol, we have to set lo-level I/O
+/* --------------------------------------------------------------------------- */
+static void setCallbacks (PCONFIG pConfig)
+{
+
+    switch (pConfig->protocol) {
+        case PROT_HTTP:
+        case PROT_HTTPS:
+            responseWriter = responseSocketWriter;
+            receiveHeader = receiveHeaderHTTP;
+            break;
+        case PROT_FASTCGI:
+        case PROT_SECFASTCGI:
+            responseWriter = fcgiWriter;
+            receiveHeader =  fcgiReceiveHeader;
+            break;
+        default:
+            joblog ("Invalid protocol types %d" , pConfig->protocol);
+            exit(-1);
+    }   
+}
 /* --------------------------------------------------------------------------- *\
     Handle :
     il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
@@ -750,6 +770,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     setMaxSockets();
     pConfig->a2e = XlateXdOpen (1208, 0);
     pConfig->e2a = XlateXdOpen (0 , 1208);
+
+    setCallbacks (pConfig);
 
     // tInitSSL(pConfig);
 

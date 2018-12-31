@@ -16,12 +16,12 @@ BIN_LIB=ILEASTIC
 
 
 # system and application include folder
-INCLUDE='/QIBM/include' '../headers/' '../'
+INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include'
 
 # CCFLAGS = C compiler parameter
 CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
-MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64
+MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI
 
 .SUFFIXES: .c
 

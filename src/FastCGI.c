@@ -1,11 +1,11 @@
-﻿/* ------------------------------------------------------------- */
-/* Program . . . : ILEastic - main interface                     */
-/* Date  . . . . : 02.06.2018                                    */
+/* ------------------------------------------------------------- */
+/* Program . . . : ILEastic - Fast CGI interface                 */
+/* Date  . . . . : 31.12.2018                                    */
 /* Design  . . . : Niels Liisberg                                */
 /* Function  . . : Fast-CGI interface                            */
 /*                                                               */
 /* By     Date       PTF     Description                         */
-/* NL     02.06.2018         New program                         */
+/* NL     30.12.2018         New program                         */
 /* ------------------------------------------------------------- */
 #define _MULTI_THREADED
 #include <pthread.h>
@@ -39,207 +39,16 @@
 #include "e2aa2e.h"
 #include "fcgi_stdio.h"
 
-typedef _Packed struct  {
-  PHTTP  pHttp;
-  FCGX_Stream * out;
-  FCGX_Stream * in;
-  PUCHAR * envp ;
-  BOOL   firstWrite;
-} FCGI , * PFCGI;
 
-int getSocket(int port)
+/* ------------------------------------------------------------- *\
+   callback to write to fast cgi interface
+\* ------------------------------------------------------------- */
+LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len) 
 {
-    int sd, sd2, rc, length = sizeof(int), errcde;
-    int addrlen = 0, totalcnt = 0, on = 1;
-    struct sockaddr_in serveraddr, client;
-    char msg [512];
-
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)  {
-        joblog( "socket error: %d - %s" , (int) errcde, strerror((int) errcde));
-        exit(-1);
-    }
-
-    // Allow socket descriptor to be reuseable */
-    rc = setsockopt(sd, SOL_SOCKET,
-        SO_REUSEADDR,
-        (char *)&on,
-        sizeof(on));
-
-    if (rc < 0) {
-        joblog( "socket error: %d - %s" ,(int) errcde, strerror((int) errcde));
-        close(sd);
-        exit(-2);
-    }
-    //  bind to an address
-    memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
-    serveraddr.sin_family        = AF_INET;
-    serveraddr.sin_port          = htons(port);
-    serveraddr.sin_addr.s_addr   = htonl(INADDR_ANY);
-    rc = bind(sd,  (struct sockaddr *)&serveraddr, sizeof(serveraddr));
-    if (rc < 0) {
-        joblog( "bind error: %d - %s" ,(int) errcde, strerror((int) errcde));
-        close(sd);
-        exit(-3);
-    }
-
-
-    rc = listen(sd, 10);
-    if (rc < 0)  {
-        close(sd);
-        joblog( "Listen error: %d - %s" ,(int) errcde, strerror((int) errcde));
-        exit(-4);
-    }
-
-    return sd;
+   FCGX_PutStr(buf , len , pResponse->pConfig->fcgi.out);
+   return len;
 }
 
-static void fcgi_puts(PFCGI pFcgi , PUCHAR s)
-{
-   FCGX_PutStr(s , strlen(s) , pFcgi->out);
-}
-static void printEnv(PFCGI pFcgi)
-{
-
-    char **envp = pFcgi->envp;
-
-    #pragma convert(1252)
-    fcgi_puts (pFcgi, "<pre>");
-    for ( ; *envp != NULL; envp++) {
-        fcgi_puts (pFcgi , *envp);
-        fcgi_puts (pFcgi , "\n");
-    }
-    fcgi_puts (pFcgi, "</pre>");
-    #pragma convert(0)
-
-}
-/* ------------------------------------------------------------- */
-void init(PHTTP pHttp, int serverId)
-{
-   static UCHAR  IcePath[128];
-
-   memset(pHttp   , 0 , sizeof(HTTP));
-   pHttp->apirtn.ApiSize = sizeof(APIRTN);
-
-   sSetPhttp (pHttp);
-   tOpenFiles(pHttp);
-   tGetSvr(pHttp, serverId );
-
-   // Ensure SQL is invoked in the right order
-   pSqlConnect (pHttp);
-
-
-   SVC213 (pHttp->DatFmt  ,
-           &pHttp->DatSep ,
-           &pHttp->TimSep ,
-           &pHttp->DecFmt ,
-           pHttp->Version ,
-           pHttp->IceDbLib,
-           pHttp->IcePgmLib,
-           &pHttp->svr00r.SVJRPTY,
-           pHttp->svr00r.SVJNAM ,
-           pHttp->svr00r.SVJUSR ,
-           pHttp->svr00r.SVJNUM ,
-           IcePath);
-   // Not now ..
-   // redirectStdout(pHttp->svr00r.SVJNUM);
-
-   pHttp->IcePath = righttrimlen(IcePath, sizeof(IcePath));
-   memcpy(pHttp->threadJob , pHttp->svr00r.SVJNAM , sizeof(pHttp->threadJob));
-
-   chdir( pHttp->HomeDir);
-
-   SetTrace(pHttp->svr00r.SVTRAC, vc2str(&pHttp->svr00r.SVTPTH));
-   tInitHttpInstance(pHttp);
-   tBuildBuffers  (pHttp);
-   tLoadWebConfig (pHttp,  vc2str(&pHttp->svr00r.SVPATH), FALSE); // Need a pointer before call to sprintf
-   tLoadDirMap    (pHttp, pHttp->svr00r.SVSVTK);
-}
-/* ------------------------------------------------------------- */
-void call (PHTTP pHttp, PUCHAR lib , PUCHAR pgm )
-{
-   LGL   dummy ;
-   LGL   viaHive  = OFF;
-   LGL   viaWeb   = ON;
-   UCHAR  pgmName [11];
-
-   BuildPgmName (pgmName  , pgm);
-
-   SVC202 (&dummy  , pgmName ,
-      pHttp->msg, pHttp->svr00r.SVNAME, pHttp->svr00r.SVDPGM , lib  , &viaHive, &viaWeb
-   );
-}
-/* ------------------------------------------------------------- */
-LONG  chunkFcgiWriter  (PSTREAM pStream , PUCHAR buf , ULONG len)
-{
-
-    PUCHAR head;
-    int  headLen;
-    PFCGI pFcgi  = pStream->handle;
-
-    if (pFcgi->firstWrite) {
-       PHTTP pHttp = pFcgi->pHttp;
-       pFcgi->firstWrite = false;
-       head = malloc(32766 + pHttp->ConsoleLog.memUsed);
-       headLen = tBuildHttpHead (pHttp, head , true);
-       FCGX_PutStr(head  , headLen , pFcgi->out);
-       free (head);
-
-    /*    #pragma convert(1252)
-        FCGX_PutStr("Content-type: text/html\r\n\r\n" , 27 , pFcgi->out);
-        #pragma convert(0)
-    */
-    }
-
-    FCGX_PutStr(buf , len , pFcgi->out);
-
-    return 0;
-}
-/* ------------------------------------------------------------- */
-static PUCHAR asciicat (PHTTP pHttp, PUCHAR pBuf , PUCHAR s)
-{
-   long len = strlen(s);
-   tA2E (pHttp, pBuf  , s  , len + 1 ); // Include the zero term
-   return pBuf + len;
-}
-/* ------------------------------------------------------------- */
-void setparm_urldecode (PJXNODE pReq , PUCHAR key , PUCHAR value)
-{
-
-    VARCHAR vcKey;
-    VARCHAR vcValue;
-
-    ParseFormData (&vcKey  , key   , strlen(key));
-    ParseFormData (&vcValue, value , strlen(value));
-
-    jx_SetValueByName (pReq , vcKey.String  ,  vcValue.String , VALUE);
-}
-/* ------------------------------------------------------------- */
-void tParseRequestStr (PJXNODE pReq , PUCHAR str)
-{
-
-   PUCHAR key = str;
-   PUCHAR value , end;
-
-   for (;;) {
-      value = strchr ( key , '=');
-      if (!value) return; // DONE!!
-
-      *value = '\0';
-      value++;
-
-      end  = strchr ( value , '&');
-      if (!end) { // Last element. and the value is terminated
-         setparm_urldecode (pReq , key , value);
-         return;
-      }
-
-      *end = '\0';
-      setparm_urldecode (pReq , key , value);
-
-      key = end +1;
-
-   }
-}
 /* ------------------------------------------------------------- *\
    unpack from the env array
           FCGI_ROLE=RESPONDER
@@ -274,128 +83,83 @@ void tParseRequestStr (PJXNODE pReq , PUCHAR str)
           SCRIPT_NAME=/hello.aspx
           SCRIPT_FILENAME=//hello.aspx
 \* ------------------------------------------------------------- */
-void fcgi_unpackParms (PFCGI pFcgi)
+#pragma convert(1252)
+BOOL fcgiReceiveHeader (PREQUEST pRequest)
 {
-   PUCHAR * envp = pFcgi->envp;
-   PHTTP  pHttp = pFcgi->pHttp;
-   PUCHAR method = "GET";
-   PUCHAR uri = "";
-   PUCHAR qrystr = "";
 
-   PUCHAR pBuf = pHttp->InBufXlate;
-   LONG   len;
-   LONG   contentlen = 0;
-
-   strcpy( pHttp->OutContentType , "text/html");
-   strcpy( pHttp->Charset        , "windows-1252");
-
-   //pHttp->pReqHeaders = jx_newObject();
-
-   #pragma convert(1252)
-   for ( ; *envp != NULL; envp++) {
-       PUCHAR parm  = *envp;
-       if (BeginsWith(parm, "REQUEST_URI")) {
-          uri = parm + sizeof("REQUEST_URI");
-       }
-       else if (BeginsWith(parm, "REQUEST_METHOD")) {
-          method = parm + sizeof("REQUEST_METHOD");
-       }
-       else if (BeginsWith(parm, "QUERY_STRING")) {
-          qrystr = parm + sizeof("QUERY_STRING");
-       }
-       else if (BeginsWith(parm, "CONTENT_LENGTH")) {
-          UCHAR temp [32];
-          PUCHAR p = parm + sizeof("CONTENT_LENGTH");
-          tA2E (pHttp, temp , p  , strlen(p));
-          contentlen = atoi(temp);
-       }
-   }
-
-   pBuf = asciicat (pHttp, pBuf , method);
-   pBuf = asciicat (pHttp, pBuf , " ");
-   pBuf = asciicat (pHttp, pBuf , uri);
-
-   // TODO !! Simulate empty headerand no payload !!
-   pBuf = asciicat (pHttp, pBuf , " .\r\n\r\n");
-
-
-   #pragma convert(0)
-
-   pHttp->InBufLen =  pBuf - pHttp->InBufXlate;
-   tParseUrl(pHttp);
-
-   // Setup env for FCGI
-   pHttp->ResponseEncode = RSPENC_CHUNKED;
-
-   jx_NodeDelete(pHttp->pReqParms); // Cleanup previous ( if any: null is allowed )
-   pHttp->pReqParms   = jx_NewObject(NULL);
-   tA2E (pHttp, qrystr , qrystr  , strlen(qrystr));
-   tParseRequestStr (pHttp->pReqParms , qrystr);
-
-   jx_NodeDelete(pHttp->pXmlCom); // Cleanup previous ( if any: null is allowed )
-   if (contentlen > 0) {
-      int len;
-      PUCHAR temp = malloc(contentlen);
-      pHttp->pXmlCom   = jx_NewObject(NULL);
-      len = FCGX_GetStr(temp , contentlen, pFcgi->in);
-      tA2E (pHttp, temp , temp  , contentlen);
-      tParseRequestStr (pHttp->pXmlCom , temp);
-      free (temp);
-   }
-
-}
-/* ------------------------------------------------------------- */
-/* Main line:                                                    */
-/* Interface to the SVC200 service program with all              */
-/* the server functionality                                      */
-/* ------------------------------------------------------------- */
-// #define DEBUG 1
-void main (int argc , char * argv[])
-{
-   HTTP   http;
-   PHTTP  pHttp = &http;
    FCGX_Stream *in, *out, *error;
    FCGX_ParamArray envp;
-   UCHAR buf [4095 * 2];
-   LONG   serverId = atoi(argv[1]);
-   int    sd;
-   FCGI fcgi;
-   PFCGI pFcgi = &fcgi;
-   pFcgi->pHttp = pHttp;
+   BOOL ok = FCGX_Accept(&in, &out, &error, &envp) >= 0;
+   if (!ok) return (false);
 
-   sd = getSocket(atoi(argv[2]));
+   pRequest->pConfig->fcgi.in  = in;
+   pRequest->pConfig->fcgi.out = out;
+   pRequest->pConfig->fcgi.err = error;
+   pRequest->pConfig->fcgi.envp = envp; 
+   
+   pRequest->headerList = sList_new ();
 
-   init (pHttp , serverId);
+   for ( ; *envp != NULL; envp++) {
+      PUCHAR parm  = *envp;
+      UCHAR  key [64];
+      PUCHAR val;
+      val = strchr(parm , '=');
+      substr(key ,parm , val - parm);
+      val ++; // Skip after =
 
-   CurrentTimeStamp((PTS) pHttp->Session );
-   pHttp->OutBuf = buf;
-   pHttp->useFastCGI = true;
-   pHttp->pOutChunk = stream_new (128); // pHttp->ChunkSize);
-   pHttp->pOutChunk->writer  = chunkFcgiWriter;
-   pHttp->pOutChunk->handle  = pFcgi;
+      if (strcmp (key , "SERVER_PROTOCOL") ==0) {
+         lvpcSetFromStr (&pRequest->protocol , val);
+      } 
+      else if (strcmp(key,"REQUEST_URI")==0) {
+         lvpcSetFromStr (&pRequest->url, val);
+      }
+      else if (strcmp(key,"DOCUMENT_URI")==0) {
+         lvpcSetFromStr (&pRequest->resource, val);
+      }
+      else if (strcmp(key,"REQUEST_METHOD")==0) {
+         lvpcSetFromStr (&pRequest->method, val);
+      }
+      else if (strcmp(key,"QUERY_STRING")==0) {
+         lvpcSetFromStr (&pRequest->queryString, val);
+      }
+      else if (strcmp(key,"CONTENT_LENGTH")==0) {
+         PUCHAR p = parm + sizeof("CONTENT_LENGTH");
+         pRequest->contentLength = a2i(p);
+      } 
+      else if (memcmp(key, "HTTP_" , 5)==0) { // Akk http headers are prfixed with HTTP_ ( five chars) 
 
-   while (FCGX_Accept(&in, &out, &error, &envp) >= 0) {
+         LVARPUCHAR lkey;
+         LVARPUCHAR lvalue;
 
-        pFcgi->out   = out;
-        pFcgi->in    = in;
-        pFcgi->envp  = envp;
-        pFcgi->firstWrite = true;
+         lkey.String = parm+5; // Must be the "real" array not the temp value in "key" 
+         lkey.Length = strlen(key+5);
 
+         lvpcSetFromStr (&lvalue , val);
 
-        fcgi_unpackParms (pFcgi);
+         // The key / value pair are ready
+         sList_pushLVPC (pRequest->headerList , &lkey , &lvalue);
+      }
+   }
+   pRequest->parmList = parseParms  (pRequest->queryString);
 
+   // Payload:
+   if (pRequest->contentLength > 0) {
+      int rem = pRequest->contentLength;
+      int len; 
+      PUCHAR buf = malloc (pRequest->contentLength +1); // Add a zero terniation
 
-        // SwapUserProfile(pHttp); // Change to profile if logged on
+      // Build up the previous and the rest
+      buf [pRequest->contentLength] = '\0';  // Enshure It will always be a zeroterminted string if used that way
+      pRequest->content.String = buf;
+      pRequest->content.Length = pRequest->contentLength;
 
-        call (pHttp, pHttp->AppLib , pHttp->Resource );
-
-        printEnv(pFcgi);
-
-        stream_flush(pHttp->pOutChunk);
-
-    }
-
-    close(sd);
+      while (rem > 0) {
+         len = FCGX_GetStr(buf , rem, in);
+         if (len < 0) break;
+         buf += len;
+         rem -= len;
+      }
+   }
+   return true;
 }
-
- 
+#pragma convert(0)

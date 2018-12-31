@@ -26,6 +26,14 @@ void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in)
    out->String[in->Length] = '\0'; 
 }
 /* ------------------------------------------------------------- */
+// set a long var pointer to a string
+/* ------------------------------------------------------------- */ 
+void lvpcSetFromStr (PLVARPUCHAR out, PUCHAR in)
+{
+   out->Length = strlen(in);
+   out->String = in;
+}
+/* ------------------------------------------------------------- */
 // SHORT (  2 byte length)
 /* ------------------------------------------------------------- */
 void lvpc2vc (PVARCHAR out, PLVARPUCHAR in)
