@@ -46,22 +46,12 @@
 #include "xlate.h"
 #include "simplelist.h"
 #include "parms.h"
+#include "fcgi_stdio.h"
 
 
 // callback function pointers
-LONG (*responseWriter) (PRESPONSE pResponse, PUCHAR buf , LONG len);
 BOOL (*receiveHeader)  (PREQUEST pRequest);
 
-/* --------------------------------------------------------------------------- */
-// TOOLS - TODO move to own files:
-/* --------------------------------------------------------------------------- */
-/* --------------------------------------------------------------------------- */
-// response write
-/* --------------------------------------------------------------------------- */
-LONG responseSocketWriter (PRESPONSE pResponse, PUCHAR buf , LONG len)
-{                                                         
-    return  write(pResponse->pConfig->clientSocket, buf, len);
-}
 /* --------------------------------------------------------------------------- */
 // end of chunks                                               
 void putChunkEnd (PRESPONSE pResponse)
@@ -69,9 +59,15 @@ void putChunkEnd (PRESPONSE pResponse)
     int     rc;                                                 
     LONG    lenleni;                                        
     UCHAR   lenbuf [32];     
+
+    if (pResponse->pConfig->protocol == PROT_FASTCGI
+    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+        return;
+    }
+
     lenleni = sprintf (lenbuf , "0\r\n\r\n" );  // end of chunks   
     meme2a(lenbuf,lenbuf, lenleni);
-    rc = write(pResponse->pConfig->clientSocket, lenbuf, lenleni );
+    rc = write(pResponse->pConfig->clientSocket,lenbuf, lenleni);
 }
 /* --------------------------------------------------------------------------- */
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)         
@@ -82,6 +78,13 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     PUCHAR wrkBuf = tempBuf;                               
 
     putHeader (pResponse); // if not put yet
+
+    if (pResponse->pConfig->protocol == PROT_FASTCGI
+    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+        rc = FCGX_PutStr( buf , len , pResponse->pConfig->fcgi.out);
+        free (tempBuf);                                        
+        return;
+    }
 
     lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
     meme2a( wrkBuf , wrkBuf , lenleni);  
@@ -101,29 +104,40 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 {        
     int rc;                                                 
     LONG   lenleni;     
-    int outlen = len * 4;                                   
-    PUCHAR tempBuf = malloc ( outlen + 16);                   
-    PUCHAR wrkBuf = tempBuf; 
+    int outlen = len * 4;   
+    UCHAR lenBuf [16];                                
+    PUCHAR tempBuf;                   
+    PUCHAR wrkBuf; 
+    PUCHAR totBuf;
     PUCHAR input;
     size_t inbytesleft, outbytesleft;
-                              
-
+                  
     putHeader (pResponse); // if not put yet
-
-    lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
-    meme2a( wrkBuf , wrkBuf , lenleni);              
-    wrkBuf += lenleni;                                     
 
     input = buf;
 	inbytesleft = len;
 	outbytesleft = outlen;
-                                                        
+    totBuf = malloc ( 16 + (outlen));     // The Chunk header + the max size which twice the byte size              
+    wrkBuf = tempBuf = totBuf + 16;       // Make room for the chunk header ( max 16 bytes)
+
     rc = iconv ( pResponse->pConfig->e2a->Iconv , &input , &inbytesleft, &wrkBuf , &outbytesleft);
-	                                                        
+
+    if (pResponse->pConfig->protocol == PROT_FASTCGI
+    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+        rc = FCGX_PutStr( tempBuf , wrkBuf - tempBuf , pResponse->pConfig->fcgi.out);
+        free (totBuf);                                        
+        return;
+    }
+
+    // Build the Chunk header
+    lenleni = sprintf (lenBuf , "%x\r\n" , len);     
+    tempBuf -= lenleni;
+    meme2a( tempBuf , lenBuf  , lenleni);              
+                                                            
     *(wrkBuf++) =  0x0d;                                   
     *(wrkBuf++) =  0x0a;                                   
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
-    free (tempBuf);                                        
+    free (totBuf);                                        
                                                             
 }               
 /* --------------------------------------------------------------------------- */
@@ -168,7 +182,7 @@ void putHeader (PRESPONSE pResponse)
 
     p += sprintf(p ,
         "HTTP/1.1 %d %s\r\n"
-        "Date: %s\r\n" // Todo !!! Real timestamp
+        "Date: %s\r\n" 
         "Transfer-Encoding: chunked\r\n"
         "Content-type: %s;charset=%s\r\n"
         "\r\n",
@@ -181,8 +195,13 @@ void putHeader (PRESPONSE pResponse)
 
     len = p - header;
     meme2a( header , header , len);
-    rc = write(pResponse->pConfig->clientSocket, header , len);
-    
+
+    if (pResponse->pConfig->protocol == PROT_FASTCGI
+    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+        rc = FCGX_PutStr( header , len , pResponse->pConfig->fcgi.out);
+    } else {
+        rc = write(pResponse->pConfig->clientSocket, header , len);
+    }
     pResponse->firstWrite = false;
              
 }
@@ -229,7 +248,7 @@ PSLIST parseParms ( LVARPUCHAR parmString)
         
         // last parameter?
         if (parmEnd == NULL) {
-            parmEnd = end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
+            parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
         }
 
         split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the = 
@@ -447,16 +466,14 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
 /* --------------------------------------------------------------------------- */
 static void setCallbacks (PCONFIG pConfig)
 {
-
     switch (pConfig->protocol) {
+        case PROT_DEFAULT:
         case PROT_HTTP:
         case PROT_HTTPS:
-            responseWriter = responseSocketWriter;
             receiveHeader = receiveHeaderHTTP;
             break;
         case PROT_FASTCGI:
         case PROT_SECFASTCGI:
-            responseWriter = fcgiWriter;
             receiveHeader =  fcgiReceiveHeader;
             break;
         default:

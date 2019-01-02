@@ -32,7 +32,8 @@ typedef enum _PROTOCOL  {
     PROT_HTTP       = 0,
     PROT_HTTPS      = 1,
     PROT_FASTCGI    = 2,
-    PROT_SECFASTCGI = 3
+    PROT_SECFASTCGI = 3,
+    PROT_DEFAULT    = 0x4040 // When set to blank
 } PROTOCOL , *PPROTOCOL ;
 #pragma enum     (pop)
 

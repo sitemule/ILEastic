@@ -57,7 +57,7 @@ dcl-c IL_SECFASTCGI 3;
 dcl-ds il_config qualified template;
     host                varchar(64);
     port                int(10);
-    protocol            int(10);
+    protocol            int(5);
     certificateFile     varchar(256);
     certificatePassword varchar(64);
     filler              char(4096); // required - contains the private internal handlers

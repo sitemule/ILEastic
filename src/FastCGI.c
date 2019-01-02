@@ -41,15 +41,6 @@
 
 
 /* ------------------------------------------------------------- *\
-   callback to write to fast cgi interface
-\* ------------------------------------------------------------- */
-LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len) 
-{
-   FCGX_PutStr(buf , len , pResponse->pConfig->fcgi.out);
-   return len;
-}
-
-/* ------------------------------------------------------------- *\
    unpack from the env array
           FCGI_ROLE=RESPONDER
           DOCUMENT_URI=/hello.aspx
@@ -90,7 +81,7 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
    FCGX_Stream *in, *out, *error;
    FCGX_ParamArray envp;
    BOOL ok = FCGX_Accept(&in, &out, &error, &envp) >= 0;
-   if (!ok) return (false);
+   if (!ok) return (true); // Error
 
    pRequest->pConfig->fcgi.in  = in;
    pRequest->pConfig->fcgi.out = out;
@@ -123,8 +114,7 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
          lvpcSetFromStr (&pRequest->queryString, val);
       }
       else if (strcmp(key,"CONTENT_LENGTH")==0) {
-         PUCHAR p = parm + sizeof("CONTENT_LENGTH");
-         pRequest->contentLength = a2i(p);
+         pRequest->contentLength = a2i(val);
       } 
       else if (memcmp(key, "HTTP_" , 5)==0) { // Akk http headers are prfixed with HTTP_ ( five chars) 
 
@@ -160,6 +150,6 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
          rem -= len;
       }
    }
-   return true;
+   return false;
 }
 #pragma convert(0)
