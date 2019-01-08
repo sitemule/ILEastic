@@ -80,7 +80,12 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
 
    FCGX_Stream *in, *out, *error;
    FCGX_ParamArray envp;
-   BOOL ok = FCGX_Accept(&in, &out, &error, &envp) >= 0;
+   BOOL ok;
+
+   FCGX_setSock(pRequest->pConfig->clientSocket);
+   
+   // Wait for request:
+   ok = FCGX_Accept(&in, &out, &error, &envp) >= 0;
    if (!ok) return (true); // Error
 
    pRequest->pConfig->fcgi.in  = in;

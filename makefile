@@ -46,10 +46,10 @@ compile: .PHONY
 	cd src && make
 
 noxDB: .PHONY
-	cd noxDB && make
+	cd noxDB && make BIN_LIB=$(BIN_LIB)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && gmake
+	cd ILEfastCGI && make BIN_LIB=$(BIN_LIB)
 
 		
 bind:

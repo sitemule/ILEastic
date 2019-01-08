@@ -3,11 +3,27 @@
 // Hello World Example
 //
 // This example shows how to create a simple hello service
-// connected fro i.e. NGINX
+// connected from i.e. NGINX
 //
 // Start it:
 // SBMJOB CMD(CALL PGM(FASTCGI01)) JOB(FASTCGI01) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
+// from ssh / bash 
+// yum install nginx
+// export PATH=$PATH:/QOpenSys/pkgs/bin
+
+
+// - Version
+// nginx -v 
+
+// -- Start
+// nginx -c /nginx/ng.conf 
+
+// --stop 
+// nginx -c /nginx/nginx.conf -s stop
+
+
+
 // The web service can be tested with the browser by entering the following URL:
 // http://my_ibm_i:44000
 // 
