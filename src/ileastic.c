@@ -643,6 +643,7 @@ static void * serverThread (PINSTANCE pInstance)
     pthread_exit(NULL);
 }
 
+/* --------------------------------------------------------------------------- */
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms) {
     PRESPONSE * pResponse = parms->Com_Area;
     PRESPONSE response = *pResponse;
@@ -790,6 +791,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
     setCallbacks (pConfig);
 
+ 
     // tInitSSL(pConfig);
 
     // Infinit loop
@@ -809,6 +811,17 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 continue;
             }
             resetSocket = false;
+        }
+
+        if (pConfig->protocol == PROT_FASTCGI 
+        ||  pConfig->protocol == PROT_SECFASTCGI) {
+            // Setup arguments to pass
+            PINSTANCE pInstance = malloc(sizeof(INSTANCE));
+            memcpy(&pInstance->config , pConfig , sizeof(CONFIG));
+            pInstance->config.clientSocket = 32760;
+            pInstance->servlet = pParms->OpDescList->NbrOfParms >= 2 ? servlet : NULL;
+            serverThread (pInstance);
+            return ;
         }
 
 

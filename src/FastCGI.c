@@ -82,7 +82,7 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
    FCGX_ParamArray envp;
    BOOL ok;
 
-   FCGX_setSock(pRequest->pConfig->clientSocket);
+   FCGX_setSock(pRequest->pConfig->mainSocket);
    
    // Wait for request:
    ok = FCGX_Accept(&in, &out, &error, &envp) >= 0;
