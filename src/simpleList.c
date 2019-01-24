@@ -16,7 +16,7 @@
 
 #include "ostypes.h" 
 #include "varchar.h" 
-#include "simplelist.h"
+#include "simpleList.h"
 
 
 /* --------------------------------------------------------------------------- *\
