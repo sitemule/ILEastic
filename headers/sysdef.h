@@ -4,7 +4,7 @@
 #include <regex.h>
 #include "ostypes.h"
 #include "xlate.h"
-#include "simplelist.h"
+#include "simpleList.h"
 #include "fcgi_stdio.h"
 
 

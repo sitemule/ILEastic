@@ -44,7 +44,7 @@
 #include "strUtil.h"
 #include "e2aa2e.h"
 #include "xlate.h"
-#include "simplelist.h"
+#include "simpleList.h"
 #include "parms.h"
 #include "fcgi_stdio.h"
 

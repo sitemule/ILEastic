@@ -42,7 +42,7 @@
 #include "sysdef.h"
 #include "strUtil.h"
 #include "streamer.h"
-#include "simplelist.h"
+#include "simpleList.h"
 #include "sndpgmmsg.h"
 #include "parms.h"
 #include "e2aa2e.h"
