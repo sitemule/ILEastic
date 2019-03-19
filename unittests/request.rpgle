@@ -40,6 +40,9 @@ dcl-pr test_rootResource end-pr;
 dcl-pr test_deeplyStructuredResource end-pr;
 dcl-pr test_resouceWithQueryStringWithReservedChars end-pr;
 dcl-pr test_rootResourceWithMissingQueryStringValue end-pr;
+dcl-pr test_rootResourceWithMissingQueryStringDefaultValue end-pr;
+dcl-pr test_rootResourceWithEmptyQueryParameter end-pr;
+dcl-pr test_rootResourceWithEmptyQueryParameterDefaultValue end-pr;
 
 
 // BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
@@ -179,6 +182,7 @@ dcl-proc test_rootResource export;
   aEqual(utf8('/') : il_getRequestResource(request));
 end-proc;
 
+
 dcl-proc test_simpleResource export;
   dcl-s httpMessage varchar(1000) ccsid(819);
   
@@ -216,6 +220,36 @@ dcl-proc test_rootResourceWithMissingQueryStringValue export;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   aEqual(utf8('') : il_getParmStr(request : 'client'));
+end-proc;
+
+
+dcl-proc test_rootResourceWithMissingQueryStringDefaultValue export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET / HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('1234') : il_getParmStr(request : 'client' : '1234'));
+end-proc;
+
+
+dcl-proc test_rootResourceWithEmptyQueryParameter export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /?client HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('') : il_getParmStr(request : 'client'));
+end-proc;
+
+
+dcl-proc test_rootResourceWithEmptyQueryParameterDefaultValue export;
+  dcl-s httpMessage varchar(1000) ccsid(819);
+  
+  httpMessage = 'GET /?client HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
+  lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
+  
+  aEqual(utf8('') : il_getParmStr(request : 'client' : '1234'));
 end-proc;
 
 
