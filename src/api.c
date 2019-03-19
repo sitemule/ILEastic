@@ -121,17 +121,20 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
     
     PSLIST pParmList = pRequest->parmList; 
 
-	for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
-		PSLISTKEYVAL parm = pNode->payloadData;
-        if (keyLen == parm->key.Length) {
-            len = urldecodeBuf( temp  , parm->key.String , keyLen);
-            mema2e(aKey , temp, len ); // The parms are in ASCII
-            if (memicmp (parmName , aKey , keyLen) == 0) {
-                out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
-                return ;
-            }
-        }
+	if (pParmList != NULL) {
+		for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
+			PSLISTKEYVAL parm = pNode->payloadData;
+			if (keyLen == parm->key.Length) {
+				len = urldecodeBuf( temp  , parm->key.String , keyLen);
+				mema2e(aKey , temp, len ); // The parms are in ASCII
+				if (memicmp (parmName , aKey , keyLen) == 0) {
+					out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
+					return ;
+				}
+			}
+		}
 	}
+	
     out->Length = dft->Length;
     substr(out->String , dft->String , dft->Length); 
 }
