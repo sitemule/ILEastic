@@ -179,7 +179,9 @@ PUCHAR il_getFileExtension  (PVARCHAR256 extension, PVARCHAR fileName)
 }
 
 
-/* --------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- *\
+   Q&D implementation of mimetypes - just to have a strting point
+\* --------------------------------------------------------------------------- */
 PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
 {
     PUCHAR f = vc2str(fileName);
@@ -194,6 +196,8 @@ PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
     }
 
     if ( 0 == stricmp (extension, "gif")
+    ||   0 == stricmp (extension, "heif")
+    ||   0 == stricmp (extension, "hevc")
     ||   0 == stricmp (extension, "png")
     ||   0 == stricmp (extension, "jpg")
     ||   0 == stricmp (extension, "jpeg")) {
@@ -252,6 +256,15 @@ void il_addPlugin (PCONFIG pConfig, SERVLET servlet, PLUGINTYPE pluginType)
     } 
 }
 /* --------------------------------------------------------------------------- *\
+    Handle :
+    il_setSchedulerPlugin  (config : mySchedulerCallback : timerSec)
+\* --------------------------------------------------------------------------- */
+void il_setSchedulerPlugin (PCONFIG pConfig, SCHEDULER scheduler , ULONG timerSec)
+{
+    pConfig->scheduler = scheduler;
+    pConfig->schedulerTimer = timerSec;
+}
+/* --------------------------------------------------------------------------- *\
 \* --------------------------------------------------------------------------- */
 PVOID il_allocThreadMem  (PREQUEST pRequest , ULONG size)
 {
@@ -290,7 +303,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
         rc = regcomp(routing.routeReg, vc2str(routeReg) , options );
         if (rc) {
             regerror(rc, routing.routeReg  , msg , 100);
-            joblog( "Could not compile regex %s for routing. reason : %s " , vc2str(routeReg) , msg);
+            il_joblog( "Could not compile regex %s for routing. reason : %s " , vc2str(routeReg) , msg);
             exit(0);
         }
     }
@@ -300,7 +313,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
         rc = regcomp(routing.contentReg, vc2str(contentReg) , options );
         if (rc) {
             regerror(rc, routing.contentReg  , msg , 100);
-            joblog( "Could not compile regex %s for content type. reason : %s " , vc2str(contentReg) , msg);
+            il_joblog( "Could not compile regex %s for content type. reason : %s " , vc2str(contentReg) , msg);
             exit(0);
         }
     }

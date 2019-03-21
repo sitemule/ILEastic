@@ -8,5 +8,5 @@
 #define USRMSG  "USRMSG    *LIBL     "
 #define QCPFMSG "QCPFMSG   *LIBL     "
 void sndpgmmsg(PUCHAR Msgid,PUCHAR Msgf,PUCHAR Type, PUCHAR Msgdta, ...);
-void joblog (PUCHAR text, ...);
+void il_joblog (PUCHAR text, ...);
 #endif

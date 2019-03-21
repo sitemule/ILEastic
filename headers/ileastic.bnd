@@ -24,4 +24,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_exitThreadSerialize")
     EXPORT SYMBOL("il_decodeBase64")
     EXPORT SYMBOL("il_encodeBase64")
+    EXPORT SYMBOL("il_joblog")
+    EXPORT SYMBOL("il_setSchedulerPlugin")
+    
 ENDPGMEXP                                                 

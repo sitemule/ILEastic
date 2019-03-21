@@ -434,6 +434,23 @@ dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');
     pluginType   int(5) value;
 end-pr;
 
+
+///
+// Add scheduler callback plugin procedure ie for houskeeping / termnation detection
+//
+// This starts an extra thread that call your callback
+// Returning *OFF will terminate the ILEastic applications server
+//
+// @param Configuration
+// @param address to Plugin procedure 
+// @param timerSec Seconds between calls 
+///
+dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');  
+    config       likeds(il_config);
+    plugin       pointer(*PROC) value;
+    timerSec     int(5) value;      
+end-pr;
+
 ///
 // Enter thread safe mode
 // 
@@ -476,5 +493,28 @@ end-pr;
 ///
 dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_encodeBase64') rtnparm;
   string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
+end-pr;
+
+///
+// Curticy function: put messages in joblog
+// works like printf but with strings only like
+//    il_joblog('This is %s a test' : 'Super'); 
+//
+// @param format string
+// @param Parms : list of strings  
+// 
+///
+dcl-pr il_joblog extproc(*CWIDEN : 'il_joblog') ;
+  formatString  pointer  options(*string)  value;
+  string0       pointer  options(*string:*nopass) value;
+  string1       pointer  options(*string:*nopass) value;
+  string2       pointer  options(*string:*nopass) value;
+  string3       pointer  options(*string:*nopass) value;
+  string4       pointer  options(*string:*nopass) value;
+  string5       pointer  options(*string:*nopass) value;
+  string6       pointer  options(*string:*nopass) value;
+  string7       pointer  options(*string:*nopass) value;
+  string8       pointer  options(*string:*nopass) value;
+  string9       pointer  options(*string:*nopass) value;
 end-pr;
 

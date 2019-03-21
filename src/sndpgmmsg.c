@@ -20,7 +20,7 @@ void sndpgmmsg(PUCHAR Msgid,PUCHAR Msgf, PUCHAR Type ,PUCHAR Msgdta, ... )
       printf ("Api error: %7s - %s" ,apierr.msgid, apierr.msgdta);
    }
 }
-void joblog(PUCHAR text , ... )
+void il_joblog(PUCHAR text , ... )
 {
    APIERR apierr = APIERR_INIT;
    va_list arg_ptr;
@@ -31,7 +31,7 @@ void joblog(PUCHAR text , ... )
    va_start(arg_ptr,  text);
    len = vsprintf(temp, text, arg_ptr);
    va_end(arg_ptr);
-   QMHSNDPM ("CPF9898", QCPFMSG ,  temp , len , INFO , "joblog              " ,
+   QMHSNDPM ("CPF9898", QCPFMSG ,  temp , len , INFO , "il_joblog              " ,
              stackcount, msgkey , &apierr);
    if (apierr.avail) {
       printf ("Api error: %7s - %s" ,apierr.msgid, apierr.msgdta);

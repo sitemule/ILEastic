@@ -8,5 +8,6 @@
         "sndpgmmsg.h": "c",
         "ostypes.h": "c",
         "sysdef.h": "c"
-    }
+    },
+    "typescript.tsc.autoDetect": "off"
 }

@@ -44,6 +44,9 @@ typedef _Packed struct  {
     PUCHAR * envp ;
 } FCGI , * PFCGI;
 
+// function pointer to scheduler
+typedef  LGL (* SCHEDULER) (PVOID pConfig);
+
 typedef _Packed struct _CONFIG  {
     VARCHAR64   interface;
     int         port;
@@ -63,6 +66,8 @@ typedef _Packed struct _CONFIG  {
     PSLIST      pluginPreRequest;
     PSLIST      pluginPostResponse;
     FCGI        fcgi;
+    SCHEDULER   scheduler;
+    ULONG       schedulerTimer;
 } CONFIG,  *PCONFIG;
 
 typedef _Packed struct _HEADERLIST  {
@@ -98,8 +103,9 @@ typedef _Packed struct _RESPONSE  {
     BOOL    firstWrite;  
 } RESPONSE , *PRESPONSE;
 
-// function pointers
-typedef  LGL (* SERVLET) (PREQUEST pRequest, PRESPONSE pResponse);
+// function pointer to servlet
+typedef  LGL (* SERVLET)   (PREQUEST pRequest, PRESPONSE pResponse);
+
 
 typedef _Packed struct _INSTANCE  {
    CONFIG  config;
