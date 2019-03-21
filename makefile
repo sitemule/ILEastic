@@ -9,7 +9,7 @@
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
 BIN_LIB=ILEASTIC
-LIBLIST=$(BIN_LIB) ILEFASTCGI
+LIBLIST=$(BIN_LIB)
 
 
 # The shell we use
@@ -34,10 +34,10 @@ CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES
 
 MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI
 	
-all: env compile bind
+all: env noxDB ILEfastCGI compile bind
 
 env:
-	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')                                          
+	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')"                                          
 	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
 	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
 	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
@@ -54,10 +54,10 @@ ILEfastCGI: .PHONY
 		
 bind:
 	liblist -a $(LIBLIST);\
-	-system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
+	system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
-	-system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM((ILEFASTCGI *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
+	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM((ILEFASTCGI *DEFER) (JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
 
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
