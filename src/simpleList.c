@@ -26,9 +26,10 @@ SLISTITERATOR sList_setIterator( PSLIST pSlist)
 {
 	SLISTITERATOR iterator;
 	memset (&iterator , 0, sizeof(SLISTITERATOR));
-	iterator.this    = pSlist->pHead; 
-	iterator.next    = iterator.next ? iterator.next->pNext : null; 
+	iterator.this = null; 
+	iterator.next = pSlist->pHead ? pSlist->pHead : null;
 	iterator.hasNext = iterator.next ? ON:OFF;
+	return iterator;
 }         
 /* --------------------------------------------------------------------------- *\
 	Iterator Usecase in RPG:
@@ -46,7 +47,7 @@ LGL sList_foreach ( PSLISTITERATOR pIterator)
 	if (pIterator->hasNext == OFF) return OFF;
 	pIterator->this    = pIterator->next;
 	pIterator->next    = pIterator->next ? pIterator->next->pNext : null; 
-	pIterator->hasNext = pIterator->next ? ON:OFF;
+	pIterator->hasNext = pIterator->this ? ON:OFF;
 	return pIterator->hasNext;
 }
 /* --------------------------------------------------------------------------- *\

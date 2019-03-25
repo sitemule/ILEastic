@@ -37,10 +37,10 @@ MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/ap
 all: env noxDB ILEfastCGI compile bind
 
 env:
-	-system -q "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')"                                          
-	-system -q "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
-	-system -q "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
-	system "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
+	-system -qi "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')"                                          
+	-system -qi "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
+	-system -qi "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ((ILEASTIC))"
+	system -qi "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
 compile: .PHONY
 	cd src && make
@@ -49,7 +49,7 @@ noxDB: .PHONY
 	cd noxDB && make BIN_LIB=$(BIN_LIB)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && gmake BIN_LIB=$(BIN_LIB)
+	cd ILEfastCGI && make BIN_LIB=$(BIN_LIB)
 
 		
 bind:
@@ -57,7 +57,7 @@ bind:
 	system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM((ILEFASTCGI *DEFER) (JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM(($(BIN_LIB)/ILEFASTCGI *DEFER) ($(BIN_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
 
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
