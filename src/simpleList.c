@@ -25,12 +25,12 @@
 SLISTITERATOR sList_setIterator( PSLIST pSlist)
 {
 	SLISTITERATOR iterator;
-	memset (&iterator , 0, sizeof(SLISTITERATOR));
-	iterator.this = null; 
+	memset(&iterator , 0, sizeof(SLISTITERATOR));
+	iterator.this = null; // set by sList_foreach()
 	iterator.next = pSlist->pHead ? pSlist->pHead : null;
-	iterator.hasNext = iterator.next ? ON:OFF;
+	iterator.hasNext = pSlist->pHead ? ON : OFF;
 	return iterator;
-}         
+}
 /* --------------------------------------------------------------------------- *\
 	Iterator Usecase in RPG:
 
@@ -45,9 +45,9 @@ SLISTITERATOR sList_setIterator( PSLIST pSlist)
 LGL sList_foreach ( PSLISTITERATOR pIterator)
 {
 	if (pIterator->hasNext == OFF) return OFF;
-	pIterator->this    = pIterator->next;
-	pIterator->next    = pIterator->next ? pIterator->next->pNext : null; 
-	pIterator->hasNext = pIterator->this ? ON:OFF;
+	pIterator->this = pIterator->next;
+	pIterator->next = pIterator->this ? pIterator->this->pNext : null;
+	pIterator->hasNext = pIterator->this ? ON : OFF;
 	return pIterator->hasNext;
 }
 /* --------------------------------------------------------------------------- *\
@@ -56,7 +56,7 @@ LGL sList_foreach ( PSLISTITERATOR pIterator)
 PSLIST sList_new ()
 {
 	return  calloc (1,sizeof(SLIST));
-}         
+}
 /* --------------------------------------------------------------------------- *\
 	This copies the data into a new node: If 'head' is ON it will be 
 	added at the head else it will be added at the tail
