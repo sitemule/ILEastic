@@ -71,13 +71,13 @@ typedef _Packed struct _CONFIG  {
 } CONFIG,  *PCONFIG;
 
 typedef _Packed struct _HEADERLIST  {
-    LVARPUCHAR  key;     
+    LVARPUCHAR  key;
     LVARPUCHAR  value;
 } HEADERLIST , *PHEADERLIST;
 
 typedef _Packed struct _REQUEST  {
     PCONFIG     pConfig;
-    LVARPUCHAR  method;     
+    LVARPUCHAR  method;
     LVARPUCHAR  url;
     LVARPUCHAR  resource;
     LVARPUCHAR  queryString;
@@ -99,8 +99,9 @@ typedef _Packed struct _RESPONSE  {
     VARCHAR256  contentType ;
     VARCHAR32   charset;
     // private
-    UCHAR   filler      [512];
-    BOOL    firstWrite;  
+    PSLIST      headerList;
+    UCHAR   filler      [496];
+    BOOL    firstWrite;
 } RESPONSE , *PRESPONSE;
 
 // function pointer to servlet
@@ -120,45 +121,45 @@ typedef enum _ROUTETYPE  {
     IL_PUT      = 8,
     IL_OPTIONS  = 16,
     IL_HEAD     = 32,
-    IL_PATCH    = 64, 
+    IL_PATCH    = 64,
     IL_ANY      = 0xffff
 } ROUTETYPE , *PROUTETYPE ;
 #pragma enum     (pop)
 
 
 typedef struct _ROUTING  {
-    ROUTETYPE  routeType; 
+    ROUTETYPE  routeType;
     regex_t *  routeReg;
     regex_t *  contentReg;
-    SERVLET servlet; 
+    SERVLET servlet;
 } ROUTING, * PROUTING;
 
 #pragma enum     (2)
 typedef enum _PLUGINTYPE  {
-    IL_PREREQUEST   = 1, 
+    IL_PREREQUEST   = 1,
     IL_POSTRESPONSE = 2
 } PLUGINTYPE , *PPLUGINTYPE ;
 #pragma enum     (pop)
 
 typedef struct _PLUGIN  {
-    PLUGINTYPE  pluginType; 
-    SERVLET     servlet; 
+    PLUGINTYPE  pluginType;
+    SERVLET     servlet;
 } PLUGIN, * PPLUGIN;
 
 
 /* ------------------------------------------------------------- */
 /* Prototypes -------------------------------------------------- */
 /* ------------------------------------------------------------- */
-void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);   
+void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);
 void putHeader (PRESPONSE pResponse);
-void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);         
+void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
 SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest);
 BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
 BOOL fcgiReceiveHeader (PREQUEST pRequest);
-LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len); 
+LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len);
 PSLIST parseParms ( LVARPUCHAR parmString);
 
 
