@@ -13,7 +13,7 @@
 # BIN_LIB is the destination library for the demo programs.
 # NOTE: LIBLIST can be overwritten from the commandline, but defaults to the BIN_LIB
 BIN_LIB=ILEASTIC
-LIBLIST=$(BIN_LIB)
+LIBLIST=$(BIN_LIB) NOXDB
 
 # The shell we use
 SHELL=/QOpenSys/usr/bin/qsh
@@ -30,6 +30,7 @@ RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR('./..')
 SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR(''./..'')
 FILTER=| grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
 NOFILTER=>errorlist.txt
+OBJECT_DESCRIPTION=ILEastic Example Server
 
 .SUFFIXES: .rpgle .sqlrpgle
  
@@ -39,13 +40,13 @@ NOFILTER=>errorlist.txt
 	setccsid 1252 errorlist.txt;\
 	liblist -a $(LIBLIST);\
 	setccsid 1252 $<;\
-	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS)" $(FILTER) ;\
+	system -iK "CRTBNDRPG PGM($(BIN_LIB)/$@) SRCSTMF('$<') $(RCFLAGS) TEXT('$(OBJECT_DESCRIPTION)')" $(FILTER) ;\
 	
 .sqlrpgle:
 	liblist -a $(LIBLIST);\
-	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)')"
+	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)') DBGVIEW(*NONE) TEXT('$(OBJECT_DESCRIPTION)')"
 
-OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin jsondata base64 header
+OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin jsondata base64 Fastcgi01 noxdbcust scheduler header
 
 all: compile
 

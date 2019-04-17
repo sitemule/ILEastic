@@ -1,7 +1,7 @@
 **FREE
 
 ///
-// Header Example (16)
+// Header Example (14)
 //
 // This example shows how to create a simple web service which returns the
 // value of query parameter 'header' as a http header.
@@ -13,10 +13,10 @@
 //   DBGVIEW(*LIST)  OUTPUT(*PRINT) INCDIR('./..')
 //
 // Start it:
-// SBMJOB CMD(CALL PGM(HEADER)) JOB(ILEASTIC16) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)
+// SBMJOB CMD(CALL PGM(HEADER)) JOB(ILEASTIC14) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)
 //
 // The web service can be tested with the browser by entering the following URL:
-// http://my_ibm_i:44016?header=FirstTry
+// http://my_ibm_i:44014?header=FirstTry
 //
 // @info: It requires your RPG code to be reentrant and compiled for
 //        multithreading. Each client request is handled by a seperate thread.
@@ -36,7 +36,7 @@ dcl-proc main;
 
     dcl-ds config likeds(il_config);
 
-    config.port = 44016;
+    config.port = 44014;
     config.host = '*ANY';
 
     il_listen (config : %paddr(myservlet));
@@ -59,14 +59,14 @@ dcl-proc myservlet;
     dcl-s message varchar(200);
 
     // Get the header value from the query string. It should have been passed like
-    // this: http://my_ibm_i:44016?header=MyHeaderValue
+    // this: http://my_ibm_i:44014?header=MyHeaderValue
     headerValue = il_getParmStr(request : 'header');
     if (headerValue <> '');
        il_addHeader(response: HEADER_NAME: headerValue);
        message = 'Response header ''' + HEADER_NAME + ''' set to: ' + headerValue;
     else;
        message = 'Query attribute ''header'' not specified!' + CRLF +
-                 'Usage: http://my_ibm_i:44016?header=FirstTry';
+                 'Usage: http://my_ibm_i:44014?header=FirstTry';
     endif;
 
     // Write the response. The default HTTP status code is 200 - OK so we
