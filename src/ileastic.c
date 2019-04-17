@@ -910,7 +910,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
         rc = pthread_create(&pServerThread , NULL, serverThread , pInstance);
         if (rc) {
-            il_joblog("Thread not started");
+            errcde = rc;
+            il_joblog( "Thread not started: %d - %s" , (int) errcde, strerror((int) errcde));
             exit(0);
         }
 
