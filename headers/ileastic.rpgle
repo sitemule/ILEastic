@@ -9,12 +9,12 @@
 ///
 // ILEastic - Embedded applicationserver for ILE on IBM i
 //
-// It is a self contained web application server for the ILE environment on 
+// It is a self contained web application server for the ILE environment on
 // IBM i for implementing microservices alike applications.
 // <p>
-// ILEastic is a service program that provides a simple, blazing fast 
-// programmable HTTP server for your application so you easy can plug your RPG 
-// code into a services infrastructure or make simple web applications without 
+// ILEastic is a service program that provides a simple, blazing fast
+// programmable HTTP server for your application so you easy can plug your RPG
+// code into a services infrastructure or make simple web applications without
 // the need of any third party webserver products.
 //
 // @author Niels Liisberg
@@ -31,7 +31,7 @@ dcl-s IL_LONGUTF8VARCHAR varchar(524284:4) ccsid(*utf8) template;
 // String
 //
 // This data structure holds a string with variable length.
-// Note - it only ocopys as much data as required only with the length and pointer as overhead 
+// Note - it only ocopys as much data as required only with the length and pointer as overhead
 ///
 dcl-ds il_varchar qualified template;
     length  uns(10);
@@ -40,7 +40,7 @@ end-ds;
 
 
 ///
-// Enumerates the protocol 
+// Enumerates the protocol
 // 0=Plain HTTP
 // 1=HTTPS   (Secure HTTP: Certificate and certificate password required)
 // 2=FastCGI (For application plugin to NGINX or APACHE)
@@ -68,7 +68,7 @@ end-ds;
 //
 // This data structure contains the values of the incoming
 // HTTP request. The values can be retrieve by using the
-// il_getVarcharValue procedure or by using one of the 
+// il_getVarcharValue procedure or by using one of the
 // il_getRequest... procedures.
 ///
 dcl-ds il_request qualified template;
@@ -113,7 +113,7 @@ end-ds;
 ///
 dcl-pr il_getVarcharValue varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'lvpc2lvc');
-    string likeds(il_varchar);    
+    string likeds(il_varchar);
 end-pr;
 
 ///
@@ -126,12 +126,12 @@ end-pr;
 ///
 dcl-pr il_getRequestMethod  varchar(256:2) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestMethod');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
 // Get request URL
-// 
+//
 // Returns the request URL consisting of the resource and the query string.
 // http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return
 // /api/v1/iledocs/search?q=map&scope=full .
@@ -143,7 +143,7 @@ end-pr;
 ///
 dcl-pr il_getRequestUrl  varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestUrl');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
@@ -158,16 +158,16 @@ end-pr;
 ///
 dcl-pr il_getRequestResource  varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestResource');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
 // Get request query string
 //
 // Returns the request query string (without the starting ? separator). So for
-// a request like http://localhost:8080/path?query=string you would get 
+// a request like http://localhost:8080/path?query=string you would get
 // query=string as the return value. The ? sign as a separator of the resource
-// path and the query string is not part of the return value. If the URL does 
+// path and the query string is not part of the return value. If the URL does
 // not contain a query string a zero length string is returned.
 //
 // @param Request
@@ -175,17 +175,17 @@ end-pr;
 ///
 dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestQueryString');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
 // Get parm as string from querystring
 //
 // Returns the starting value for a request query string So for
-// a request like http://localhost:8080/path?query=string you would get 
-// 'string' as the return value for the input of 'query'. The ? sign as a 
-// separator of the resource path and the query string is not part of the 
-// return value. If the URL does not contain a query string the default string 
+// a request like http://localhost:8080/path?query=string you would get
+// 'string' as the return value for the input of 'query'. The ? sign as a
+// separator of the resource path and the query string is not part of the
+// return value. If the URL does not contain a query string the default string
 // is returned
 //
 // @param Request
@@ -193,7 +193,7 @@ end-pr;
 ///
 dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getParmStr');
-    request     likeds(il_request);    
+    request     likeds(il_request);
     parmName    pointer value options(*string);
     default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
 end-pr;
@@ -208,7 +208,7 @@ end-pr;
 ///
 dcl-pr il_getRequestProtocol  varchar(256:2)  ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestProtocol');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
@@ -221,7 +221,7 @@ end-pr;
 ///
 dcl-pr il_getRequestHeaders  varchar(524284:4)  ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestHeaders');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
@@ -234,16 +234,16 @@ end-pr;
 ///
 dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestHeader');
-    request  likeds(il_request); 
-    header   pointer value options(*string);   
+    request  likeds(il_request);
+    header   pointer value options(*string);
 end-pr;
 
 ///
 // Get request content
 //
 // Returns the body content of the HTTP message. If the content exceeds
-// the length of the return value the subfield <em>content</em> of the 
-// request data structure can be accessed directly to process the 
+// the length of the return value the subfield <em>content</em> of the
+// request data structure can be accessed directly to process the
 // content block by block, see il_request.content.
 //
 // @param Request
@@ -251,7 +251,7 @@ end-pr;
 ///
 dcl-pr il_getRequestContent  varchar(524284:4)  ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestContent');
-    request likeds(il_request);    
+    request likeds(il_request);
 end-pr;
 
 ///
@@ -265,21 +265,21 @@ end-pr;
 ///
 dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm
                 extproc(*CWIDEN:'il_getFileMimeType');
-    fileName    varchar(256:2);    
+    fileName    varchar(256:2);
 end-pr;
 
 ///
 // Get file extension
-// 
+//
 // If the requested resource is a file then the file extension will be returned.
 // A request for http://localhost:8080/index.html will return html.
-// 
+//
 // @param Request
 // @return file extension
 ///
 dcl-pr il_getFileExtension  varchar(256:2)  rtnparm
                 extproc(*CWIDEN:'il_getFileExtension');
-    fileName    varchar(256:2);    
+    fileName    varchar(256:2);
 end-pr;
 
 ///
@@ -292,7 +292,13 @@ end-pr;
 ///
 dcl-pr il_listen extproc(*CWIDEN:'il_listen');
     config      likeds(il_config);
-    servlet     pointer(*PROC) value options(*nopass) ;    
+    servlet     pointer(*PROC) value options(*nopass) ;
+end-pr;
+
+dcl-pr il_addHeader extproc(*CWIDEN:'il_addHeader');
+    response    likeds(il_response);
+    header      varchar(256:2) const;
+    value       varchar(3072:2) const;
 end-pr;
 
 ///
@@ -311,7 +317,7 @@ end-pr;
 ///
 dcl-pr il_responseWrite extproc(*CWIDEN:'il_responseWrite');
     response    likeds(il_response);
-    buffer      varchar(524284:4) ccsid(*utf8) options(*varsize) const ;    
+    buffer      varchar(524284:4) ccsid(*utf8) options(*varsize) const ;
 end-pr;
 
 ///
@@ -331,7 +337,7 @@ end-pr;
 ///
 dcl-pr il_responseWriteBin extproc(*CWIDEN:'il_responseWrite');
     response    likeds(il_response);
-    buf         varchar(524284:4) options(*varsize) const ;    
+    buf         varchar(524284:4) options(*varsize) const ;
 end-pr;
 
 ///
@@ -344,11 +350,11 @@ end-pr;
 ///
 dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');
     response    likeds(il_response);
-    fileName    varchar(256) options(*varsize) const;    
+    fileName    varchar(256) options(*varsize) const;
 end-pr;
 
 ///
-// Write stream 
+// Write stream
 //
 // Writes the content of the stream to the response message.
 //
@@ -392,7 +398,7 @@ dcl-c IL_ANY     const(1023);
 //
 // @param Configuration
 // @param Servlet
-// @param HTTP Method (multiple methods can be specified like this: 
+// @param HTTP Method (multiple methods can be specified like this:
 //        IL_GET + IL_POST, default: IL_ANY)
 // @param Path (default: / )
 // @param Content type (default: application/json)
@@ -400,18 +406,18 @@ dcl-c IL_ANY     const(1023);
 dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');
     config       likeds(il_config);
     servlet      pointer(*PROC) value;
-    httpMethods  int(5) value options(*nopass);  
+    httpMethods  int(5) value options(*nopass);
     route        varchar(1024) const options(*nopass);
     contentType  varchar(1024) const options(*nopass);
 end-pr;
 
 ///
-// Defining plugin execution time for a plugin before the request has been 
+// Defining plugin execution time for a plugin before the request has been
 // handed to the endpoint.
 ///
 dcl-c IL_PREREQUEST   1;
 ///
-// Defining plugin execution time for a plugin after the last response part 
+// Defining plugin execution time for a plugin after the last response part
 // has been sent.
 ///
 dcl-c IL_POSTRESPONSE 2;
@@ -420,15 +426,15 @@ dcl-c IL_POSTRESPONSE 2;
 ///
 // Add plugin server
 //
-// A servlet that can handle pre and post request. A prerequest can return 
-// *OFF to stop futher processing. 
+// A servlet that can handle pre and post request. A prerequest can return
+// *OFF to stop futher processing.
 //
 // @param Configuration
 // @param Plugin
-// @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be 
-//        either/or simply add together 
+// @param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be
+//        either/or simply add together
 ///
-dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');  
+dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');
     config       likeds(il_config);
     plugin       pointer(*PROC) value;
     pluginType   int(5) value;
@@ -442,29 +448,29 @@ end-pr;
 // Returning *OFF will terminate the ILEastic applications server
 //
 // @param Configuration
-// @param address to Plugin procedure 
-// @param timerSec Seconds between calls 
+// @param address to Plugin procedure
+// @param timerSec Seconds between calls
 ///
-dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');  
+dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');
     config       likeds(il_config);
     plugin       pointer(*PROC) value;
-    timerSec     int(5) value;      
+    timerSec     int(5) value;
 end-pr;
 
 ///
 // Enter thread safe mode
-// 
+//
 // Enter mode for non threaded application like "normal" RPG / CLLE
 ///
-dcl-pr il_enterThreadSerialize extproc(*CWIDEN:'il_enterThreadSerialize'); 
-end-pr; 
+dcl-pr il_enterThreadSerialize extproc(*CWIDEN:'il_enterThreadSerialize');
+end-pr;
 
 ///
 // Leave thread safe mode
 //
 // Leave mode for non threaded application like "normal" RPG / CLLE
 ///
-dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize'); 
+dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize');
 end-pr;
 
 ///
@@ -498,11 +504,11 @@ end-pr;
 ///
 // Curticy function: put messages in joblog
 // works like printf but with strings only like
-//    il_joblog('This is %s a test' : 'Super'); 
+//    il_joblog('This is %s a test' : 'Super');
 //
 // @param format string
-// @param Parms : list of strings  
-// 
+// @param Parms : list of strings
+//
 ///
 dcl-pr il_joblog extproc(*CWIDEN : 'il_joblog') ;
   formatString  pointer  options(*string)  value;

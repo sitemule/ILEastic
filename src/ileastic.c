@@ -35,8 +35,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <spawn.h>
-#include <sys/signal.h> 
- 
+#include <sys/signal.h>
+
 
 #include "ostypes.h"
 #include "varchar.h"
@@ -55,71 +55,71 @@ BOOL (*receiveHeader)  (PREQUEST pRequest);
 BOOL shutdownFlag = false;
 
 /* --------------------------------------------------------------------------- */
-// end of chunks                                               
+// end of chunks
 void putChunkEnd (PRESPONSE pResponse)
-{                                                         
-    int     rc;                                                 
-    LONG    lenleni;                                        
-    UCHAR   lenbuf [32];     
+{
+    int     rc;
+    LONG    lenleni;
+    UCHAR   lenbuf [32];
 
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         return;
     }
 
-    lenleni = sprintf (lenbuf , "0\r\n\r\n" );  // end of chunks   
+    lenleni = sprintf (lenbuf , "0\r\n\r\n" );  // end of chunks
     meme2a(lenbuf,lenbuf, lenleni);
     rc = write(pResponse->pConfig->clientSocket,lenbuf, lenleni);
 }
 /* --------------------------------------------------------------------------- */
-void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)         
-{        
-    int rc;                                                 
-    LONG   lenleni;                                        
-    PUCHAR tempBuf = malloc ( len + 16);                   
-    PUCHAR wrkBuf = tempBuf;                               
+void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
+{
+    int rc;
+    LONG   lenleni;
+    PUCHAR tempBuf = malloc ( len + 16);
+    PUCHAR wrkBuf = tempBuf;
 
     putHeader (pResponse); // if not put yet
 
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( buf , len , pResponse->pConfig->fcgi.out);
-        free (tempBuf);                                        
+        free (tempBuf);
         return;
     }
 
-    lenleni = sprintf (wrkBuf , "%x\r\n" , len);           
-    meme2a( wrkBuf , wrkBuf , lenleni);  
-    wrkBuf += lenleni;                                     
-                                                            
-    memcpy (wrkBuf , buf, len);                            
-    wrkBuf += len;                                         
-                                                            
-    *(wrkBuf++) =  0x0d;                                   
-    *(wrkBuf++) =  0x0a;                                   
+    lenleni = sprintf (wrkBuf , "%x\r\n" , len);
+    meme2a( wrkBuf , wrkBuf , lenleni);
+    wrkBuf += lenleni;
+
+    memcpy (wrkBuf , buf, len);
+    wrkBuf += len;
+
+    *(wrkBuf++) =  0x0d;
+    *(wrkBuf++) =  0x0a;
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
-    free (tempBuf);                                        
-                                                            
+    free (tempBuf);
+
 }
 /* --------------------------------------------------------------------------- */
-void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)         
-{        
-    int rc;                                                 
-    LONG   lenleni;     
-    int outlen = len * 4;   
-    UCHAR lenBuf [16];                                
-    PUCHAR tempBuf;                   
-    PUCHAR wrkBuf; 
+void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
+{
+    int rc;
+    LONG   lenleni;
+    int outlen = len * 4;
+    UCHAR lenBuf [16];
+    PUCHAR tempBuf;
+    PUCHAR wrkBuf;
     PUCHAR totBuf;
     PUCHAR input;
     size_t inbytesleft, outbytesleft;
-                  
+
     putHeader (pResponse); // if not put yet
 
     input = buf;
 	inbytesleft = len;
 	outbytesleft = outlen;
-    totBuf = malloc ( 16 + (outlen));     // The Chunk header + the max size which twice the byte size              
+    totBuf = malloc ( 16 + (outlen));     // The Chunk header + the max size which twice the byte size
     wrkBuf = tempBuf = totBuf + 16;       // Make room for the chunk header ( max 16 bytes)
 
     rc = iconv ( pResponse->pConfig->e2a->Iconv , &input , &inbytesleft, &wrkBuf , &outbytesleft);
@@ -127,21 +127,21 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( tempBuf , wrkBuf - tempBuf , pResponse->pConfig->fcgi.out);
-        free (totBuf);                                        
+        free (totBuf);
         return;
     }
 
     // Build the Chunk header
-    lenleni = sprintf (lenBuf , "%x\r\n" , len);     
+    lenleni = sprintf (lenBuf , "%x\r\n" , len);
     tempBuf -= lenleni;
-    meme2a( tempBuf , lenBuf  , lenleni);              
-                                                            
-    *(wrkBuf++) =  0x0d;                                   
-    *(wrkBuf++) =  0x0a;                                   
+    meme2a( tempBuf , lenBuf  , lenleni);
+
+    *(wrkBuf++) =  0x0d;
+    *(wrkBuf++) =  0x0a;
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
-    free (totBuf);                                        
-                                                            
-}               
+    free (totBuf);
+
+}
 /* --------------------------------------------------------------------------- */
 /*  Sun, 06 Nov 1994 08:49:37 GMT    ; IMF-fixdate */
 /* --------------------------------------------------------------------------- */
@@ -155,7 +155,7 @@ PUCHAR imfTimeString(PUCHAR buf)
     time (&rawtime);
     timeinfo = gmtime (&rawtime);
 
-    sprintf( 
+    sprintf(
         buf,"%s, %02d %s %4d %02d:%02d:%02d GMT",
         dayname[timeinfo->tm_wday],
         timeinfo->tm_mday,
@@ -166,34 +166,54 @@ PUCHAR imfTimeString(PUCHAR buf)
         timeinfo->tm_sec
     );
     return buf;
-}                                          
+}
 /* --------------------------------------------------------------------------- */
 void putHeader (PRESPONSE pResponse)
 {
+    const int HEADER_SIZE = 4096;
+
     size_t rc;
-    UCHAR  header [1024];
-    UCHAR  w1 [256];
-    UCHAR  w2 [256];
-    UCHAR  w3 [256];
+    UCHAR  header [HEADER_SIZE];
     PUCHAR p = header;
     LONG len;
+    LONG newLen;
+    LONG hdrLen;
     UCHAR timeBuffer [128];
-
+    SLISTITERATOR headers;
+    PSLISTNODE pNode;
 
     if (!pResponse->firstWrite) return;
 
     p += sprintf(p ,
         "HTTP/1.1 %d %s\r\n"
-        "Date: %s\r\n" 
+        "Date: %s\r\n"
         "Transfer-Encoding: chunked\r\n"
-        "Content-type: %s;charset=%s\r\n"
-        "\r\n",
+        "Content-type: %s;charset=%s\r\n",
         pResponse->status,
         vc2str(&pResponse->statusText),
         imfTimeString(timeBuffer),
         vc2str(&pResponse->contentType),
         vc2str(&pResponse->charset)
     );
+
+    headers = sList_setIterator(pResponse->headerList);
+    while (sList_foreach (&headers) == ON) {
+        pNode = headers.this;
+        hdrLen = strlen(pNode->payloadData) + 4; // two more bytes for the CRLF
+        newLen = p - header + hdrLen;            // delimiter before POST section
+        if (newLen <= HEADER_SIZE) {
+            p += sprintf(p, "%s\r\n", pNode->payloadData);
+        }
+    }
+
+    // TODO: Handle "buffer to small to hold all headers" error
+
+    // Add CRLF delimiter before POST data section
+    hdrLen = 2;
+    newLen = p - header + hdrLen;
+    if (newLen <= HEADER_SIZE) {
+        p += sprintf(p, "%s", "\r\n");
+    }
 
     len = p - header;
     meme2a( header , header , len);
@@ -204,10 +224,10 @@ void putHeader (PRESPONSE pResponse)
     } else {
         rc = write(pResponse->pConfig->clientSocket, header , len);
     }
+
     pResponse->firstWrite = false;
-             
 }
-/* --------------------------------------------------------------------------- 
+/* ---------------------------------------------------------------------------
    Split the url at "?" into resource, and queryString
    --------------------------------------------------------------------------- */
 static void parseQueryString (PREQUEST pRequest)
@@ -225,41 +245,41 @@ static void parseQueryString (PREQUEST pRequest)
     }
 }
 
-/* --------------------------------------------------------------------------- 
-   Produce a key/value list of form or query string 
-   
+/* ---------------------------------------------------------------------------
+   Produce a key/value list of form or query string
+
    --------------------------------------------------------------------------- */
 PSLIST parseParms ( LVARPUCHAR parmString)
 {
-    PSLIST pParmList; 
+    PSLIST pParmList;
     PUCHAR parmEnd, begin, end, split;
     if (parmString.String == NULL) {
         return NULL;
     }
 
     pParmList = sList_new ();
-    
+
     begin =  parmString.String;
-    end    = begin + parmString.Length; 
+    end    = begin + parmString.Length;
     while (begin < end) {
 
         LVARPUCHAR key;
         LVARPUCHAR value;
-        
-        parmEnd = memchr(begin, 0x26, end - begin ); // Split at the & 
-        
+
+        parmEnd = memchr(begin, 0x26, end - begin ); // Split at the &
+
         // last parameter?
         if (parmEnd == NULL) {
             parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
         }
 
-        split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the = 
+        split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the =
         if (split == null) break;
 
-        // Got the components, now store in the list 
+        // Got the components, now store in the list
         key.String = begin;
         key.Length = split - begin;
- 
+
         split++;
         value.String = split;
         value.Length = parmEnd - split;
@@ -273,19 +293,19 @@ PSLIST parseParms ( LVARPUCHAR parmString)
 
     return pParmList;
 }
-/* --------------------------------------------------------------------------- 
+/* ---------------------------------------------------------------------------
    Produce a key/value list of the request headers
    --------------------------------------------------------------------------- */
 static void parseHeaders (PREQUEST pRequest)
 {
     char eol [2]  = { 0x0d , 0x0a};
-    
+
     PUCHAR headend , begin, end, split;
 
     pRequest->headerList = sList_new ();
 
     begin =  pRequest->headers.String;
-    headend = begin + pRequest->headers.Length; 
+    headend = begin + pRequest->headers.Length;
     while (begin < headend) {
         LVARPUCHAR key;
         LVARPUCHAR value;
@@ -298,10 +318,10 @@ static void parseHeaders (PREQUEST pRequest)
         split= memchr(begin, 0x3A, end - begin ); // Split at the : colon
         if (split == null) break;
 
-        // Got the components, now store in the list 
+        // Got the components, now store in the list
         key.String = begin;
         key.Length = split - begin;
- 
+
         split++;
         for (;*split == 0x20; split++); // Skip blank(s)
         value.String = split;
@@ -314,9 +334,9 @@ static void parseHeaders (PREQUEST pRequest)
         begin = end + 2; // After the eol mark
     }
 }
-/* --------------------------------------------------------------------------- 
+/* ---------------------------------------------------------------------------
    Return string of header values
-   Note - the keys are in ASCII so we have to convert. memicmp only works on EBCDIC 
+   Note - the keys are in ASCII so we have to convert. memicmp only works on EBCDIC
    --------------------------------------------------------------------------- */
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
 {
@@ -337,9 +357,9 @@ PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
     *value = '\0';
     return value;
 }
-/* --------------------------------------------------------------------------- 
-   Parse this: 
-   GET / HTTP/1.1██Host: dksrv133:44001██Con
+/* ---------------------------------------------------------------------------
+   Parse this:
+   GET / HTTP/1.1??Host: dksrv133:44001??Con
    --------------------------------------------------------------------------- */
 BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 {
@@ -376,7 +396,7 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     pRequest->url.String = begin;
     next = memchr(begin, 0x20, beforeHeadersLen);
     pRequest->url.Length = next - begin;
-    
+
     // Protocol
     begin = next;
     for (;*begin== 0x20; begin ++); // Skip blank(s)
@@ -398,7 +418,7 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
         pRequest->content.String = eoh + 4;
         pRequest->content.Length = bufLen - ( pRequest->content.String - buf );
     }
-    
+
     return true;
 
 }
@@ -448,7 +468,7 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
             free(buf);
             return true;
         }
-        
+
         bufLen += rc;
         bufWin += rc;
         if (isLookingForHeaders) {
@@ -457,7 +477,7 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
                     receivePayload (pRequest);
                 }
                 isLookingForHeaders = false;
-                return false; // TODO - Now only GET - no payload 
+                return false; // TODO - Now only GET - no payload
             }
         }
     }
@@ -481,7 +501,7 @@ static void setCallbacks (PCONFIG pConfig)
         default:
             il_joblog ("Invalid protocol types %d" , pConfig->protocol);
             exit(-1);
-    }   
+    }
 }
 /* --------------------------------------------------------------------------- *\
     Handle :
@@ -491,7 +511,7 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
 {
     UCHAR msgbuf[100];
     SERVLET matchingServlet;
-    
+
     if (pRequest->pConfig->router == NULL) return;
 
     matchingServlet = findRoute(pRequest->pConfig, pRequest);
@@ -499,7 +519,7 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
         il_joblog( "No routing found for request"); // TODO add resource to output
         pResponse->status = 404;
         putChunk(pResponse, "", 0); // TODO add not found message
-    }   
+    }
     else {
         matchingServlet(pRequest, pResponse);
     }
@@ -518,7 +538,7 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     l_resource[pRequest->resource.Length] = '\0';  // Need it as a string
 
 	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
-    
+
         PROUTING pRouting = pRouteNode->payloadData;
 
         if (httpMethodMatchesEndPoint(&pRequest->method, pRouting->routeType)) {
@@ -533,14 +553,14 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     }
 
     free (l_resource);
-    
+
     return matchingServlet;
 }
 #pragma convert(1252)
-BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType) 
+BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType)
 {
     ROUTETYPE requestRouteType;
- 
+
     if (endPointRouteType == IL_ANY) {
         return true;
     }
@@ -568,7 +588,7 @@ BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRout
     else {
       return false;
     }
- 
+
     return endPointRouteType & requestRouteType;
 }
 #pragma convert(0)
@@ -595,7 +615,7 @@ static void * serverThread (PINSTANCE pInstance)
     RESPONSE response;
     BOOL     allSaysGo;
     volatile PRESPONSE pResponse;
-    
+
     while (pInstance->config.clientSocket > 0) {
         memset(&request  , 0, sizeof(REQUEST));
         memset(&response , 0, sizeof(RESPONSE));
@@ -609,9 +629,10 @@ static void * serverThread (PINSTANCE pInstance)
         str2vc(&response.contentType , "text/html");
         str2vc(&response.charset     , "UTF-8");
         str2vc(&response.statusText  , "OK");
+        response.headerList = sList_new();
 
         pResponse = &response;
-        
+
         #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
         allSaysGo = runPlugins (request.pConfig->pluginPreRequest , &request , &response);
         if (allSaysGo) {
@@ -626,16 +647,17 @@ static void * serverThread (PINSTANCE pInstance)
 
         putChunkEnd (&response);
 
-        // Clean up this transaction 
+        // Clean up this transaction
         sList_free (request.headerList);
         sList_free (request.parmList);
-        
+        sList_free (response.headerList);
+
         if (request.threadMem) {
             free(request.threadMem);
         }
         if (request.completeHeader.String) {
             free(request.completeHeader.String);
-        } 
+        }
         if (request.content.String) {
             free(request.content.String);
         }
@@ -650,13 +672,13 @@ static void * schedulerThread (PCONFIG pConfig)
     ULONG sec =0;
     for(;;) {
         sleep(1);
-        // The config structure uninitialized default to BLANK 0404040 :( 
-        if (pConfig->schedulerTimer < 100000 && pConfig->scheduler  
+        // The config structure uninitialized default to BLANK 0404040 :(
+        if (pConfig->schedulerTimer < 100000 && pConfig->scheduler
         && (shutdownFlag || sec ++ > pConfig->schedulerTimer)) {
             LGL run = pConfig->scheduler(pConfig);
             if (run == OFF) exit(0);
             sec =0;
-        } 
+        }
         if (shutdownFlag) exit(0);
     }
 }
@@ -665,7 +687,7 @@ void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms) {
     PRESPONSE * pResponse = parms->Com_Area;
     PRESPONSE response = *pResponse;
     response->status = 500;
-    putChunkXlate(response, "Internal Server Error", 21); 
+    putChunkXlate(response, "Internal Server Error", 21);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -702,14 +724,14 @@ static BOOL getSocket(PCONFIG pConfig)
     UCHAR interface  [32];
     vc2strcpy(interface , &pConfig->interface);
 
-    // Get a socket descriptor 
+    // Get a socket descriptor
     if ((pConfig->mainSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)  {
         errcde = montcp(errno);
         il_joblog( "socket error: %d - %s" , (int) errcde, strerror((int) errcde));
         return false;
-    } 
+    }
 
-    // Allow socket descriptor to be reuseable 
+    // Allow socket descriptor to be reuseable
     rc = setsockopt(
         pConfig->mainSocket, SOL_SOCKET,
         SO_REUSEADDR,
@@ -724,7 +746,7 @@ static BOOL getSocket(PCONFIG pConfig)
         return false;
     }
 
-    // bind to interface / port 
+    // bind to interface / port
     memset(&serveraddr, 0x00, sizeof(struct sockaddr_in));
     serveraddr.sin_family        = AF_INET;
     serveraddr.sin_port          = htons(pConfig->port);
@@ -744,7 +766,7 @@ static BOOL getSocket(PCONFIG pConfig)
         return false;
    }
 
-    // Up to XXX clients can be queued 
+    // Up to XXX clients can be queued
     rc = listen(pConfig->mainSocket, SOMAXCONN);
     if (rc < 0)  {
         errcde = montcp(errno);
@@ -787,7 +809,7 @@ void setMaxSockets(void)
     APIRET   apiret;
     LONG     pcbReqCount = 0;
     ULONG    pcbCurMaxFH = 0;
- 
+
     // Setup max number of sockes
     maxFiles = sysconf(_SC_OPEN_MAX);
     apiret = DosSetRelMaxFH(&pcbReqCount,  &pcbCurMaxFH);
@@ -797,22 +819,22 @@ void setMaxSockets(void)
 
 }
 /* ------------------------------------------------------------- *\
-    Set up a signal handling procedure to handle the 
-    asynchronous signal SIGTERM being generated by 
-    ENDJOB, ENBSBS, or PWRDWNSYS when the *CNTRLD option is 
-    specified for the OPTION keyword 
-\* ------------------------------------------------------------- */ 
-void catcher( int sig) { 
+    Set up a signal handling procedure to handle the
+    asynchronous signal SIGTERM being generated by
+    ENDJOB, ENBSBS, or PWRDWNSYS when the *CNTRLD option is
+    specified for the OPTION keyword
+\* ------------------------------------------------------------- */
+void catcher( int sig) {
     shutdownFlag = true;
 }
-void setShutdownHandler (void) 
+void setShutdownHandler (void)
 {
-    struct sigaction sigact, osigact; 
+    struct sigaction sigact, osigact;
 
-    sigemptyset( &sigact.sa_mask ); 
-    sigact.sa_flags = 0; 
-    sigact.sa_handler = catcher; 
-    sigaction( SIGTERM, &sigact, &osigact ); 
+    sigemptyset( &sigact.sa_mask );
+    sigact.sa_flags = 0;
+    sigact.sa_handler = catcher;
+    sigaction( SIGTERM, &sigact, &osigact );
 }
 /* ------------------------------------------------------------- */
 void il_listen (PCONFIG pConfig, SERVLET servlet)
@@ -821,16 +843,16 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     BOOL     resetSocket = TRUE;
     pthread_t  pSchedulerThread;
     int rc;
-    
+
     rc = pthread_create(&pSchedulerThread , NULL, schedulerThread , pConfig);
-    setShutdownHandler (); 
+    setShutdownHandler ();
     setMaxSockets();
     pConfig->a2e = XlateXdOpen (1208, 0);
     pConfig->e2a = XlateXdOpen (0 , 1208);
 
     setCallbacks (pConfig);
 
- 
+
     // tInitSSL(pConfig);
 
     // Infinit loop
@@ -838,7 +860,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         pthread_t  pServerThread;
         PINSTANCE pInstance;
         int clientSocket;
-        struct sockaddr_in serveraddr, client; 
+        struct sockaddr_in serveraddr, client;
         int clientSize;
         int errcde;
 
@@ -851,7 +873,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
             resetSocket = false;
         }
 
-        if (pConfig->protocol == PROT_FASTCGI 
+        if (pConfig->protocol == PROT_FASTCGI
         ||  pConfig->protocol == PROT_SECFASTCGI) {
             // Setup arguments to pass
             PINSTANCE pInstance = malloc(sizeof(INSTANCE));
@@ -888,7 +910,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
         rc = pthread_create(&pServerThread , NULL, serverThread , pInstance);
         if (rc) {
-            il_joblog("Thread not started");
+            errcde = rc;
+            il_joblog( "Thread not started: %d - %s" , (int) errcde, strerror((int) errcde));
             exit(0);
         }
 
