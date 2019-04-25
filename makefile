@@ -19,7 +19,7 @@ SHELL=/QOpenSys/usr/bin/qsh
 # The folder where the copy books for ILEastic will be copied to with the 
 # install step (make install).
 #
-USRINCDIR='/usr/local/include'  
+USRINCDIR='/usr/local/include'
 
 #
 # User-defined part end
@@ -27,7 +27,7 @@ USRINCDIR='/usr/local/include'
 
 
 # system and application include folder
-INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include'
+INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include' 'noxDB/headers'
 
 # CCFLAGS = C compiler parameter
 CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
@@ -54,7 +54,8 @@ ILEfastCGI: .PHONY
 		
 bind:
 	liblist -a $(LIBLIST);\
-	system -q "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
+	system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)";\
+	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
 	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM(($(BIN_LIB)/ILEFASTCGI *DEFER) ($(BIN_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";\
