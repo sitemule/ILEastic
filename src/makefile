@@ -16,10 +16,10 @@ BIN_LIB=ILEASTIC
 
 
 # system and application include folder
-INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include'
+INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/headers'
 
 # CCFLAGS = C compiler parameter
-CCFLAGS=OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
+CCFLAGS=OUTPUT(*NONE) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
 MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI
 

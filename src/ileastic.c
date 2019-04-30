@@ -48,6 +48,7 @@
 #include "simpleList.h"
 #include "parms.h"
 #include "fcgi_stdio.h"
+#include "jsonxml.h"
 
 
 // callback function pointers
@@ -632,6 +633,8 @@ static void * serverThread (PINSTANCE pInstance)
         response.headerList = sList_new();
 
         pResponse = &response;
+        
+        request.threadMem = (PVOID) jx_NewObject(NULL);
 
         #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
         allSaysGo = runPlugins (request.pConfig->pluginPreRequest , &request , &response);
@@ -653,7 +656,7 @@ static void * serverThread (PINSTANCE pInstance)
         sList_free (response.headerList);
 
         if (request.threadMem) {
-            free(request.threadMem);
+            jx_Close(request.threadMem);
         }
         if (request.completeHeader.String) {
             free(request.completeHeader.String);
