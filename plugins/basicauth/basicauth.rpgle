@@ -38,7 +38,7 @@ dcl-pr il_basicauth ind extproc(*dclcase);
 end-pr;
   
 
-dcl-s realm varchar(100) inz('unknown');
+dcl-s realm varchar(100) inz('unknown') static(*allthread);
 
 
 ///
