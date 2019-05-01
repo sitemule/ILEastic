@@ -295,6 +295,16 @@ dcl-pr il_listen extproc(*CWIDEN:'il_listen');
     servlet     pointer(*PROC) value options(*nopass) ;
 end-pr;
 
+///
+// Add HTTP header entry to the response 
+//
+// Adds an HTTP header to the response sent to the client. The same  HTTP header
+// key can be added multiple times to the response, the old value is not replaced.
+//
+// @param response Response
+// @param HTTP header key
+// @param HTTP header value
+///
 dcl-pr il_addHeader extproc(*CWIDEN:'il_addHeader');
     response    likeds(il_response);
     header      varchar(256:2) const;
@@ -502,6 +512,8 @@ dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_enco
 end-pr;
 
 ///
+// Add message to job log
+//
 // Curticy function: put messages in joblog
 // works like printf but with strings only like
 //    il_joblog('This is %s a test' : 'Super');
@@ -522,5 +534,17 @@ dcl-pr il_joblog extproc(*CWIDEN : 'il_joblog') ;
   string7       pointer  options(*string:*nopass) value;
   string8       pointer  options(*string:*nopass) value;
   string9       pointer  options(*string:*nopass) value;
+end-pr;
+
+///
+// Get thread local storage
+//
+// Returns a graph of the thread local storage. You can access the graph with
+// the noxDB API. Paths starting with /ileastic are framework specific values.
+//
+// @return Pointer to thread local storage
+///
+dcl-pr il_getThreadMem pointer extproc('il_getThreadMem');
+  request likeds(il_request);
 end-pr;
 
