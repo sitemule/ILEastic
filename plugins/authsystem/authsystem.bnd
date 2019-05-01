@@ -1,0 +1,5 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('AuthSystem 1.0.0')
+
+    EXPORT SYMBOL("il_auth_system")
+
+ENDPGMEXP

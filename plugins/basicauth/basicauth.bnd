@@ -1,0 +1,6 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('BasicAuth 1.0.0')
+
+    EXPORT SYMBOL("il_basicauth")
+    EXPORT SYMBOL("il_basicauth_setRealm")
+
+ENDPGMEXP
