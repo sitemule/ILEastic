@@ -1,0 +1,9 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('JWT 1.0.0')
+
+    EXPORT SYMBOL("jwt_verify")
+    EXPORT SYMBOL("jwt_decodeHeader")
+    EXPORT SYMBOL("jwt_decodePayload")
+    EXPORT SYMBOL("jwt_sign")
+    EXPORT SYMBOL("jwt_isExpired")
+
+ENDPGMEXP
