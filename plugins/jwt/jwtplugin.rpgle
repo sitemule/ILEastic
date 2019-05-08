@@ -22,26 +22,21 @@ ctl-opt nomain thread(*concurrent);
 /include 'headers/ileastic.rpgle'
 /include 'noxdb/headers/jsonparser.rpgle'
 /include 'jwt_h.rpgle'
+/include 'jwtplugin_h.rpgle'
 
-dcl-pr il_jwt_filter ind extproc(*dclcase);
-  request  likeds(IL_REQUEST);
-  response likeds(IL_RESPONSE);
-end-pr;
   
 dcl-s signKey like(jwt_signKey_t) static(*allthread) ccsid(*utf8);
 
 
-///
-// JWT Filter
-//
-// This plugin filters the JWT token from the response and adds the token and
-// the payload to the thread local memory.
-//
-// @param Request
-// @param Response
-// @return *on = the request is valid and can be passed to the next plugin/servlet
-//         else *off
-///
+dcl-proc il_jwt_setSignKey export;
+  dcl-pi *n;
+    pSignKey like(jwt_signKey_t) const;
+  end-pi;
+  
+  signKey = pSignKey;
+end-proc;
+
+
 dcl-proc il_jwt_filter export;
   dcl-pi *n ind;
     request  likeds(IL_REQUEST);

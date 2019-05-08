@@ -70,6 +70,7 @@ test: .PHONY
 plugins: .PHONY
 	cd plugins/authsystem && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
 	cd plugins/basicauth && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
+	cd plugins/jwt && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
 
 # For vsCode 
 current: env

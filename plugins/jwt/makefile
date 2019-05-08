@@ -12,13 +12,15 @@ BIN_LIB=ILEASTIC
 
 BIND_LIB=*LIBL
 
+TGT_RLS=*CURRENT
+
 #
 # User-defined part end
 #-------------------------------------------------------------------------------
 
 
 # CFLAGS = compiler parameter
-CFLAGS=OUTPUT(*NONE) OPTION(*NOUNREF *SRCSTMT) DBGVIEW(*LIST) STGMDL(*INHERIT) INCDIR('../..')
+CFLAGS=OUTPUT(*PRINT) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../..') DBGVIEW(*ALL) TGTRLS($(TGT_RLS))
 
 MODULES = jwt jwtplugin
 

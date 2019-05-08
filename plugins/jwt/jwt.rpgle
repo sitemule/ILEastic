@@ -69,7 +69,7 @@ dcl-proc jwt_decodeHeader export;
   endif;
 
   header = %subst(token : 1 : x - 1);
-  decoded = il_decodeBase64(header);
+  decoded = decodeBase64Url(header);
 
   return decoded;
 end-proc;
@@ -98,7 +98,7 @@ dcl-proc jwt_decodePayload export;
   endif;
 
   payload = %subst(token : x+1 : x2 - x);
-  decoded = il_decodeBase64(payload);
+  decoded = decodeBase64Url(payload);
 
   return decoded;
 end-proc;
@@ -163,9 +163,9 @@ dcl-proc jwt_sign export;
 
   header = '{"alg":"' + jwt_HS256 + '","typ":"JWT"}';
 
-  base64Encoded = il_encodeBase64(payload);
+  base64Encoded = encodeBase64Url(payload);
   base64Encoded = %trimr(base64Encoded : paddingChar);
-  headerPayload = il_encodeBase64(header) + '.' + base64Encoded;
+  headerPayload = encodeBase64Url(header) + '.' + base64Encoded;
 
   algd0500.algorithm = ALGORITHM_SHA256;
   keyparam.type = 3;
@@ -189,7 +189,7 @@ dcl-proc jwt_sign export;
 
   memcpy(%addr(tmpHash) : %addr(hash) : 32);
 
-  encoded = il_encodeBase64(tmpHash);
+  encoded = encodeBase64Url(tmpHash);
   encoded = %trimr(encoded : paddingChar);
 
   return %trimr(headerPayload) + '.' + encoded;
@@ -230,3 +230,37 @@ dcl-proc jwt_isExpired export;
 
   return expired;
 end-proc;
+
+
+dcl-proc encodeBase64Url;
+  dcl-pi *n varchar(65530) ccsid(*utf8);
+    string varchar(65530) const ccsid(*utf8);
+  end-pi;
+  
+  dcl-s FROM char(2) inz('+/') ccsid(*utf8);
+  dcl-s TO   char(2) inz('-_') ccsid(*utf8);
+  dcl-s encoded varchar(65530) ccsid(*utf8);
+  
+  encoded = il_encodeBase64(string);
+  encoded = %xlate(FROM : TO : encoded);
+  
+  return encoded;
+end-proc;
+
+
+dcl-proc decodeBase64Url;
+  dcl-pi *n varchar(65530) ccsid(*utf8);
+    string varchar(65530) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s TO   char(2) inz('+/') ccsid(*utf8);
+  dcl-s FROM char(2) inz('-_') ccsid(*utf8);
+  dcl-s decoded varchar(65530) ccsid(*utf8);
+  dcl-s value varchar(65530) ccsid(*utf8);
+  
+  value = %xlate(FROM : TO : string);
+  decoded = il_decodeBase64(value);
+  
+  return decoded;
+end-proc;
+

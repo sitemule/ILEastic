@@ -1,10 +1,10 @@
 **FREE
 
-/if defined (ILBASICAUT)
+/if defined (JWT)
 /eof
 /endif
 
-/define ILBASICAUT
+/define JWT
 
 ///
 // ILEastic : JWT Service Program
