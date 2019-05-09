@@ -1,0 +1,6 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('JWTPLUGIN 1.0.0')
+
+    EXPORT SYMBOL("il_jwt_filter")
+    EXPORT SYMBOL("il_jwt_setSignKey")
+
+ENDPGMEXP
