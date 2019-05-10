@@ -22,6 +22,7 @@
 //
 // @author Mihael Schmidt
 // @date   05.03.2019
+// @project ILEastic
 //
 // @info The realm should be set with il_basicauth_setRealm().
 //
