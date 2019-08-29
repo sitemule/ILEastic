@@ -26,6 +26,9 @@ ctl-opt thread(*CONCURRENT);
 
 /include ./headers/ILEastic.rpgle
 
+    dcl-pr sleep;
+       time packed(5:0) const ; 
+    end-pr ;
 
 // -----------------------------------------------------------------------------
 // Program Entry Point
@@ -62,7 +65,7 @@ dcl-proc listCustomers;
       state char(2);
       zipcode packed(5:0);
     end-ds;
-    
+
     response.status = 200;
     response.contentType = 'text/plain';
     
@@ -79,6 +82,9 @@ dcl-proc listCustomers;
     endif;
     
     dow (sqlcode = 0);
+
+        sleep(1);
+ 
         il_responseWrite(
             response : 
             %char(record.id) + DELIMITER +
@@ -94,3 +100,26 @@ dcl-proc listCustomers;
     on-exit abnormallyEnded;
        exec sql CLOSE c1;
 end-proc;
+
+
+// -----------------------------------------------------------------------------
+// Sleep
+// -----------------------------------------------------------------------------     
+dcl-proc sleep;
+
+    dcl-pi *n;
+      time packed(5:0) const;
+    end-pi;
+
+    dcl-pr QCMDEXC extpgm;
+      *n char(250) options(*varsize) const;
+      *n packed(15:5) const;
+    end-pr;
+
+    dcl-s command char(250);
+
+    command = 'DLYJOB ' + %char(time);
+    QCMDEXC(command:%len(%trimr(command)));
+
+end-proc;
+
