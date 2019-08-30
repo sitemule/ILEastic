@@ -7,14 +7,14 @@
 /define ILEASTIC
 
 ///
-// ILEastic - Embedded applicationserver for ILE on IBM i
+// ILEastic - Embedded application server for ILE on IBM i
 //
 // It is a self contained web application server for the ILE environment on
 // IBM i for implementing microservices alike applications.
 // <p>
 // ILEastic is a service program that provides a simple, blazing fast
-// programmable HTTP server for your application so you easy can plug your RPG
-// code into a services infrastructure or make simple web applications without
+// programmable HTTP server for your application so you can easily plug your RPG
+// code into a service infrastructure or make simple web applications without
 // the need of any third party webserver products.
 //
 // @author Niels Liisberg
@@ -25,13 +25,16 @@
 ///
 
 
+///
+// Template for UTF8 varchars.
+///
 dcl-s IL_LONGUTF8VARCHAR varchar(524284:4) ccsid(*utf8) template;
 
 ///
-// String
+// Variable length string
 //
 // This data structure holds a string with variable length.
-// Note - it only ocopys as much data as required only with the length and pointer as overhead
+// Note - it only occupies as much data as required only with the length and pointer as overhead.
 ///
 dcl-ds il_varchar qualified template;
     length  uns(10);
@@ -40,15 +43,23 @@ end-ds;
 
 
 ///
-// Enumerates the protocol
-// 0=Plain HTTP
-// 1=HTTPS   (Secure HTTP: Certificate and certificate password required)
-// 2=FastCGI (For application plugin to NGINX or APACHE)
-// 3=FastCGI secure (For application plugin to NGINX or APACHE.Certificate and certificate password required)
+// Protocol plain HTTP 
 ///
 dcl-c IL_HTTP       0;
+
+///
+// Protocol HTTPS (Secure HTTP: Certificate and certificate password required)
+///
 dcl-c IL_HTTPS      1;
+
+///
+// Protocol FastCGI (For application plugin to NGINX or APACHE)
+///
 dcl-c IL_FASTCGI    2;
+
+///
+// Protocol FastCGI secure (For application plugin to NGINX or APACHE.Certificate and certificate password required)
+///
 dcl-c IL_SECFASTCGI 3;
 
 ///
@@ -179,17 +190,19 @@ dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm
 end-pr;
 
 ///
-// Get parm as string from querystring
+// Get single parameter from query string
 //
-// Returns the starting value for a request query string So for
+// Returns the starting value for a request query string. So for
 // a request like http://localhost:8080/path?query=string you would get
 // 'string' as the return value for the input of 'query'. The ? sign as a
 // separator of the resource path and the query string is not part of the
 // return value. If the URL does not contain a query string the default string
-// is returned
+// is returned.
 //
 // @param Request
-// @return Query string
+// @param Query parameter key
+// @param Default value (returned if key does not exist in query string)
+// @return Query parameter string value
 ///
 dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getParmStr');
@@ -230,7 +243,8 @@ end-pr;
 // Returns a single request header.
 //
 // @param Request
-// @return HTTP header
+// @param HTTP header key
+// @return HTTP header value
 ///
 dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestHeader');
@@ -260,7 +274,7 @@ end-pr;
 // If the requested resource is a file then the corresponding MIME type to
 // the file will be returned.
 //
-// @param Request
+// @param File name
 // @return MIME type
 ///
 dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm
@@ -274,8 +288,8 @@ end-pr;
 // If the requested resource is a file then the file extension will be returned.
 // A request for http://localhost:8080/index.html will return html.
 //
-// @param Request
-// @return file extension
+// @param File name
+// @return File extension
 ///
 dcl-pr il_getFileExtension  varchar(256:2)  rtnparm
                 extproc(*CWIDEN:'il_getFileExtension');
@@ -298,7 +312,7 @@ end-pr;
 ///
 // Add HTTP header entry to the response 
 //
-// Adds an HTTP header to the response sent to the client. The same  HTTP header
+// Adds an HTTP header to the response sent to the client. The same HTTP header
 // key can be added multiple times to the response, the old value is not replaced.
 //
 // @param response Response
@@ -315,8 +329,9 @@ end-pr;
 // Write response
 //
 // Writes the passed buffer to the HTTP message. This procedure can be called
-// multiple times for a single HTTP response. The buffers content will be
-// concated to a single HTTP message body.
+// multiple times for a single HTTP response. Each call will get send as a 
+// HTTP message in chunked transport mode. The receiving side builds one 
+// HTTP message from all sent chunks.
 //
 // @param Response
 // @param Response message content.
@@ -334,9 +349,10 @@ end-pr;
 // Write binary response
 //
 // Writes the passed buffer to the HTTP message. This procedure can be called
-// multiple times for a single HTTP response. The buffers content will be
-// concated to a single HTTP message body. The content of the message will be
-// written as is to the HTTP message without any character conversion.
+// multiple times for a single HTTP response. Each call will get send as a 
+// HTTP message in chunked transport mode. The receiving side builds one 
+// HTTP message from all sent chunks. The content of the message will be
+// written without any character conversion.
 //
 // @param Response
 // @param Response message content.
@@ -356,7 +372,7 @@ end-pr;
 // Writes the content of the file to the response message.
 //
 // @param Response
-// @param Filename
+// @param File name
 ///
 dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');
     response    likeds(il_response);
@@ -452,14 +468,14 @@ end-pr;
 
 
 ///
-// Add scheduler callback plugin procedure ie for houskeeping / termnation detection
+// Add scheduler callback plugin procedure ie for houskeeping / termination detection
 //
-// This starts an extra thread that call your callback
-// Returning *OFF will terminate the ILEastic applications server
+// This starts an extra thread that calls your callback procedure.
+// Returning *OFF will terminate the ILEastic application server.
 //
 // @param Configuration
-// @param address to Plugin procedure
-// @param timerSec Seconds between calls
+// @param Address to plugin procedure
+// @param Seconds between calls
 ///
 dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');
     config       likeds(il_config);
@@ -470,7 +486,7 @@ end-pr;
 ///
 // Enter thread safe mode
 //
-// Enter mode for non threaded application like "normal" RPG / CLLE
+// Enter mode for non threaded application like "normal" RPG / CLLE.
 ///
 dcl-pr il_enterThreadSerialize extproc(*CWIDEN:'il_enterThreadSerialize');
 end-pr;
@@ -478,7 +494,7 @@ end-pr;
 ///
 // Leave thread safe mode
 //
-// Leave mode for non threaded application like "normal" RPG / CLLE
+// Leave mode for non threaded application like "normal" RPG / CLLE.
 ///
 dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize');
 end-pr;
@@ -514,8 +530,9 @@ end-pr;
 ///
 // Add message to job log
 //
-// Curticy function: put messages in joblog
-// works like printf but with strings only like
+// Convenience function: put message in joblog.
+// Works like printf but with strings only like
+//
 //    il_joblog('This is %s a test' : 'Super');
 //
 // @param format string
