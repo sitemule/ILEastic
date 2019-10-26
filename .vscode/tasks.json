@@ -6,7 +6,7 @@
     "tasks": [
         {
             "label": "Compile current file",
-            "command": "ssh -t dksrv133 'cd /prj/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
+            "command": "ssh -t dksrv131 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /home/nli/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -31,7 +31,7 @@
         },
         {
             "label": "Compile Service program ILEastic",
-            "command": "ssh dksrv133 'cd /prj/ILEastic/;gmake all'",
+            "command": "ssh dksrv131 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /home/nli/ILEastic/;gmake all'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -43,7 +43,7 @@
         },
         {
             "label": "Compile all example files",
-            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake '",
+            "command": "ssh -t dksrv131 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /home/nli/ILEastic/examples/;gmake '",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -57,7 +57,7 @@
         // NOTE: OBJECT are overridden by the command line, so OBJECT will be "this" files 
         {
             "label": "Compile current example file",
-            "command": "ssh -t dksrv133 'cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC NOXDB\"'",
+            "command": "ssh -t dksrv131 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /home/nli/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC NOXDB\"'",
             "type": "shell",
             "group": {
                 "kind": "build",

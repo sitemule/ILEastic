@@ -7,6 +7,7 @@
 // a fixed string (Hello World) and some at runtime created characters (time).
 //
 // Start it:
+// ADDLIBLE ILEASTIC
 // SBMJOB CMD(CALL PGM(HELLOWORLD)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
@@ -24,8 +25,7 @@ ctl-opt thread(*CONCURRENT);
 /include ./headers/ileastic.rpgle
 
 // -----------------------------------------------------------------------------
-// Program Entry Point
-// -----------------------------------------------------------------------------     
+// Program Entry Points-------------------------     
 dcl-proc main;
 
     dcl-ds config likeds(il_config);
@@ -46,7 +46,8 @@ dcl-proc myservlet;
         request  likeds(IL_REQUEST);
         response likeds(IL_RESPONSE);
     end-pi;
-    
+
+
     // Write the response. The default HTTP status code is 200 - OK so we
     // don't have to set it explicitly.
     il_responseWrite(response: 'Hello world. Time is ' + %char(%timestamp));
