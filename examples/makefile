@@ -13,7 +13,7 @@
 # BIN_LIB is the destination library for the demo programs.
 # NOTE: LIBLIST can be overwritten from the commandline, but defaults to the BIN_LIB
 BIN_LIB=ILEASTIC
-LIBLIST=$(BIN_LIB) NOXDB
+LIBLIST=$(BIN_LIB)
 
 # The shell we use
 SHELL=/QOpenSys/usr/bin/qsh
