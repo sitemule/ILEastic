@@ -89,13 +89,20 @@ end-proc;
 What you need before you start:
 
 * IBM i 7.3 TR3 (or higher)
-* Use YUM from ACS to install: git, make and make-gnu (gmake)
+* YUM installed from ACS (to install: git and make-gnu (gmake))
 * ILE C 
 * ILE RPG compiler
 
 
 From a IBM i menu prompt start the SSH deamon:`===> STRTCPSVR *SSHD`
-Or start ssh from win/mac/linux
+And start ssh from win/mac/linux
+
+first install the opensource tools:
+```
+yum install git
+yum install make-gnu
+```
+Now you are ready to clone the ILEastic git repo: 
 
 ```
 mkdir /prj
