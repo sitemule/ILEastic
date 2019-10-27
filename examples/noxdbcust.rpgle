@@ -25,7 +25,6 @@ ctl-opt main(main);
 /include ./headers/ILEastic.rpgle
 /include ./noxdb/headers/jsonParser.rpgle
 
-
 // -----------------------------------------------------------------------------
 // Program Entry Point
 // -----------------------------------------------------------------------------     
