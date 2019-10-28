@@ -51,6 +51,7 @@ dcl-proc customerList;
     dcl-s pResult pointer;
 
 
+
     // Assume everything is OK
     response.status = 200;
     response.contentType = 'application/json';
