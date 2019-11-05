@@ -157,6 +157,7 @@ void il_responseWriteStream (PRESPONSE pResponse, PSTREAM pStream)
     pStream->output = pResponse;
     pStream->runner(pStream);
     stream_delete (pStream);
+
 }
 
 void il_addHeader (PRESPONSE pResponse, PVARCHAR headerName, PVARCHAR headerValue)

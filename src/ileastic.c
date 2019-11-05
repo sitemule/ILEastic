@@ -113,7 +113,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     PUCHAR wrkBuf;
     PUCHAR totBuf;
     PUCHAR input;
-    size_t inbytesleft, outbytesleft;
+    size_t inbytesleft, outbytesleft, totalWriteLen ;
 
     putHeader (pResponse); // if not put yet
 
@@ -127,7 +127,8 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
-        rc = FCGX_PutStr( tempBuf , wrkBuf - tempBuf , pResponse->pConfig->fcgi.out);
+        totalWriteLen = wrkBuf - tempBuf;
+        rc = FCGX_PutStr( tempBuf , totalWriteLen , pResponse->pConfig->fcgi.out);
         free (totBuf);
         return;
     }
@@ -139,7 +140,8 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 
     *(wrkBuf++) =  0x0d;
     *(wrkBuf++) =  0x0a;
-    rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
+    totalWriteLen = wrkBuf - tempBuf;
+    rc = write(pResponse->pConfig->clientSocket, tempBuf , totalWriteLen);
     free (totBuf);
 
 }
