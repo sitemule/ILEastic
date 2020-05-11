@@ -36,12 +36,13 @@ dcl-proc main;
     config.port = 44001; 
     config.host = '*ANY';
 
-    //
+    // The request end point is an regular expression: 
     // ^ means that a matching request must start here
     // $ means that a matching request must end here
     //
-    // This means that a request for /timestamp or /api/date will
-    // not be routed to one of these end points and will return 404 NOT FOUND.
+    // This means that if you have a match this routing code will 
+    // call the procedure assigned to the endpoint. All other 
+    // end points will return 404 NOT FOUND.
     il_addRoute(config : %paddr(getUserByView) : IL_ANY : 'getuserbyview');
     il_addRoute(config : %paddr(getUserByProc) : IL_ANY : 'getuserbyproc');
   
