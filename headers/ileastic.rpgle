@@ -413,6 +413,14 @@ dcl-c IL_PUT     8;
 ///
 dcl-c IL_OPTIONS 16;
 ///
+// HTTP method HEAD
+///
+dcl-c IL_HEAD 32;
+///
+// HTTP method PATCH
+///
+dcl-c IL_PATCH 64;
+///
 // Any HTTP method (used for adding servlets to the server for any HTTP method)
 ///
 dcl-c IL_ANY     const(1023);
