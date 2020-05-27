@@ -88,7 +88,7 @@ end-proc;
 # Installation
 What you need before you start:
 
-* IBM i 7.2 TR3 (or higher)
+* IBM i 7.2 TR9 (or higher)
 * YUM installed from ACS (to install: git and make-gnu (gmake))
 * ILE C 
 * ILE RPG compiler
