@@ -27,6 +27,7 @@ MODULES = jwt jwtplugin
 .SUFFIXES: .rpgle
 
 .rpgle:
+	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(819)"
 	system -ik "CRTRPGMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CFLAGS)"
 	
 all: env compile bind

@@ -53,8 +53,8 @@ dcl-s jwt_signKey_t varchar(1000) template;
 // @return *on = valid and not expired else *off
 ///
 dcl-pr jwt_verify ind extproc(*dclcase);
-  token like(jwt_token_t) const;
-  signKey like(jwt_signKey_t) const;
+  token like(jwt_token_t) const ccsid(*utf8);
+  signKey like(jwt_signKey_t) const ccsid(*utf8);
 end-pr;
 
 ///
@@ -65,8 +65,8 @@ end-pr;
 // @param Token
 // @return Decoded header
 ///
-dcl-pr jwt_decodeHeader like(jwt_token_t) extproc(*dclcase);
-  token like(jwt_token_t) const;
+dcl-pr jwt_decodeHeader like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
+  token like(jwt_token_t) const ccsid(*utf8);
 end-pr;
 
 ///
@@ -77,8 +77,8 @@ end-pr;
 // @param token
 // @return Decoded payload
 ///
-dcl-pr jwt_decodePayload like(jwt_token_t) extproc(*dclcase);
-  token like(jwt_token_t) const;
+dcl-pr jwt_decodePayload like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
+  token like(jwt_token_t) const ccsid(*utf8);
 end-pr;
 
 ///
@@ -95,10 +95,10 @@ end-pr;
 //
 // @info At the moment only HS256 is supported for signature creation.
 ///
-dcl-pr jwt_sign like(jwt_token_t) extproc(*dclcase);
+dcl-pr jwt_sign like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
   algorithm char(100) const;
-  payload like(jwt_token_t) const;
-  signKey like(jwt_signKey_t) const;
+  payload like(jwt_token_t) const ccsid(*utf8);
+  signKey like(jwt_signKey_t) const ccsid(*utf8);
 end-pr;
 
 ///
@@ -111,5 +111,5 @@ end-pr;
 // @return *on = token has expired else *off
 ///
 dcl-pr jwt_isExpired ind extproc(*dclcase);
-  payload like(jwt_token_t) const;
+  payload like(jwt_token_t) const ccsid(*utf8);
 end-pr;
