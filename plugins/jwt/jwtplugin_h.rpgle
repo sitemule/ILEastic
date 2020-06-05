@@ -30,7 +30,7 @@
 // @param Sign key
 ///
 dcl-pr il_jwt_setSignKey extproc(*dclcase);
-  signKey like(jwt_signKey_t) const;
+  signKey like(jwt_signKey_t) const ccsid(*utf8);
 end-pr;
 
 

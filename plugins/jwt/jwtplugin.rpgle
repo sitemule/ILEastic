@@ -30,7 +30,7 @@ dcl-s signKey like(jwt_signKey_t) static(*allthread) ccsid(*utf8);
 
 dcl-proc il_jwt_setSignKey export;
   dcl-pi *n;
-    pSignKey like(jwt_signKey_t) const;
+    pSignKey like(jwt_signKey_t) const ccsid(*utf8);
   end-pi;
   
   signKey = pSignKey;
@@ -59,7 +59,7 @@ dcl-proc il_jwt_filter export;
       return validRequest;
     endif;
 
-    if (isValidToken(token));
+    if (jwt_verify(token : signKey));
       payload = jwt_decodePayload(token);
       json = json_parseString(payload);
 
@@ -84,22 +84,6 @@ dcl-proc il_jwt_filter export;
   endmon;
 
   return validRequest;
-end-proc;
-
-
-dcl-proc isValidToken;
-  dcl-pi *n ind;
-    token like(jwt_token_t) const;
-  end-pi;
-
-  dcl-s valid ind inz(*off);
-  dcl-s payload like(jwt_token_t);
-
-  if (jwt_verify(token : signKey));
-    valid = *on;
-  endif;
-
-  return valid;
 end-proc;
 
 

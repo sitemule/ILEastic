@@ -25,20 +25,21 @@ ctl-opt nomain thread(*concurrent);
 
 
 dcl-c UNIX_EPOCH_START z'1970-01-01-00.00.00.000000';
+dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
 
 dcl-s signKey like(jwt_signKey_t) static(*allthread) ccsid(*utf8);
 
 
 dcl-proc jwt_verify export;
   dcl-pi *n ind;
-    token like(jwt_token_t) const;
-    signKey like(jwt_signKey_t) const;
+    token like(jwt_token_t) const ccsid(*utf8);
+    signKey like(jwt_signKey_t) const ccsid(*utf8);
   end-pi;
 
   dcl-s valid ind inz(*off);
-  dcl-s serverSignedToken like(jwt_token_t);
-  dcl-s header like(jwt_token_t);
-  dcl-s payload like(jwt_token_t);
+  dcl-s serverSignedToken like(jwt_token_t) ccsid(*utf8);
+  dcl-s header like(jwt_token_t) ccsid(*utf8);
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
 
   header = jwt_decodeHeader(token);
   payload = jwt_decodePayload(token);
@@ -54,16 +55,16 @@ end-proc;
 
 
 dcl-proc jwt_decodeHeader export;
-  dcl-pi *n like(jwt_token_t);
-    token like(jwt_token_t) const;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    token like(jwt_token_t) const ccsid(*utf8);
   end-pi;
 
   dcl-s x int(10);
-  dcl-s decoded like(jwt_token_t);
-  dcl-s header like(jwt_token_t);
+  dcl-s decoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s header like(jwt_token_t) ccsid(*utf8);
 
   // JWT header
-  x = %scan('.' : token);
+  x = %scan(UTF8_PERIOD : token);
   if (x = 0);
     return *blank;
   endif;
@@ -76,23 +77,23 @@ end-proc;
 
 
 dcl-proc jwt_decodePayload export;
-  dcl-pi *n like(jwt_token_t);
-    token like(jwt_token_t) const;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    token like(jwt_token_t) const ccsid(*utf8);
   end-pi;
 
   dcl-s x int(10);
   dcl-s x2 int(10);
-  dcl-s decoded like(jwt_token_t);
-  dcl-s payload like(jwt_token_t);
+  dcl-s decoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
 
   // JWT header
-  x = %scan('.' : token);
+  x = %scan(UTF8_PERIOD : token);
   if (x = 0);
     return *blank;
   endif;
 
   // JWT payload
-  x2 = %scan('.' : token : x+1);
+  x2 = %scan(UTF8_PERIOD : token : x+1);
   if (x2 = 0);
     return *blank;
   endif;
@@ -105,10 +106,10 @@ end-proc;
 
 
 dcl-proc jwt_sign export;
-  dcl-pi *n like(jwt_token_t);
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
     algorithm char(100) const;
-    payload like(jwt_token_t) const;
-    signKey like(jwt_signKey_t) const;
+    payload like(jwt_token_t) const ccsid(*utf8);
+    signKey like(jwt_signKey_t) const ccsid(*utf8);
   end-pi;
 
   dcl-pr memcpy pointer extproc('memcpy');
@@ -116,7 +117,7 @@ dcl-proc jwt_sign export;
     source pointer value;
     count uns(10) value;
   end-pr;
-     
+
   dcl-pr sys_calculateHmac extproc('Qc3CalculateHMAC');
     input pointer value;
     inputLength int(10) const;
@@ -146,8 +147,7 @@ dcl-proc jwt_sign export;
   end-ds;
 
   dcl-s headerPayload char(65535) ccsid(*utf8);
-  dcl-s header like(jwt_token_t);
-  dcl-s token like(jwt_token_t);
+  dcl-s header like(jwt_token_t) ccsid(*utf8);
   dcl-s encoded like(jwt_token_t) ccsid(*utf8);
   dcl-s hash char(32);
   dcl-s tmpHash char(32) ccsid(*utf8);
@@ -172,6 +172,10 @@ dcl-proc jwt_sign export;
   keyparam.length = %len(%trimr(signKey));
   keyparam.key = signKey;
   keyparam.format = '0';
+  // minimum 32 bytes for SHA-256
+  if (keyparam.length < 32);
+    keyparam.length = 32;
+  endif;
 
   clear QUSEC;
   sys_calculateHmac(
@@ -192,13 +196,13 @@ dcl-proc jwt_sign export;
   encoded = encodeBase64Url(tmpHash);
   encoded = %trimr(encoded : paddingChar);
 
-  return %trimr(headerPayload) + '.' + encoded;
+  return %trimr(headerPayload) + UTF8_PERIOD + encoded;
 end-proc;
 
 
 dcl-proc jwt_isExpired export;
   dcl-pi *n ind;
-    payload like(jwt_token_t) const;
+    pPayload like(jwt_token_t) const ccsid(*utf8);
   end-pi;
 
   dcl-pr sys_getUtcOffset extproc('CEEUTCO');
@@ -208,6 +212,7 @@ dcl-proc jwt_isExpired export;
     feedback char(12) options(*omit);
   end-pr;
 
+  dcl-s payload like(jwt_token_t);
   dcl-s expired ind inz(*off);
   dcl-s json pointer;
   dcl-s exp int(20);
@@ -236,14 +241,14 @@ dcl-proc encodeBase64Url;
   dcl-pi *n varchar(65530) ccsid(*utf8);
     string varchar(65530) const ccsid(*utf8);
   end-pi;
-  
+
   dcl-s FROM char(2) inz('+/') ccsid(*utf8);
   dcl-s TO   char(2) inz('-_') ccsid(*utf8);
   dcl-s encoded varchar(65530) ccsid(*utf8);
-  
+
   encoded = il_encodeBase64(string);
   encoded = %xlate(FROM : TO : encoded);
-  
+
   return encoded;
 end-proc;
 
@@ -257,10 +262,9 @@ dcl-proc decodeBase64Url;
   dcl-s FROM char(2) inz('-_') ccsid(*utf8);
   dcl-s decoded varchar(65530) ccsid(*utf8);
   dcl-s value varchar(65530) ccsid(*utf8);
-  
+
   value = %xlate(FROM : TO : string);
   decoded = il_decodeBase64(value);
-  
+
   return decoded;
 end-proc;
-
