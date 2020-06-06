@@ -23,6 +23,12 @@ ctl-opt nomain thread(*concurrent);
 /include 'headers/ileastic.rpgle'
 /include 'noxdb/headers/jsonparser.rpgle'
 
+dcl-pr sys_getUtcOffset extproc('CEEUTCO');
+  offsetHours int(10);
+  offsetMinutes int(10);
+  offsetSeconds float(8);
+  feedback char(12) options(*omit);
+end-pr;
 
 dcl-c UNIX_EPOCH_START z'1970-01-01-00.00.00.000000';
 dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
@@ -108,8 +114,9 @@ end-proc;
 dcl-proc jwt_sign export;
   dcl-pi *n like(jwt_token_t) ccsid(*utf8);
     algorithm char(100) const;
-    payload like(jwt_token_t) const ccsid(*utf8);
+    pPayload like(jwt_token_t) const ccsid(*utf8);
     signKey like(jwt_signKey_t) const ccsid(*utf8);
+    claims likeds(jwt_claims_t) const options(*nopass);
   end-pi;
 
   dcl-pr memcpy pointer extproc('memcpy');
@@ -155,7 +162,9 @@ dcl-proc jwt_sign export;
   dcl-ds keyparam likeds(keyd0200_t) inz;
   dcl-s base64Encoded like(jwt_token_t) ccsid(*utf8);
   dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
-
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+  
+  
   if (algorithm <> jwt_HS256);
     il_joblog('Unsupported algorithm %s' : algorithm);
     return *blank;
@@ -163,6 +172,11 @@ dcl-proc jwt_sign export;
 
   header = '{"alg":"' + jwt_HS256 + '","typ":"JWT"}';
 
+  payload = pPayload;
+  if (%parms() >= 4);
+    payload = addClaims(payload : claims);
+  endif;
+  
   base64Encoded = encodeBase64Url(payload);
   base64Encoded = %trimr(base64Encoded : paddingChar);
   headerPayload = encodeBase64Url(header) + '.' + base64Encoded;
@@ -200,17 +214,77 @@ dcl-proc jwt_sign export;
 end-proc;
 
 
+dcl-proc addClaims;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    pPayload like(jwt_token_t) const ccsid(*utf8);
+    claims likeds(jwt_claims_t) const;
+  end-pi;
+
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+  dcl-s json pointer;
+  dcl-s value like(jwt_token_t);
+  dcl-s uxts int(10);
+  dcl-s changed ind inz(*off);
+  
+  payload = %trimr(pPayload) + x'00';
+  
+  json = json_parseString(%addr(payload : *DATA));
+  
+  if (%len(claims.issuer) > 0);
+    value = claims.issuer + x'00';
+    json_setStr(json : 'iss' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+  
+  if (%len(claims.subject) > 0);
+    value = claims.subject + x'00';
+    json_setStr(json : 'sub' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+  
+  if (%len(claims.audience) > 0);
+    value = claims.audience + x'00';
+    json_setStr(json : 'aud' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+  
+  if (%len(claims.jwtId) > 0);
+    value = claims.jwtId + x'00';
+    json_setStr(json : 'jti' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+  
+  if (claims.expirationTime <> *loval);
+    uxts = toUnixTimestamp(claims.expirationTime);
+    json_setInt(json : 'exp' : uxts);
+    changed = *on;
+  endif;
+  
+  if (claims.notBefore <> *loval);
+    uxts = toUnixTimestamp(claims.notBefore);
+    json_setInt(json : 'nbf' : uxts);
+    changed = *on;
+  endif;
+  
+  if (claims.issuedAt <> *loval);
+    uxts = toUnixTimestamp(claims.issuedAt);
+    json_setInt(json : 'iat' : uxts);
+    changed = *on;
+  endif;
+  
+  if (changed);
+    payload = json_asJsonText(json);
+    return payload;
+  else;
+    return pPayload;
+  endif;
+end-proc;
+
+
 dcl-proc jwt_isExpired export;
   dcl-pi *n ind;
     pPayload like(jwt_token_t) const ccsid(*utf8);
   end-pi;
-
-  dcl-pr sys_getUtcOffset extproc('CEEUTCO');
-    offsetHours int(10);
-    offsetMinutes int(10);
-    offsetSeconds float(8);
-    feedback char(12) options(*omit);
-  end-pr;
 
   dcl-s payload like(jwt_token_t);
   dcl-s expired ind inz(*off);
@@ -268,3 +342,22 @@ dcl-proc decodeBase64Url;
 
   return decoded;
 end-proc;
+
+
+dcl-proc toUnixTimestamp;
+  dcl-pi *n int(10);
+    ts timestamp const;
+  end-pi;
+
+  dcl-s offsetHours int(10);
+  dcl-s offsetMinutes int(10);
+  dcl-s offsetSeconds float(8);
+  dcl-s uxts int(10);
+  
+  sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
+  
+  uxts = %diff(ts : UNIX_EPOCH_START : *SECONDS) - %int(offsetSeconds);
+  
+  return uxts;
+end-proc;
+
