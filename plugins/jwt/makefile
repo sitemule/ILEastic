@@ -28,7 +28,7 @@ MODULES = jwt jwtplugin
 	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(819)"
 	-system -i "RMVM FILE($(BIN_LIB)/JWTSRC) MBR($@)"
 	system -i "CPYFRMSTMF FROMSTMF('$<') TOMBR('/QSYS.LIB/$(BIN_LIB).LIB/JWTSRC.FILE/$@.MBR') MBROPT(*ADD)"
-	system -i "CRTRPGMOD MODULE($(BIN_LIB)/$@) SRCFILE($(BIN_LIB)/JWTSRC) SRCMBR($@) $(CFLAGS)"
+	system -ikK "CRTRPGMOD MODULE($(BIN_LIB)/$@) SRCFILE($(BIN_LIB)/JWTSRC) SRCMBR($@) $(CFLAGS)"
 	
 all: env compile bind
 

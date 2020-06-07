@@ -45,15 +45,18 @@ dcl-proc jwt_verify export;
   dcl-s valid ind inz(*off);
   dcl-s serverSignedToken like(jwt_token_t) ccsid(*utf8);
   dcl-s header like(jwt_token_t) ccsid(*utf8);
-  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+  dcl-s payload like(jwt_token_t);
+  dcl-s json pointer;
 
   header = jwt_decodeHeader(token);
   payload = jwt_decodePayload(token);
-
+  
   serverSignedToken = jwt_sign(jwt_HS256 : payload : signKey);
 
   if (token = serverSignedToken);
-    valid = not jwt_isExpired(payload);
+    json = json_parseString(payload);
+    valid = (not isExpired(json)) and isActive(json);
+    json_close(json);
   endif;
 
   return valid;
@@ -289,6 +292,23 @@ dcl-proc jwt_isExpired export;
   dcl-s payload like(jwt_token_t);
   dcl-s expired ind inz(*off);
   dcl-s json pointer;
+
+  payload = pPayload;
+
+  json = json_parseString(payload);
+  expired = isExpired(json);
+  json_close(json);
+  
+  return expired;
+end-proc;
+
+
+dcl-proc isExpired;
+  dcl-pi *n ind;
+    json pointer const;
+  end-pi;
+
+  dcl-s expired ind inz(*off);
   dcl-s exp int(20);
   dcl-s expTimestamp timestamp;
   dcl-s now timestamp;
@@ -299,7 +319,6 @@ dcl-proc jwt_isExpired export;
   now = %timestamp();
   sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
 
-  json = json_parseString(payload);
   exp = json_getInt(json : 'exp' : -1);
 
   if (exp >= 0);
@@ -308,6 +327,33 @@ dcl-proc jwt_isExpired export;
   endif;
 
   return expired;
+end-proc;
+
+
+dcl-proc isActive;
+  dcl-pi *n ind;
+    json pointer const;
+  end-pi;
+
+  dcl-s active ind inz(*on);
+  dcl-s nbf int(20);
+  dcl-s nbfTimestamp timestamp;
+  dcl-s now timestamp;
+  dcl-s offsetHours int(10);
+  dcl-s offsetMinutes int(10);
+  dcl-s offsetSeconds float(8);
+
+  now = %timestamp();
+  sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
+
+  nbf = json_getInt(json : 'nbf' : -1);
+
+  if (nbf >= 0);
+    nbfTimestamp = UNIX_EPOCH_START + %seconds(nbf + %int(offsetSeconds));
+    active = (now >= nbfTimestamp);
+  endif;
+
+  return active;
 end-proc;
 
 
