@@ -1,0 +1,125 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include RPGUNIT/QINCLUDE,ASSERT
+/include 'jwt_h.rpgle'
+
+
+dcl-proc test_verify export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey);
+  
+  assert(jwt_verify(token : signKey) : 'Token must be verified successfully.');
+end-proc;
+
+
+dcl-proc test_notExpired export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.expirationTime = claims.issuedAt + %days(1);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(jwt_verify(token : signKey) : 'Token must be verified successfully.');
+end-proc;
+
+
+dcl-proc test_expired export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.expirationTime = claims.issuedAt - %days(1);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(not jwt_verify(token : signKey) : 'Token should not be successfully verified as it is expired.');
+end-proc;
+
+
+dcl-proc test_inactive export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.notBefore = claims.issuedAt + %days(1);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(not jwt_verify(token : signKey) : 'Token should not be successfully verified as it is not active.');
+end-proc;
+
+
+dcl-proc test_active export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.notBefore = claims.issuedAt - %days(1);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(jwt_verify(token : signKey) : 'Token should be successfully verified as it is active.');
+end-proc;
+
+
+dcl-proc test_activeExpired export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.expirationTime = claims.issuedAt - %days(1);
+  claims.notBefore = claims.issuedAt - %days(2);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(not jwt_verify(token : signKey) : 'Token should not be successfully verified as it is expired.');
+end-proc;
+
+
+dcl-proc test_activeNotExpired export;
+  dcl-s signKey like(jwt_signKey_t);
+  dcl-ds claims likeds(jwt_claims_t) inz(*likeds);
+  dcl-s payload varchar(100);
+  dcl-s token like(jwt_token_t);
+  
+  signKey = '123456789012345678901234567890AB';
+  payload = '{ "sub" : "test" , "name" : "Mihael" }';
+  claims.issuedAt = %timestamp();
+  claims.expirationTime = claims.issuedAt + %days(10);
+  claims.notBefore = claims.issuedAt - %days(2);
+  
+  token = jwt_sign(JWT_HS256 : payload : signKey : claims);
+  
+  assert(jwt_verify(token : signKey) : 'Token should be successfully verified as it is active and not expired.');
+end-proc;
