@@ -83,20 +83,21 @@ end-ds;
 // il_getRequest... procedures.
 ///
 dcl-ds il_request qualified template;
-    config         pointer;
-    method         likeds(il_varchar);
-    url            likeds(il_varchar);
-    resource       likeds(il_varchar);
-    queryString    likeds(il_varchar);
-    protocol       likeds(il_varchar);
-    headers        likeds(il_varchar);
-    content        likeds(il_varchar);
-    contentType    varchar(256);
-    contentLength  uns(20);
-    completeHeader likeds(il_varchar);
-    headerList     pointer;
-    parameterList  pointer;
-    threadLocal    pointer;
+    config           pointer;
+    method           likeds(il_varchar);
+    url              likeds(il_varchar);
+    resource         likeds(il_varchar);
+    queryString      likeds(il_varchar);
+    protocol         likeds(il_varchar);
+    headers          likeds(il_varchar);
+    content          likeds(il_varchar);
+    contentType      varchar(256);
+    contentLength    uns(20);
+    completeHeade    likeds(il_varchar);
+    headerList       pointer;
+    parameterList    pointer;
+    resourceSegments pointer;
+    threadLocal      pointer;
 end-ds;
 
 ///
@@ -167,9 +168,28 @@ end-pr;
 // @param Request
 // @return Resource
 ///
-dcl-pr il_getRequestResource  varchar(524284:4) ccsid(*utf8) rtnparm
+dcl-pr il_getRequestResource varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestResource');
     request likeds(il_request);
+end-pr;
+
+///
+// Get segment of request resource
+//
+// Returns the specified segment of the request resource. The index starts with
+// 0 (null). An empty value will be returned if the index is out of range. Empty
+// segments do count and will be returned as an empty value, f. e. 
+// http://localhost:8000/folder//file : the second segment is empty and will
+// be returned as an empty value and the third segment is "file".
+//
+// @param Request
+// @param Index (0-based)
+// @return Resource segment
+///
+dcl-pr il_getRequestSegmentByIndex varchar(524284:4) ccsid(*utf8) rtnparm
+                extproc(*CWIDEN:'il_getRequestSegmentByIndex');
+    request likeds(il_request);
+    index int(10) value;
 end-pr;
 
 ///

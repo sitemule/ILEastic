@@ -89,6 +89,7 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  completeHeader;
     PSLIST      headerList;
     PSLIST      parmList;
+    PSLIST      resourceSegments;
     PVOID       threadMem;
 } REQUEST , *PREQUEST;
 
@@ -160,10 +161,7 @@ BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRout
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
 BOOL fcgiReceiveHeader (PREQUEST pRequest);
 LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len);
-PSLIST parseParms ( LVARPUCHAR parmString);
-
-
-
-
+PSLIST parseParms(LVARPUCHAR parmString);
+PSLIST parseResource(LVARPUCHAR resource); 
 
 #endif
