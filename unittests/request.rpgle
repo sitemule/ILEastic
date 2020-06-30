@@ -44,7 +44,6 @@ dcl-pr test_rootResourceWithMissingQueryStringDefaultValue end-pr;
 dcl-pr test_rootResourceWithEmptyQueryParameter end-pr;
 dcl-pr test_rootResourceWithEmptyQueryParameterDefaultValue end-pr;
 
-
 // BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 dcl-pr lookForHeaders extproc(*CWIDEN:*dclcase);
   request pointer value;

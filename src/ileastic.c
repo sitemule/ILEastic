@@ -273,7 +273,7 @@ PSLIST parseParms ( LVARPUCHAR parmString)
 
         // last parameter?
         if (parmEnd == NULL) {
-            parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
+            parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Adjust the parm string
         }
 
         split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the =
@@ -296,6 +296,42 @@ PSLIST parseParms ( LVARPUCHAR parmString)
 
     return pParmList;
 }
+
+PSLIST parseResource(LVARPUCHAR resource)
+{
+    if (resource.String == NULL) {
+        return NULL;
+    }
+
+    PSLIST pResourceSegments = sList_new();
+    char * SLASH = "\x2f"; // "/" = 0x2f in UTF-8
+    
+    int segmentIndex = 0;
+    int segmentStart = -1;
+  
+    int i = 0;
+  
+    LVARPUCHAR segment;
+  
+    for (i = 0; i <= resource.Length; i++) {
+      if (resource.String[i] == *SLASH || i == resource.Length) {
+        if (segmentStart == -1) segmentStart = i;
+        else if (segmentStart >= 0) {
+          segment.Length = i - segmentStart - 1;
+          segment.String = resource.String + segmentStart + 1;
+  
+          segmentStart = i;
+          
+          sList_push(pResourceSegments, sizeof(LVARPUCHAR), &segment, OFF);
+          
+          segmentIndex += 1;
+        }
+      }
+    }
+    
+    return pResourceSegments;
+}
+
 /* ---------------------------------------------------------------------------
    Produce a key/value list of the request headers
    --------------------------------------------------------------------------- */
@@ -411,7 +447,8 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     // The request is now parsed into raw components:
     parseQueryString (pRequest);
     parseHeaders (pRequest);
-    pRequest->parmList = parseParms  (pRequest->queryString);
+    pRequest->parmList = parseParms(pRequest->queryString);
+    pRequest->resourceSegments = parseResource(pRequest->resource);
 
 
     pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
@@ -656,7 +693,10 @@ static void * serverThread (PINSTANCE pInstance)
         sList_free (request.headerList);
         sList_free (request.parmList);
         sList_free (response.headerList);
-
+        
+        if (request.resourceSegments) {
+            sList_free(request.resourceSegments);
+        }
         if (request.threadMem) {
             jx_Close(request.threadMem);
         }
