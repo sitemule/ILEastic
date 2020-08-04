@@ -36,15 +36,9 @@ dcl-proc main;
     config.port = 44001; 
     config.host = '*ANY';
 
-    // The request end point is an regular expression: 
-    // ^ means that a matching request must start here
-    // $ means that a matching request must end here
-    //
-    // This means that if you have a match this routing code will 
-    // call the procedure assigned to the endpoint. All other 
-    // end points will return 404 NOT FOUND.
     il_addRoute(config : %paddr(getUserByView) : IL_ANY : 'getuserbyview');
     il_addRoute(config : %paddr(getUserByProc) : IL_ANY : 'getuserbyproc');
+    il_addRoute(config : %paddr(hello) : IL_ANY : 'hello');
   
     il_listen(config);
 
@@ -102,6 +96,31 @@ dcl-proc getUserByProc;
 
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pResult));
+
+
+end-proc;
+// -----------------------------------------------------------------------------
+// Servlet callback implementation
+// -----------------------------------------------------------------------------     
+dcl-proc hello;
+
+    dcl-pi *n;
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
+    end-pi;
+
+    dcl-s pResult pointer;
+    dcl-s name  varchar(64);
+
+    // Assume everything is OK
+    response.status = 200;
+    response.contentType = 'text/plain';
+
+    name = il_getParmStr(request : 'name');
+
+   
+    // Use the stream to input data from noxdb and output it to ILEastic 
+    il_responseWrite (response : 'hello  ' + name);
 
 
 end-proc;

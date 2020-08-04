@@ -89,8 +89,8 @@ typedef _Packed struct _REQUEST  {
     LVARPUCHAR  completeHeader;
     PSLIST      headerList;
     PSLIST      parmList;
-    PSLIST      resourceSegments;
     PVOID       threadMem;
+    PVOID       pRouting; // Not able to make cyclic defentions :(    
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
@@ -133,7 +133,12 @@ typedef struct _ROUTING  {
     regex_t *  routeReg;
     regex_t *  contentReg;
     SERVLET servlet;
+    int    parmNumbers;
+    PUCHAR parmNames [256];
+    PUCHAR parmValue [256];
 } ROUTING, * PROUTING;
+
+
 
 #pragma enum     (2)
 typedef enum _PLUGINTYPE  {
@@ -161,7 +166,10 @@ BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRout
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
 BOOL fcgiReceiveHeader (PREQUEST pRequest);
 LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len);
-PSLIST parseParms(LVARPUCHAR parmString);
-PSLIST parseResource(LVARPUCHAR resource); 
+PSLIST parseParms ( LVARPUCHAR parmString);
+
+
+
+
 
 #endif
