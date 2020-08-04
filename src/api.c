@@ -340,5 +340,5 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
         }
     }
 
-    sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
+    sList_push (pConfig->router , sizeof(ROUTING), &routing, false);;
 }
