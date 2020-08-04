@@ -25,6 +25,16 @@ void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in)
    memcpy(out->String , in->String, in->Length);
    out->String[in->Length] = '\0'; 
 }
+void plvc2plvc (PLVARCHAR out, PLVARCHAR in)
+{
+   if (in == NULL) {
+      out->Length =0;
+      return;   
+   }
+   out->Length = in->Length;
+   memcpy(out->String , in->String, in->Length);
+   out->String[in->Length] = '\0'; 
+}
 /* ------------------------------------------------------------- */
 // set a long var pointer to a string
 /* ------------------------------------------------------------- */ 
@@ -138,6 +148,16 @@ void  str2vc (PVOID  out , PUCHAR in)
    }
    pVc->Length = strlen(in);
    memcpy(pVc->String , in , pVc->Length);
+}
+/* --------------------------------------------------------------------------- */
+void  str2lvc (PLVARCHAR out , PUCHAR in)
+{
+   if (in == NULL) {
+      out->Length =0;
+      return;
+   }
+   out->Length = strlen(in);
+   memcpy(out->String , in , out->Length);
 }
 /* --------------------------------------------------------------------------- */
 void substr2vc (PVOID  out , PUCHAR in , LONG len)

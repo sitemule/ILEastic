@@ -23,7 +23,7 @@
 //#include <decimal.h>
 #include <fcntl.h>
 #include <time.h>       /* time_t, struct tm, time, localtime, strftime */
-
+#include <regex.h>
 
 /* in qsysinc library */
 #include <sys/time.h>
@@ -273,7 +273,7 @@ PSLIST parseParms ( LVARPUCHAR parmString)
 
         // last parameter?
         if (parmEnd == NULL) {
-            parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Adjust the parm string
+            parmEnd = *end == '\0' ? end : end - 1 ; // Omit the "blank" separator !!TODO Ajust the parm string
         }
 
         split= memchr(begin, 0x3D, parmEnd - begin ); // Split at the =
@@ -296,42 +296,6 @@ PSLIST parseParms ( LVARPUCHAR parmString)
 
     return pParmList;
 }
-
-PSLIST parseResource(LVARPUCHAR resource)
-{
-    if (resource.String == NULL) {
-        return NULL;
-    }
-
-    PSLIST pResourceSegments = sList_new();
-    char * SLASH = "\x2f"; // "/" = 0x2f in UTF-8
-    
-    int segmentIndex = 0;
-    int segmentStart = -1;
-  
-    int i = 0;
-  
-    LVARPUCHAR segment;
-  
-    for (i = 0; i <= resource.Length; i++) {
-      if (resource.String[i] == *SLASH || i == resource.Length) {
-        if (segmentStart == -1) segmentStart = i;
-        else if (segmentStart >= 0) {
-          segment.Length = i - segmentStart - 1;
-          segment.String = resource.String + segmentStart + 1;
-  
-          segmentStart = i;
-          
-          sList_push(pResourceSegments, sizeof(LVARPUCHAR), &segment, OFF);
-          
-          segmentIndex += 1;
-        }
-      }
-    }
-    
-    return pResourceSegments;
-}
-
 /* ---------------------------------------------------------------------------
    Produce a key/value list of the request headers
    --------------------------------------------------------------------------- */
@@ -447,8 +411,7 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     // The request is now parsed into raw components:
     parseQueryString (pRequest);
     parseHeaders (pRequest);
-    pRequest->parmList = parseParms(pRequest->queryString);
-    pRequest->resourceSegments = parseResource(pRequest->resource);
+    pRequest->parmList = parseParms  (pRequest->queryString);
 
 
     pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
@@ -569,26 +532,46 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     SERVLET matchingServlet = NULL;
     PSLIST pRouts;
 	PSLISTNODE pRouteNode;
+    PUCHAR end;
     PUCHAR l_resource = malloc(pRequest->resource.Length +1);
 
     pRouts = pConfig->router;
-
+    pRequest->pRouting = NULL;
+    
     // get the ebcdic version of the resource
     mema2e(l_resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
     l_resource[pRequest->resource.Length] = '\0';  // Need it as a string
+
+    // Terminate at parameters ( if any)
+    end = strchr(l_resource , '?');
+    if (end) {
+        *end = '\0';
+    }
 
 	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
 
         PROUTING pRouting = pRouteNode->payloadData;
 
         if (httpMethodMatchesEndPoint(&pRequest->method, pRouting->routeType)) {
-          // Execute regular expression
-          // If non is given then it is a match as well. That counts for a "match all"
-          int rc = pRouting->routeReg == NULL ? 0 : regexec(pRouting->routeReg, l_resource, 0, NULL, 0);
-          if (rc == 0) { // Match found
-              matchingServlet = pRouting->servlet;
-              break;
-          }
+            regmatch_t groupArray[pRouting->parmNumbers+1];
+            int g;
+            PUCHAR value;
+            // Execute regular expression
+            // If non is given then it is a match as well. That counts for a "match all"
+            int rc = pRouting->routeReg == NULL ? 0 : regexec(pRouting->routeReg, l_resource, pRouting->parmNumbers+1 , groupArray, 0);
+            if (rc == 0) { // Match found
+                for (g = 1; g <= pRouting->parmNumbers; g++) {
+                    if (groupArray[g].rm_so == (size_t)-1)
+                        break;  // No more groups
+                    // Now make space for the UTF-8 version of the data    
+                    value = malloc (groupArray[g].rm_eo - groupArray[g].rm_so + 1);
+                    substr( value, pRequest->resource.String + groupArray[g].rm_so, groupArray[g].rm_eo - groupArray[g].rm_so) ;  
+                    pRouting->parmValue[g-1] = value;
+                }
+                matchingServlet = pRouting->servlet;
+                pRequest->pRouting = pRouting;
+                break;
+            }
         }
     }
 
@@ -649,6 +632,29 @@ BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
     return true;
 }
 /* --------------------------------------------------------------------------- */
+static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
+{
+    int i;
+    PROUTING pRoute = pRequest->pRouting;
+    for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
+        if (pRoute->parmValue[i]) free(pRoute->parmValue[i]);
+    }
+    sList_free (pRequest->headerList);
+    sList_free (pRequest->parmList);
+    sList_free (pResponse->headerList);
+
+    if (pRequest->threadMem) {
+        jx_Close(pRequest->threadMem);
+    }
+    if (pRequest->completeHeader.String) {
+        free(pRequest->completeHeader.String);
+    }
+    if (pRequest->content.String) {
+        free(pRequest->content.String);
+    }
+}
+
+/* --------------------------------------------------------------------------- */
 static void * serverThread (PINSTANCE pInstance)
 {
     REQUEST  request;
@@ -689,23 +695,8 @@ static void * serverThread (PINSTANCE pInstance)
 
         putChunkEnd (&response);
 
-        // Clean up this transaction
-        sList_free (request.headerList);
-        sList_free (request.parmList);
-        sList_free (response.headerList);
-        
-        if (request.resourceSegments) {
-            sList_free(request.resourceSegments);
-        }
-        if (request.threadMem) {
-            jx_Close(request.threadMem);
-        }
-        if (request.completeHeader.String) {
-            free(request.completeHeader.String);
-        }
-        if (request.content.String) {
-            free(request.content.String);
-        }
+        // Clean up this roundtrip 
+        cleanupTransaction (&request , &response);
     }
     close(response.pConfig->clientSocket);
     free(pInstance);

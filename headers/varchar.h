@@ -99,6 +99,7 @@ typedef _Packed struct _VARCHAR16384 {
 
 void vcTrimRight (PVAR_CHAR VarChar);
 void str2vc    ( PVAR_CHAR VarChar, PUCHAR in);
+
 PUCHAR vc2strtrim(PVOID pv);
 void substr2vc ( PVAR_CHAR out , PUCHAR in , LONG len);
 PUCHAR vc2strcpy(PUCHAR res,  PVOID pv);
@@ -113,6 +114,8 @@ void vccatf    ( PVAR_CHAR VarChar, PUCHAR Ctlstr , ...);
 #define VARCHAR2PUCHAR(a) ((PVARCHAR) a)->String; ((PVARCHAR) a)->String[((PVARCHAR) a)->Length] = '\0';
 
 // Long versions
+void str2lvc (PLVARCHAR out , PUCHAR in);
+void plvc2plvc (PLVARCHAR out , PLVARCHAR in);
 void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in);
 void lvpc2vc  (PVARCHAR out, PLVARPUCHAR in);
 BOOL vpcIsEqual(PVARPUCHAR p1, PVARPUCHAR p2);

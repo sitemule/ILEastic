@@ -21,6 +21,8 @@
 #include <string.h>
 #include <decimal.h>
 #include <fcntl.h>
+#include <locale.h>
+#include <regex.h>
 
 
 /* in qsysinc library */
@@ -54,25 +56,6 @@
 void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->resource);
-}
-void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
-{
-    if (pRequest->resourceSegments == NULL) return;
-    
-    int x = 0;
-    SLISTITERATOR iterator = sList_setIterator(pRequest->resourceSegments);
-    while (sList_foreach(&iterator) == ON) {
-        if (x == index) {
-            PSLISTNODE node = iterator.this;
-            PLVARPUCHAR segment = node->payloadData;
-            lvpc2lvc (out, segment);
-            return;
-        }
-        
-        x += 1;
-    }
-    
-    out->Length = 0;
 }
 void il_getRequestMethod (PVARCHAR out , PREQUEST pRequest)
 {
@@ -158,6 +141,27 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
     substr(out->String , dft->String , dft->Length);
 }
 /* --------------------------------------------------------------------------- */
+void il_getResourceParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
+{
+ 	PSLISTNODE pNode;
+    int  keyLen= strlen(parmName);
+    UCHAR aKey [256];
+    UCHAR temp [256];
+    int len;
+    int i;
+    PROUTING pRoute = (PROUTING) pRequest->pRouting;
+
+	if (pRoute != NULL) {
+		for (i = 0 ; i< pRoute->parmNumbers ; i++) {
+			if (0==stricmp(parmName , pRoute->parmNames[i])) {
+                str2lvc (out  , pRoute->parmValue[i]);
+				return;
+			}
+		}
+	}
+    plvc2plvc (out, dft);
+}
+/* --------------------------------------------------------------------------- */
 void il_responseWrite (PRESPONSE pResponse, PLVARCHAR buf)
 {
     putChunk (pResponse, buf->String, buf->Length);
@@ -221,7 +225,7 @@ PUCHAR il_getFileExtension  (PVARCHAR256 extension, PVARCHAR fileName)
 
 
 /* --------------------------------------------------------------------------- *\
-   Q&D implementation of mimetypes - just to have a strting point
+   Q&D implementation of mimetypes - just to have a starting point
 \* --------------------------------------------------------------------------- */
 PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
 {
@@ -318,6 +322,40 @@ PVOID il_getThreadMem  (PREQUEST pRequest)
 {
     return pRequest->threadMem;
 }
+static parserRouting (PROUTING pRouting , PUCHAR finalExpr , PUCHAR routeReg) 
+{
+    pRouting -> parmNumbers =0;
+    // pickup parameter and replace the paramter name with regex for capture groupe
+    while (*routeReg) {
+        if (*routeReg == '{') {
+            PUCHAR end = strchr(++routeReg , '}');
+            PUCHAR name; 
+            int len;
+            if (end == NULL) return;
+            len = end - routeReg;  
+            name =  malloc ( len + 1 );
+            substr( name ,routeReg , len);
+            pRouting -> parmNames [pRouting -> parmNumbers ++] = name;
+            routeReg = end +1;
+            finalExpr += cpy(finalExpr, "(.*)");
+        } else {
+            *(finalExpr++) = *(routeReg++);
+        }
+    }
+    *(finalExpr++) = '\0';
+}
+/* --------------------------------------------------------------------------- *\
+    Setup the local top be POSIX i.e. the charset in ccsid(37) 
+\* --------------------------------------------------------------------------- */
+static void initialize(void)
+{
+    static BOOL initialized;
+
+    if (initialized) return;
+    initialized = true;
+
+    setlocale(LC_CTYPE , "POSIX"); 
+}
 /* --------------------------------------------------------------------------- *\
     Handle :
     il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
@@ -327,8 +365,11 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
     LONG rc;
     UCHAR msg  [100];
-    ULONG options =  REG_NOSUB + REG_EXTENDED;
+    UCHAR finalExpr [32000];
+    ULONG options = REG_EXTENDED;
     ROUTING routing;
+
+    initialize();
 
     if (pConfig->router == NULL) {
         pConfig->router = sList_new ();
@@ -341,7 +382,8 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
 
     if (pParms->OpDescList->NbrOfParms >= 4) {
         routing.routeReg   = malloc(sizeof(regex_t));
-        rc = regcomp(routing.routeReg, vc2str(routeReg) , options );
+        parserRouting (&routing , finalExpr , vc2str(routeReg));
+        rc = regcomp(routing.routeReg, finalExpr , REG_EXTENDED );
         if (rc) {
             regerror(rc, routing.routeReg  , msg , 100);
             il_joblog( "Could not compile regex %s for routing. reason : %s " , vc2str(routeReg) , msg);
@@ -351,7 +393,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
 
     if (pParms->OpDescList->NbrOfParms >= 5) {
         routing.contentReg = malloc(sizeof(regex_t));
-        rc = regcomp(routing.contentReg, vc2str(contentReg) , options );
+        rc = regcomp(routing.contentReg, vc2str(contentReg) , REG_NOSUB + REG_EXTENDED );
         if (rc) {
             regerror(rc, routing.contentReg  , msg , 100);
             il_joblog( "Could not compile regex %s for content type. reason : %s " , vc2str(contentReg) , msg);
@@ -359,5 +401,5 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
         }
     }
 
-    sList_push (pConfig->router , sizeof(ROUTING), &routing, false);;
+    sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
 }
