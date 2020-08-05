@@ -36,7 +36,7 @@ CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) ENUM(*INT) T
 MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI
 	
 all: env noxDB ILEfastCGI compile bind
-
+ 
 env:
 	-system -qi "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')"                                          
 	-system -qi "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
@@ -44,13 +44,13 @@ env:
 	system -qi "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
 compile: .PHONY
-	cd src && make
+	cd src && gmake
 
 noxDB: .PHONY
-	cd noxDB && make BIN_LIB=$(BIN_LIB)
+	cd noxDB && gmake BIN_LIB=$(BIN_LIB)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && make BIN_LIB=$(BIN_LIB)
+	cd ILEfastCGI && gmake BIN_LIB=$(BIN_LIB)
 
 		
 bind:
@@ -76,7 +76,6 @@ plugins: .PHONY
 current: env
 	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('src/$(SRC).c') $(CCFLAGS2) "
 	system -ik "UPDSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES))"
-
 
 # install the copybooks in the user provided directory (variable USRINCDIR)
 install:

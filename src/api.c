@@ -57,6 +57,25 @@ void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
 {
     lvpc2lvc (out, &pRequest->resource);
 }
+void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
+{
+    if (pRequest->resourceSegments == NULL) return;
+    
+    int x = 0;
+    SLISTITERATOR iterator = sList_setIterator(pRequest->resourceSegments);
+    while (sList_foreach(&iterator) == ON) {
+        if (x == index) {
+            PSLISTNODE node = iterator.this;
+            PLVARPUCHAR segment = node->payloadData;
+            lvpc2lvc (out, segment);
+            return;
+        }
+        
+        x += 1;
+    }
+    
+    out->Length = 0;
+}
 void il_getRequestMethod (PVARCHAR out , PREQUEST pRequest)
 {
     lvpc2vc (out, &pRequest->method);
@@ -366,11 +385,9 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     LONG rc;
     UCHAR msg  [100];
     UCHAR finalExpr [32000];
-    ULONG options = REG_EXTENDED;
     ROUTING routing;
 
     initialize();
-
     if (pConfig->router == NULL) {
         pConfig->router = sList_new ();
     }
