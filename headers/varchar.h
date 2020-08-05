@@ -99,7 +99,6 @@ typedef _Packed struct _VARCHAR16384 {
 
 void vcTrimRight (PVAR_CHAR VarChar);
 void str2vc    ( PVAR_CHAR VarChar, PUCHAR in);
-
 PUCHAR vc2strtrim(PVOID pv);
 void substr2vc ( PVAR_CHAR out , PUCHAR in , LONG len);
 PUCHAR vc2strcpy(PUCHAR res,  PVOID pv);
