@@ -7,7 +7,7 @@
     "tasks": [
         {
             "label": "Compile current file",
-            "command": "ssh -t myibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
+            "command": "ssh -t my_ibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -32,33 +32,33 @@
         },
         {
             "label": "Compile Service program ILEastic",
-            "command": "ssh myibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake all'",
+            "command": "ssh my_ibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake all'",
             "type": "shell",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": [
-                "$gcc"
+                // "$gcc"
             ]
         },
         {
             "label": "Compile all example files",
-            "command": "ssh -t myibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake '",
+            "command": "ssh -t my_ibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake '",
             "type": "shell",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": [
-                "$gcc"
+                // "$gcc"
             ],
             
         },
         // NOTE: OBJECT are overridden by the command line, so OBJECT will be "this" files 
         {
             "label": "Compile current example file",
-            "command": "ssh -t myibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC\"'",
+            "command": "ssh -t my_ibmi 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC\"'",
             "type": "shell",
             "group": {
                 "kind": "build",
