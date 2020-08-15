@@ -160,7 +160,7 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
     substr(out->String , dft->String , dft->Length);
 }
 /* --------------------------------------------------------------------------- */
-void il_getResourceParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
+void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
 {
  	PSLISTNODE pNode;
     int  keyLen= strlen(parmName);
@@ -356,7 +356,7 @@ static parserRouting (PROUTING pRouting , PUCHAR finalExpr , PUCHAR routeReg)
             substr( name ,routeReg , len);
             pRouting -> parmNames [pRouting -> parmNumbers ++] = name;
             routeReg = end +1;
-            finalExpr += cpy(finalExpr, "(.*)");
+            finalExpr += cpy(finalExpr, "([^/]+)");
         } else {
             *(finalExpr++) = *(routeReg++);
         }
