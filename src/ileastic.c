@@ -548,26 +548,24 @@ static void setCallbacks (PCONFIG pConfig)
     Handle :
     il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
 \* --------------------------------------------------------------------------- */
-void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse)
+void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse, SERVLET servlet)
 {
     UCHAR msgbuf[100];
-    SERVLET matchingServlet;
 
     if (pRequest->pConfig->router == NULL) return;
 
-    matchingServlet = findRoute(pRequest->pConfig, pRequest);
-    if (matchingServlet == NULL) {
+    if (servlet) {
+        servlet(pRequest, pResponse);
+    }
+    else {
         il_joblog( "No routing found for request"); // TODO add resource to output
         pResponse->status = 404;
         putChunk(pResponse, "", 0); // TODO add not found message
     }
-    else {
-        matchingServlet(pRequest, pResponse);
-    }
 }
 
-SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
-    SERVLET matchingServlet = NULL;
+PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
+    PROUTING matchingRouting = NULL;
     PSLIST pRouts;
 	PSLISTNODE pRouteNode;
     PUCHAR end;
@@ -606,8 +604,7 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
                     substr( value, pRequest->resource.String + groupArray[g].rm_so, groupArray[g].rm_eo - groupArray[g].rm_so) ;  
                     pRouting->parmValue[g-1] = value;
                 }
-                matchingServlet = pRouting->servlet;
-                pRequest->pRouting = pRouting;
+                matchingRouting = pRouting;
                 break;
             }
         }
@@ -615,7 +612,7 @@ SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest) {
 
     free (l_resource);
 
-    return matchingServlet;
+    return matchingRouting;
 }
 #pragma convert(1252)
 BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType)
@@ -699,7 +696,8 @@ static void * serverThread (PINSTANCE pInstance)
     RESPONSE response;
     BOOL     allSaysGo;
     volatile PRESPONSE pResponse;
-
+    PROUTING matchingRouting;
+    
     while (pInstance->config.clientSocket > 0) {
         memset(&request  , 0, sizeof(REQUEST));
         memset(&response , 0, sizeof(RESPONSE));
@@ -720,12 +718,19 @@ static void * serverThread (PINSTANCE pInstance)
         request.threadMem = (PVOID) jx_NewObject(NULL);
 
         #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
+        matchingRouting = findRoute(request.pConfig, &request);
+        if (matchingRouting) {
+            request.routeId.Length = matchingRouting->routeId.Length;
+            memcpy(request.routeId.String, matchingRouting->routeId.String, matchingRouting->routeId.Length); 
+            request.pRouting = matchingRouting;
+        }
+        
         allSaysGo = runPlugins (request.pConfig->pluginPreRequest , &request , &response);
         if (allSaysGo) {
             if (pInstance->servlet) {
                 pInstance->servlet (&request , &response);
             } else {
-                runServletByRouting (&request , &response);
+                runServletByRouting (&request , &response, matchingRouting->servlet);
             }
             runPlugins (request.pConfig->pluginPostResponse , &request , &response);
         }

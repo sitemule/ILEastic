@@ -91,7 +91,8 @@ typedef _Packed struct _REQUEST  {
     PSLIST      parmList;
     PSLIST      resourceSegments;
     PVOID       threadMem;
-    PVOID       pRouting; // Not able to make cyclic defentions :(    
+    PVOID       pRouting; // Not able to make cyclic defentions :(   
+    VARCHAR256  routeId; 
 } REQUEST , *PREQUEST;
 
 typedef _Packed struct _RESPONSE  {
@@ -137,6 +138,7 @@ typedef struct _ROUTING  {
     int    parmNumbers;
     PUCHAR parmNames [256];
     PUCHAR parmValue [256];
+    VARCHAR256 routeId;
 } ROUTING, * PROUTING;
 
 
@@ -162,7 +164,7 @@ void putHeader (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
-SERVLET findRoute(PCONFIG pConfig, PREQUEST pRequest);
+PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest);
 BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
 BOOL fcgiReceiveHeader (PREQUEST pRequest);
