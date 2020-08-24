@@ -519,6 +519,7 @@ end-pr;
 // @param Query parameter key
 // @param Default value (returned if key does not exist in query string)
 // @return Query parameter string value
+// @deprecated Use il_getQueryParameter instead.
 ///
 dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getParmStr');
@@ -527,13 +528,49 @@ dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm
     default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
 end-pr;
 
-dcl-pr il_getResourceParmStr varchar(524284:4) ccsid(*utf8) rtnparm
-                extproc(*CWIDEN:'il_getResourceParmStr');
+///
+// Get query parameter
+//
+// Returns the starting value for a request query string. So for
+// a request like http://localhost:8080/path?query=string you would get
+// 'string' as the return value for the input of 'query'. The ? sign as a
+// separator of the resource path and the query string is not part of the
+// return value. If the URL does not contain a query string the default string
+// is returned.
+//
+// @param Request
+// @param Query parameter key
+// @param Default value (returned if key does not exist in query string)
+// @return Query parameter string value
+///
+dcl-pr il_getQueryParameter varchar(524284:4) ccsid(*utf8) rtnparm
+                extproc(*CWIDEN:'il_getParmStr');
     request     likeds(il_request);
     parmName    pointer value options(*string);
     default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
 end-pr;
 
+///
+// Get path parameter
+//
+// Returns the path parameter identified by the name of the path segment 
+// specified at il_addRoute (enclosed in { and } ). 
+// <br><br>
+// The passed default value will be returned when the URL does not contain the 
+// named segment and when the path segment does not exist in the route 
+// specified at il_addRoute().
+//
+// @param Request
+// @param Path segment name
+// @param Default value
+// @return Path segment of the request URL or the default value
+///
+dcl-pr il_getPathParameter varchar(524284:4) ccsid(*utf8) rtnparm
+                extproc(*CWIDEN:'il_getPathParameter');
+    request     likeds(il_request);
+    parmName    pointer value options(*string);
+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
+end-pr;
 
 ///
 // Get request protocol
