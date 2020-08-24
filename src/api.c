@@ -379,7 +379,7 @@ static void initialize(void)
     Handle :
     il_addRoute  (config : myServives: IL_ANY : '^/services/' : '(application/json)|(text/json)');
 \* --------------------------------------------------------------------------- */
-void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCHAR routeReg , PVARCHAR contentReg )
+void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCHAR routeReg , PVARCHAR contentReg , PVARCHAR routeId)
 {
     PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
     LONG rc;
@@ -396,8 +396,12 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     routing.contentReg = NULL;
     routing.servlet    = servlet;
     routing.routeType  = pParms->OpDescList->NbrOfParms >= 3 ? routeType : IL_ANY;
-
-    if (pParms->OpDescList->NbrOfParms >= 4) {
+    if (pParms->OpDescList->NbrOfParms >= 6) {
+        routing.routeId.Length = routeId->Length <= 256 ? routeId->Length : 256;
+        memcpy(routing.routeId.String, routeId->String, routing.routeId.Length);
+    }
+    
+    if (pParms->OpDescList->NbrOfParms >= 4 && routeReg != NULL) {
         routing.routeReg   = malloc(sizeof(regex_t));
         parserRouting (&routing , finalExpr , vc2str(routeReg));
         rc = regcomp(routing.routeReg, finalExpr , REG_EXTENDED );
@@ -408,7 +412,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
         }
     }
 
-    if (pParms->OpDescList->NbrOfParms >= 5) {
+    if (pParms->OpDescList->NbrOfParms >= 5 && contentReg != NULL) {
         routing.contentReg = malloc(sizeof(regex_t));
         rc = regcomp(routing.contentReg, vc2str(contentReg) , REG_NOSUB + REG_EXTENDED );
         if (rc) {
