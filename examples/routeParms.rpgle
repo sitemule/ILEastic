@@ -69,9 +69,9 @@ dcl-proc test1;
     
     il_responseWrite(response : 'Test1');
     il_responseWrite(response : ' myId:');
-    il_responseWrite(response : il_getResourceParmStr (request: 'myId' : '000'));
+    il_responseWrite(response : il_getPathParameter (request: 'myId' : '000'));
     il_responseWrite(response : ' myNumber:');
-    il_responseWrite(response : il_getResourceParmStr (request: 'myNumber' : '9999'));
+    il_responseWrite(response : il_getPathParameter (request: 'myNumber' : '9999'));
 end-proc;
 dcl-proc test2;
 
@@ -82,8 +82,8 @@ dcl-proc test2;
     
     il_responseWrite(response : 'Test2');
     il_responseWrite(response : ' myId:');
-    il_responseWrite(response : il_getResourceParmStr (request: 'myId' : '000'));
+    il_responseWrite(response : il_getPathParameter (request: 'myId' : '000'));
     il_responseWrite(response : ' myNumber:');
-    il_responseWrite(response : il_getResourceParmStr (request: 'myNumber' : '9999'));
+    il_responseWrite(response : il_getPathParameter (request: 'myNumber' : '9999'));
 
 end-proc;

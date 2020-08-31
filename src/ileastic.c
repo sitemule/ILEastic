@@ -671,8 +671,10 @@ static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
 {
     int i;
     PROUTING pRoute = pRequest->pRouting;
-    for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
-        if (pRoute->parmValue[i]) free(pRoute->parmValue[i]);
+    if (pRoute) {
+        for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
+            if (pRoute->parmValue[i]) free(pRoute->parmValue[i]);
+        }
     }
     sList_free (pRequest->headerList);
     sList_free (pRequest->parmList);
@@ -730,7 +732,7 @@ static void * serverThread (PINSTANCE pInstance)
             if (pInstance->servlet) {
                 pInstance->servlet (&request , &response);
             } else {
-                runServletByRouting (&request , &response, matchingRouting->servlet);
+                runServletByRouting (&request , &response, matchingRouting ? matchingRouting->servlet:null);
             }
             runPlugins (request.pConfig->pluginPostResponse , &request , &response);
         }
