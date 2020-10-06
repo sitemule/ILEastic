@@ -68,6 +68,7 @@ test: .PHONY
 	cd unittests && make
 
 plugins: .PHONY
+	cd plugins/cors && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
 	cd plugins/authsystem && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
 	cd plugins/basicauth && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
 	cd plugins/jwt && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
@@ -82,6 +83,7 @@ install:
 	-mkdir $(USRINCDIR)/ILEastic
 	cp headers/ileastic.rpgle $(USRINCDIR)/ILEastic/
 	cp plugins/basicauth/basicauth_h.rpgle $(USRINCDIR)/ILEastic/
+	cp plugins/cors/cors_h.rpginc $(USRINCDIR)/ILEastic/
 
 .PHONY:
 
