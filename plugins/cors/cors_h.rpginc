@@ -1,0 +1,33 @@
+**FREE
+
+/if defined (ILCORS)
+/eof
+/endif
+
+/define ILCORS
+
+
+dcl-c IL_HEADERS_CORS_ALLOW_HEADERS 'Access-Control-Allow-Headers';
+dcl-c IL_HEADERS_CORS_ALLOW_METHODS 'Access-Control-Allow-Methods';
+dcl-c IL_HEADERS_CORS_ALLOW_ORIGIN 'Access-Control-Allow-Origin';  
+dcl-c IL_HEADERS_CORS_EXPOSE_HEADERS 'Access-Control-Expose-Headers';
+
+
+///
+// CORS support
+//
+// In the current Version this procedure adds the following Headers:
+//     - Access-Control-Allow-Origin
+//     - Access-Control-Allow-Headers
+//     - Access-Control-Allow-Methods
+// 
+// All of these Headers are set to * at the Moment.
+//
+//
+// @param Request
+// @param Response
+///
+dcl-pr il_addCorsHeaders ind extProc(*dclCase);
+    request likeds(il_request);
+    response likeds(il_response);
+end-pr;
