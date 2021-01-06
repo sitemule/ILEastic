@@ -569,12 +569,18 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     PSLIST pRouts;
 	PSLISTNODE pRouteNode;
     PUCHAR end;
-    PUCHAR l_resource = malloc(pRequest->resource.Length +1);
+    PUCHAR l_resource;
 
+    // No routing  - simple direct servlet
+    if (pConfig->router == NULL ) {
+        return null;
+    }
+    
     pRouts = pConfig->router;
     pRequest->pRouting = NULL;
     
     // get the ebcdic version of the resource
+    l_resource = malloc(pRequest->resource.Length +1);
     mema2e(l_resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
     l_resource[pRequest->resource.Length] = '\0';  // Need it as a string
 

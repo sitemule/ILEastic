@@ -12,10 +12,10 @@
 // SBMJOB CMD(CALL PGM(routeParms)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES) CCSID(37)        
 //
 // The web service can be tested with the browser by entering the following URL:
-// http://my_ibmi:44010/simpletest 
-// http://my_ibmi:44010/simpletest/123 
-// http://my_ibmi:44010/simpletest/123/list
-// http://my_ibmi:44010/simpletest/123/list/abc
+// http://my_ibm_i:44010/simpletest 
+// http://my_ibm_i:44010/simpletest/123 
+// http://my_ibm_i:44010/simpletest/123/list
+// http://my_ibm_i:44010/simpletest/123/list/abc
 
 //
 // @info: It requires your RPG code to be reentrant and compiled for 

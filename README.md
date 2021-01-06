@@ -135,8 +135,8 @@ Look for the complete list in the examples folder - and observe which port they 
 
 Now test it in a browser: 
 
-* http://myibmi:44000  Hello world
-* http://myibmi:44001  Simple website demo
+* http://my_ibm_i:44000  Hello world
+* http://my_ibm_i:44001  Simple website demo
 
 
 Please note that the job requires `ALWMLTTHD(*YES)`
@@ -144,8 +144,9 @@ Please note that the job requires `ALWMLTTHD(*YES)`
 
 # Develop
 You compile the project with gmake, and I have also included a setup folder for
-vsCode so you can compile any changes with `Ctrl-Shift-B` You need however to 
-change .vsCode/task.json file to point to your IBM i address. The compile feature 
+vsCode so you can compile any changes with `Ctrl-Shift-B` You need however to add
+the name `my_ibm_i` to your host file, or change all refenreces from `my_ibm_i` to
+whatever you IBM i TCP/IP name is. The compile feature 
 requires that you have SSH started: `STRTCPSVR *SSHD` 
 
 # Unit Tests
