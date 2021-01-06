@@ -44,13 +44,13 @@ env:
 	system -qi "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
 
 compile: .PHONY
-	cd src && gmake
+	cd src && /QOpenSys/pkgs/bin/gmake
 
 noxDB: .PHONY
-	cd noxDB && gmake BIN_LIB=$(BIN_LIB)
+	cd noxDB && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && gmake BIN_LIB=$(BIN_LIB)
+	cd ILEfastCGI && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB)
 
 		
 bind:
