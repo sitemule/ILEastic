@@ -83,6 +83,14 @@ dcl-proc myservlet;
 
 end-proc;
 ```
+# Your IBM i
+In this project there is lots of references to `my_ibm_i` both in code, development tool and test.
+This is of cause the name of your IBM i. You can do yourself a favor to add the name `my_ibm_i` to 
+your `hosts` file and let it point to the IP address of your IBM i - and all the code, 
+development tool and test will work out of the box.
+
+[Edit host file][eh]
+
 
  
 # Installation
@@ -99,6 +107,7 @@ And start ssh from win/mac/linux
 
 first install the opensource tools:
 ```
+ssh my_ibm_i
 yum install git
 yum install make-gnu
 ```
@@ -111,8 +120,8 @@ git -c http.sslVerify=false clone --recurse-submodules https://github.com/sitemu
 cd ILEastic
 gmake  
 ```
-Now you have library ILEastic on your IBM i - and you are good to go. You can simply copy the serivce program
-to you own projects libraries along with the binding directory and header files.
+Now you have library ILEastic on your IBM i - and you are good to go. You can simply copy the serivce programs
+to you own projects libraries along with the binding directory and header files. ( you can skip the *MODULE objects)
 
 If you like to try the examples then you need to build them as well- as simple as:
 
@@ -145,9 +154,8 @@ Please note that the job requires `ALWMLTTHD(*YES)`
 # Develop
 You compile the project with gmake, and I have also included a setup folder for
 vsCode so you can compile any changes with `Ctrl-Shift-B` You need however to add
-the name `my_ibm_i` to your host file, or change all refenreces from `my_ibm_i` to
-whatever you IBM i TCP/IP name is. The compile feature 
-requires that you have SSH started: `STRTCPSVR *SSHD` 
+the name `my_ibm_i` to your host file since the .vsCode/tast.json file referes to this name.
+The compile feature also requires that you have SSH started: `STRTCPSVR *SSHD` 
 
 # Unit Tests
 For executing the unit tests located in the folder _unittests_ you need to 
@@ -171,4 +179,5 @@ Happy ILEastic coding
 
 [iru]: https://irpgunit.sourceforge.io
 [ru]: https://rpgunit.sourceforge.io
+[eh]: https://www.howtogeek.com/howto/27350/beginner-geek-how-to-edit-your-hosts-file/
 
