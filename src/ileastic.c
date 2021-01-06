@@ -572,10 +572,10 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     PUCHAR l_resource;
 
     // No routing  - simple direct servlet
-    if (pConfig->router == NULL ) {
+    if (pConfig->router == NULL) {
         return null;
     }
-    
+
     pRouts = pConfig->router;
     pRequest->pRouting = NULL;
     
