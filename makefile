@@ -10,6 +10,7 @@
 # (make clean).
 BIN_LIB=ILEASTIC
 LIBLIST=$(BIN_LIB)
+TARGET_RLS=V7R2M0
 
 BIND_LIB=*LIBL
 
@@ -31,7 +32,7 @@ USRINCDIR='/usr/local/include'
 INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include' 'noxDB/headers'
 
 # CCFLAGS = C compiler parameter
-CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
+CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
 
 MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI
 	
@@ -42,15 +43,17 @@ env:
 	-system -qi "CRTBNDDIR BNDDIR($(BIN_LIB)/ILEASTIC)"
 	-system -qi "ADDBNDDIRE BNDDIR($(BIN_LIB)/ILEASTIC) OBJ(($(BIND_LIB)/ILEASTIC))"
 	system -qi "CHGATR OBJ('headers/*') ATR(*CCSID) VALUE(1208)"
+	-system -q "CRTSRCPF FILE($(BIN_LIB)/QRPGLEREF) RCDLEN(132)"
+	system "CPYFRMSTMF FROMSTMF('headers/ileastic.rpgle') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QRPGLEREF.file/ileastic.mbr') MBROPT(*REPLACE)"
 
 compile: .PHONY
-	cd src && /QOpenSys/pkgs/bin/gmake
+	cd src && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 noxDB: .PHONY
-	cd noxDB && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB)
+	cd noxDB && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB)
+	cd ILEfastCGI && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 		
 bind:
@@ -59,7 +62,8 @@ bind:
 	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) TGTRLS($(TARGET_RLS)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";
+
 
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"

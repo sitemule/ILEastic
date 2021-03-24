@@ -9,6 +9,8 @@
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
 BIN_LIB=ILEASTIC
+TARGET_RLS=V7R1M0
+
 
 #
 # User-defined part end
@@ -19,7 +21,7 @@ BIN_LIB=ILEASTIC
 INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/headers'
 
 # CCFLAGS = C compiler parameter
-CCFLAGS=OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
+CCFLAGS=OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
 MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI
 
