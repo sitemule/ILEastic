@@ -277,8 +277,10 @@ dcl-proc addClaims;
   
   if (changed);
     payload = json_asJsonText(json);
+    json_close(json);
     return payload;
   else;
+    json_close(json);
     return pPayload;
   endif;
 end-proc;
