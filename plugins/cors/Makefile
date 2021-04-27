@@ -12,13 +12,15 @@ BIN_LIB=ILEASTIC
 
 BIND_LIB=*LIBL
 
+TARGET_RLS=*CURRENT
+
 #
 # User-defined part end
 #-------------------------------------------------------------------------------
 
 
 # CFLAGS = compiler parameter
-CFLAGS=OUTPUT(*PRINT) OPTION(*NOUNREF *SRCSTMT) DBGVIEW(*LIST) STGMDL(*INHERIT) INCDIR('../../' './')
+CFLAGS=OUTPUT(*PRINT) OPTION(*NOUNREF *SRCSTMT) DBGVIEW(*LIST) STGMDL(*INHERIT) INCDIR('../../' './') TGTRLS($(TARGET_RLS))
 
 MODULES = cors
 
@@ -40,4 +42,4 @@ bind:
 	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
 	system "CPYFRMSTMF FROMSTMF('cors.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/cors.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/cors) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/cors) MODULE($(BIN_LIB)/cors) BNDSRVPGM(($(BIN_LIB)/ILEASTIC)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - CORS Plugin')";
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/cors) MODULE($(BIN_LIB)/cors) BNDSRVPGM(($(BIN_LIB)/ILEASTIC)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TGTRLS($(TARGET_RLS)) TEXT('ILEastic - CORS Plugin')";
