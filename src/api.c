@@ -60,7 +60,7 @@ void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
 void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
 {
     if (pRequest->resourceSegments == NULL) return;
-    
+
     int x = 0;
     SLISTITERATOR iterator = sList_setIterator(pRequest->resourceSegments);
     while (sList_foreach(&iterator) == ON) {
@@ -160,9 +160,16 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
     substr(out->String , dft->String , dft->Length);
 }
 /* --------------------------------------------------------------------------- */
-void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
+void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft, unsigned short index)
 {
- 	PSLISTNODE pNode;
+    PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
+    
+    if (pParms->OpDescList->NbrOfParms >= 5) {
+        il_getRequestSegmentByIndex(out, pRequest, index);
+        return;
+    }
+
+    PSLISTNODE pNode;
     int  keyLen= strlen(parmName);
     UCHAR aKey [256];
     UCHAR temp [256];
