@@ -483,6 +483,8 @@ end-pr;
 // @param Request
 // @param Index (0-based)
 // @return Resource segment
+//
+// @deprecated Use il_getPathParameter (parameter 4).
 ///
 dcl-pr il_getRequestSegmentByIndex varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getRequestSegmentByIndex');
@@ -565,13 +567,15 @@ end-pr;
 // @param Request
 // @param Path segment name
 // @param Default value
+// @param Path segment index (0-based)
 // @return Path segment of the request URL or the default value
 ///
 dcl-pr il_getPathParameter varchar(524284:4) ccsid(*utf8) rtnparm
                 extproc(*CWIDEN:'il_getPathParameter');
     request     likeds(il_request);
     parmName    pointer value options(*string);
-    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;
+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*omit:*nopass) const;
+    index       uns(5) value options(*nopass);
 end-pr;
 
 ///
