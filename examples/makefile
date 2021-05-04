@@ -44,6 +44,7 @@ OBJECT_DESCRIPTION=ILEastic Example Server
 	
 .sqlrpgle:
 	liblist -a $(LIBLIST);\
+	setccsid 1252 $<;\
 	system -iK "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') RPGPPOPT(*LVL2) COMPILEOPT('$(SQLRPGCFLAGS)') DBGVIEW(*NONE) TEXT('$(OBJECT_DESCRIPTION)')"
 
 OBJECTS = helloworld staticfile datachunks jsonp invalidreq querystr multroutes plugin jsondata base64 Fastcgi01 noxdbcust scheduler header jwtsecrout routeid
