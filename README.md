@@ -1,3 +1,4 @@
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/sitemule/ILEastic)
 # ILEastic
 It is a self contained web application server for the ILE environment on IBM i 
 to run microservices. 
