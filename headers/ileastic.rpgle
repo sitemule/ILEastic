@@ -740,6 +740,7 @@ end-pr;
 //
 // @param Response
 // @param File name
+// @return <code>*on</code> = error , <code>*off</code> = success
 ///
 dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');
     response    likeds(il_response);
