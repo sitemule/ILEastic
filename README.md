@@ -128,7 +128,7 @@ If you like to try the examples then you need to build them as well- as simple a
 
 ```
 cd examples 
-make
+gmake
 ```
 
 # Test it:
