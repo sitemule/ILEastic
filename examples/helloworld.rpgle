@@ -17,7 +17,7 @@
 //        multithreading. Each client request is handled by a seperate thread.
 ///
 
-ctl-opt copyright('Sitemule.com  (C), 2018');
+ctl-opt copyright('Sitemule.com  (C), 2018,2022');
 ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
 ctl-opt debug(*yes) bndDir('ILEASTIC');
 ctl-opt thread(*CONCURRENT);
@@ -25,7 +25,8 @@ ctl-opt thread(*CONCURRENT);
 /include ./headers/ileastic.rpgle
 
 // -----------------------------------------------------------------------------
-// Program Entry Points-------------------------     
+// Program Entry Points    
+// -----------------------------------------------------------------------------
 dcl-proc main;
 
     dcl-ds config likeds(il_config);
