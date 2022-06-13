@@ -10,8 +10,8 @@
 // SBMJOB CMD(CALL PGM(NOXDBMICRO)) JOB(NOXDBMICRO) JOBQ(QSYSNOMAX)  ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
-// http://myibmi:44001/getuserbyview
-// http://myibmi:44001/getuserbyproc
+// http://my_ibm_i:44001/getuserbyview
+// http://my_ibm_i:44001/getuserbyproc
 //
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
@@ -43,11 +43,39 @@ dcl-proc main;
     // This means that if you have a match this routing code will 
     // call the procedure assigned to the endpoint. All other 
     // end points will return 404 NOT FOUND.
-    il_addRoute(config : %paddr(getUserByView) : IL_ANY : 'getuserbyview');
-    il_addRoute(config : %paddr(getUserByProc) : IL_ANY : 'getuserbyproc');
-    il_addRoute(config : %paddr(hello) : IL_ANY : 'hello');
+    il_addRoute(config : %paddr(getServicesInfo) : IL_ANY : 'getservicesinfo');
+    il_addRoute(config : %paddr(getUserByView)   : IL_ANY : 'getuserbyview');
+    il_addRoute(config : %paddr(getUserByProc)   : IL_ANY : 'getuserbyproc');
+    il_addRoute(config : %paddr(hello)           : IL_ANY : 'hello');
   
     il_listen(config);
+
+end-proc;
+
+// -----------------------------------------------------------------------------
+// Servlet callback implementation
+// -----------------------------------------------------------------------------     
+dcl-proc getServicesInfo;
+
+    dcl-pi *n;
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
+    end-pi;
+
+    dcl-s pResult pointer;
+
+    // Assume everything is OK
+    response.status = 200;
+    response.contentType = 'application/json';
+
+    // Use noxDB to produce a JSON resultset to return
+    pResult = json_sqlResultSet ('-
+        select * from qsys2.services_info -
+    ');
+
+    // Use the stream to input data from noxdb and output it to ILEastic 
+    il_responseWriteStream(response : json_stream( pResult));
+
 
 end-proc;
 
@@ -69,7 +97,7 @@ dcl-proc getUserByView;
 
     // Use noxDB to produce a JSON resultset to return
     pResult = json_sqlResultSet ('-
-        select * from microdemo.users_full-
+        select name from microdemo.users_full-
     ');
 
     // Use the stream to input data from noxdb and output it to ILEastic 
