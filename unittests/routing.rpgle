@@ -32,8 +32,8 @@ dcl-pr test_root end-pr;
 dcl-pr test_caseSensitivity end-pr;
 
 
-// SERVLET findRoute(PSLIST pRouts, PREQUEST pRequest);
-dcl-pr findRoute pointer(*proc) extproc(*dclcase);
+// PROUTING findRoute(PSLIST pRouts, PREQUEST pRequest);
+dcl-pr findRoute pointer extproc(*dclcase);
   config pointer value;
   request pointer value;
 end-pr;
@@ -44,6 +44,17 @@ dcl-pr lookForHeaders extproc(*CWIDEN:*dclcase);
   buffer pointer value;
   bufferLength uns(10) value;
 end-pr;
+
+dcl-ds routing_t qualified template;
+  routeType int(5);
+  routeReqex pointer;
+  contentRegex pointer;
+  servlet pointer(*proc);
+  parmNumbers int(10);
+  parmNames pointer;
+  parmValue pointer;
+  routeId varchar(256);
+end-ds;
 
 dcl-s CRLF char(2) inz(x'0d0a') ccsid(819); 
 
@@ -64,11 +75,13 @@ dcl-proc test_exactMatchSimpleRegex export;
   dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
   dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds routing likeds(routing_t) based(pRouting);
   
   httpMessage = 'GET /time HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : %addr(request));
+  pRouting = findRoute(%addr(config) : %addr(request));
+  matchingRoute = routing.servlet;
   assert(matchingRoute = %paddr(routeTime) : 'Returned wrong end point.');
   
   on-exit abnormallyEnded;
@@ -81,11 +94,13 @@ dcl-proc test_exactMatchRegexRange export;
   dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
   dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds routing likeds(routing_t) based(pRouting);
   
   httpMessage = 'GET /config/INVOICE HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : %addr(request));
+  pRouting = findRoute(%addr(config) : %addr(request));
+  matchingRoute = routing.servlet;
   assert(matchingRoute = %paddr(routeConfig) : 'Returned wrong end point.');
   
   on-exit abnormallyEnded;
@@ -98,11 +113,12 @@ dcl-proc test_notDefinedSubresource export;
   dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
   dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds routing likeds(routing_t) based(pRouting);
   
   httpMessage = 'GET /time/hour HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : %addr(request));
+  pRouting = findRoute(%addr(config) : %addr(request));
   assert(matchingRoute = *null : 'Should have found no end point.');
   
   on-exit abnormallyEnded;
@@ -115,15 +131,13 @@ dcl-proc test_caseSensitivity export;
   dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
   dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds routing likeds(routing_t) based(pRouting);
   
   httpMessage = 'GET /Time HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : %addr(request));
-  if (matchingRoute = %paddr(routeTime));
-    dsply 'is route /time';
-  endif;
-  assert(matchingRoute = *null : 'Should have found no end point.');
+  pRouting = findRoute(%addr(config) : %addr(request));
+  assert(pRouting = *null : 'Should have found no end point.');
   
   on-exit abnormallyEnded;
     disposeRequest(request);
@@ -135,11 +149,13 @@ dcl-proc test_root export;
   dcl-ds request likeds(il_request);
   dcl-s matchingRoute pointer(*proc);
   dcl-s httpMessage varchar(1000) ccsid(819);
+  dcl-ds routing likeds(routing_t) based(pRouting);
   
   httpMessage = 'GET / HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   request = createRequest(httpMessage);
   
-  matchingRoute = findRoute(%addr(config) : %addr(request));
+  pRouting = findRoute(%addr(config) : %addr(request));
+  matchingRoute = routing.servlet;
   assert(matchingRoute = %paddr(routeRoot) : 'Returned not root end point.');
   
   on-exit abnormallyEnded;
