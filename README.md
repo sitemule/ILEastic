@@ -146,7 +146,7 @@ Look for the complete list in the examples folder - and observe which port they 
 Now test it in a browser: 
 
 * http://my_ibm_i:44000  Hello world
-* http://my_ibm_i:44001  Simple website demo
+* http://my_ibm_i:44012  Simple website demo
 
 
 Please note that the job requires `ALWMLTTHD(*YES)`.
