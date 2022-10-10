@@ -10,6 +10,11 @@
 // SBMJOB CMD(CALL PGM(NOXDBMICRO)) JOB(NOXDBMICRO) JOBQ(QSYSNOMAX)  ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
+// http://my_ibm_i:44001/getservicesinfo
+// http://my_ibm_i:44001/getservicesinfo?search=ptf
+// http://my_ibm_i:44001/getservicesinfo?search=obj
+// 
+// Other examples, that needs the demo database 
 // http://my_ibm_i:44001/getuserbyview
 // http://my_ibm_i:44001/getuserbyproc
 //
@@ -17,7 +22,7 @@
 //        multithreading. Each client request is handled by a seperate thread.
 ///
    
-ctl-opt copyright('Sitemule.com  (C), 2018');
+ctl-opt copyright('Sitemule.com  (C), 2018-2022');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
 ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
 ctl-opt thread(*CONCURRENT);
@@ -63,15 +68,20 @@ dcl-proc getServicesInfo;
     end-pi;
 
     dcl-s pResult pointer;
+    dcl-s search  varchar(64);
+
 
     // Assume everything is OK
     response.status = 200;
     response.contentType = 'application/json';
 
+    search = il_getParmStr(request : 'search');
+
+
     // Use noxDB to produce a JSON resultset to return
     pResult = json_sqlResultSet ('-
         select * from qsys2.services_info -
-    ');
+        where service_name like upper(' + strquot('%' + search + '%') + ')');
 
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pResult));
@@ -157,5 +167,18 @@ dcl-proc hello;
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWrite (response : 'hello  ' + name);
 
+
+end-proc;
+// ------------------------------------------------------------------------------------
+// strQuot - helper to avoid SQL injections
+// ------------------------------------------------------------------------------------
+dcl-proc strQuot;
+
+    dcl-pi strQuot varchar(256);
+        input varchar(256) const;
+    end-pi;
+    dcl-c  q '''';
+
+    return q + %scanRpl (q : q+q : input ) + q;
 
 end-proc;
