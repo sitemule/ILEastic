@@ -46,6 +46,7 @@ dcl-proc main;
     il_addRoute(config : %paddr(getUserByView) : IL_ANY : 'getuserbyview');
     il_addRoute(config : %paddr(getUserByProc) : IL_ANY : 'getuserbyproc');
     il_addRoute(config : %paddr(hello) : IL_ANY : 'hello');
+    il_addRoute(config : %paddr(huge) : IL_ANY : 'huge');
   
     il_listen(config);
 
@@ -75,6 +76,8 @@ dcl-proc getUserByView;
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pResult));
 
+    json_delete(pResult);
+
 
 end-proc;
 // -----------------------------------------------------------------------------
@@ -103,6 +106,8 @@ dcl-proc getUserByProc;
 
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pResult));
+    json_delete(pResult);
+
 
 
 end-proc;
@@ -128,6 +133,34 @@ dcl-proc hello;
    
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWrite (response : 'hello  ' + name);
+
+
+end-proc;
+// -----------------------------------------------------------------------------
+// Servlet callback implementation
+// -----------------------------------------------------------------------------     
+dcl-proc huge;
+
+    dcl-pi *n;
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
+    end-pi;
+
+    dcl-s pResult pointer;
+
+    // Assume everything is OK
+    response.status = 200;
+    response.contentType = 'application/json';
+
+    // Use noxDB to produce a JSON resultset to return
+    pResult = json_sqlResultSet ('-
+        select * from qsys2.systables -
+    ');
+
+    // Use the stream to input data from noxdb and output it to ILEastic 
+    il_responseWriteStream(response : json_stream( pResult));
+
+    json_delete(pResult);
 
 
 end-proc;
