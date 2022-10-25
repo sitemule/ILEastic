@@ -52,6 +52,7 @@ dcl-proc main;
     il_addRoute(config : %paddr(getUserByView)   : IL_ANY : 'getuserbyview');
     il_addRoute(config : %paddr(getUserByProc)   : IL_ANY : 'getuserbyproc');
     il_addRoute(config : %paddr(hello)           : IL_ANY : 'hello');
+    il_addRoute(config : %paddr(huge)            : IL_ANY : 'huge');
   
     il_listen(config);
 
@@ -80,8 +81,16 @@ dcl-proc getServicesInfo;
 
     // Use noxDB to produce a JSON resultset to return
     pResult = json_sqlResultSet ('-
-        select * from qsys2.services_info -
-        where service_name like upper(' + strquot('%' + search + '%') + ')');
+        select * -
+        from qsys2.services_info -
+        where service_name like upper(' + strQuot('%' + search + '%') + ')':
+        1:                  // Position: Starting from row
+        JSON_ALLROWS:       // Limit   : Number of rows to read - here take all
+        JSON_META +         // Option  : Produce a result object with a "meta" object   
+        JSON_FIELDS +       // Option  : The "meta" object will contain column atributes 
+        JSON_COLUMN_TEXT +  // Option  : the "meta" will also contain the extra text/label info
+        JSON_CAMEL_CASE     // Option  : name of the data will be cammel cased
+    );
 
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pResult));
