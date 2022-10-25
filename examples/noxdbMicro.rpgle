@@ -48,17 +48,10 @@ dcl-proc main;
     // This means that if you have a match this routing code will 
     // call the procedure assigned to the endpoint. All other 
     // end points will return 404 NOT FOUND.
-<<<<<<< HEAD
-    il_addRoute(config : %paddr(getUserByView) : IL_ANY : 'getuserbyview');
-    il_addRoute(config : %paddr(getUserByProc) : IL_ANY : 'getuserbyproc');
-    il_addRoute(config : %paddr(hello) : IL_ANY : 'hello');
-    il_addRoute(config : %paddr(huge) : IL_ANY : 'huge');
-=======
     il_addRoute(config : %paddr(getServicesInfo) : IL_ANY : 'getservicesinfo');
     il_addRoute(config : %paddr(getUserByView)   : IL_ANY : 'getuserbyview');
     il_addRoute(config : %paddr(getUserByProc)   : IL_ANY : 'getuserbyproc');
     il_addRoute(config : %paddr(hello)           : IL_ANY : 'hello');
->>>>>>> 21303654ec3a9931da2841e8392040327d53f164
   
     il_listen(config);
 
@@ -180,9 +173,9 @@ dcl-proc hello;
 
 
 end-proc;
-<<<<<<< HEAD
 // -----------------------------------------------------------------------------
 // Servlet callback implementation
+// Just offload a lots of data;
 // -----------------------------------------------------------------------------     
 dcl-proc huge;
 
@@ -207,7 +200,7 @@ dcl-proc huge;
 
     json_delete(pResult);
 
-=======
+end-proc;
 // ------------------------------------------------------------------------------------
 // strQuot - helper to avoid SQL injections
 // ------------------------------------------------------------------------------------
@@ -219,6 +212,5 @@ dcl-proc strQuot;
     dcl-c  q '''';
 
     return q + %scanRpl (q : q+q : input ) + q;
->>>>>>> 21303654ec3a9931da2841e8392040327d53f164
 
 end-proc;

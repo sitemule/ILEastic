@@ -336,10 +336,11 @@ void il_setSchedulerPlugin (PCONFIG pConfig, SCHEDULER scheduler , ULONG timerSe
     pConfig->schedulerTimer = timerSec;
 }
 /* --------------------------------------------------------------------------- *\
+   DEPRICATED!! DO NOT USE, was replaced by noxDb graph 
 \* --------------------------------------------------------------------------- */
 PVOID il_allocThreadMem  (PREQUEST pRequest , ULONG size)
 {
-    pRequest->threadMem = calloc(1, size);
+    // pRequest->threadMem = calloc(1, size);
     return pRequest->threadMem;
 }
 /* --------------------------------------------------------------------------- *\

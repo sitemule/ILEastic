@@ -126,16 +126,17 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 
     rc = iconv ( pResponse->pConfig->e2a->Iconv , &input , &inbytesleft, &wrkBuf , &outbytesleft);
 
+    totalWriteLen = wrkBuf - tempBuf;
+
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
-        totalWriteLen = wrkBuf - tempBuf;
         rc = FCGX_PutStr( tempBuf , totalWriteLen , pResponse->pConfig->fcgi.out);
         free (totBuf);
         return;
     }
 
     // Build the Chunk header
-    lenleni = sprintf (lenBuf , "%x\r\n" , len);
+    lenleni = sprintf (lenBuf , "%x\r\n" , totalWriteLen);
     tempBuf -= lenleni;
     meme2a( tempBuf , lenBuf  , lenleni);
 
@@ -679,7 +680,10 @@ static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
     PROUTING pRoute = pRequest->pRouting;
     if (pRoute) {
         for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
-            if (pRoute->parmValue[i]) free(pRoute->parmValue[i]);
+            if (pRoute->parmValue[i]) {
+                free(pRoute->parmValue[i]);
+                pRoute->parmValue[i] = NULL;
+            }
         }
     }
     sList_free (pRequest->headerList);
@@ -687,13 +691,16 @@ static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
     sList_free (pResponse->headerList);
 
     if (pRequest->threadMem) {
-        jx_Close(pRequest->threadMem);
+        jx_NodeDelete(pRequest->threadMem);
+        pRequest->threadMem = NULL;
     }
     if (pRequest->completeHeader.String) {
         free(pRequest->completeHeader.String);
+        pRequest->completeHeader.String = NULL;
     }
     if (pRequest->content.String) {
         free(pRequest->content.String);
+        pRequest->content.String = NULL;
     }
 }
 
