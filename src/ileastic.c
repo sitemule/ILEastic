@@ -42,6 +42,7 @@
 
 
 #include "ostypes.h"
+#include "teramem.h"
 #include "varchar.h"
 #include "sysdef.h"
 #include "sndpgmmsg.h"
@@ -80,7 +81,7 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
 {
     int rc;
     LONG   lenleni;
-    PUCHAR tempBuf = malloc ( len + 16);
+    PUCHAR tempBuf = memAlloc ( len + 16);
     PUCHAR wrkBuf = tempBuf;
 
     putHeader (pResponse); // if not put yet
@@ -88,7 +89,7 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( buf , len , pResponse->pConfig->fcgi.out);
-        free (tempBuf);
+        memFree (&tempBuf);
         return;
     }
 
@@ -102,7 +103,7 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     *(wrkBuf++) =  0x0d;
     *(wrkBuf++) =  0x0a;
     rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
-    free (tempBuf);
+    memFree (&tempBuf);
 
 }
 /* --------------------------------------------------------------------------- */
@@ -121,9 +122,9 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     putHeader (pResponse); // if not put yet
 
     input = buf;
-	inbytesleft = len;
-	outbytesleft = outlen;
-    totBuf = malloc ( 16 + (outlen));     // The Chunk header + the max size which twice the byte size
+    inbytesleft = len;
+    outbytesleft = outlen;
+    totBuf = memAlloc ( 16 + (outlen));     // The Chunk header + the max size which twice the byte size
     wrkBuf = tempBuf = totBuf + 16;       // Make room for the chunk header ( max 16 bytes)
 
     rc = iconv ( pResponse->pConfig->e2a->Iconv , &input , &inbytesleft, &wrkBuf , &outbytesleft);
@@ -133,7 +134,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( tempBuf , totalWriteLen , pResponse->pConfig->fcgi.out);
-        free (totBuf);
+        memFree (&totBuf);
         return;
     }
 
@@ -146,7 +147,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     *(wrkBuf++) =  0x0a;
     totalWriteLen = wrkBuf - tempBuf;
     rc = write(pResponse->pConfig->clientSocket, tempBuf , totalWriteLen);
-    free (totBuf);
+    memFree (&totBuf);
 
 }
 /* --------------------------------------------------------------------------- */
@@ -155,22 +156,22 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 PUCHAR imfTimeString(PUCHAR buf)
 {
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm timeinfo;
     static const UCHAR * dayname   [] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
     static const UCHAR * monthname [] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov","Dec"};
 
     time (&rawtime);
-    timeinfo = gmtime (&rawtime);
+    gmtime_r (&rawtime , &timeinfo);
 
     sprintf(
         buf,"%s, %02d %s %4d %02d:%02d:%02d GMT",
-        dayname[timeinfo->tm_wday],
-        timeinfo->tm_mday,
-        monthname[timeinfo->tm_mon],
-        timeinfo->tm_year + 1900,
-        timeinfo->tm_hour,
-        timeinfo->tm_min,
-        timeinfo->tm_sec
+        dayname[timeinfo.tm_wday],
+        timeinfo.tm_mday,
+        monthname[timeinfo.tm_mon],
+        timeinfo.tm_year + 1900,
+        timeinfo.tm_hour,
+        timeinfo.tm_min,
+        timeinfo.tm_sec
     );
     return buf;
 }
@@ -383,12 +384,12 @@ static void parseHeaders (PREQUEST pRequest)
    --------------------------------------------------------------------------- */
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
 {
- 	PSLISTNODE pNode;
+     PSLISTNODE pNode;
     int  keyLen= strlen(key);
     UCHAR aKey [256];
 
-	for (pNode = headerList->pHead; pNode; pNode=pNode->pNext) {
-		PSLISTKEYVAL header = pNode->payloadData;
+    for (pNode = headerList->pHead; pNode; pNode=pNode->pNext) {
+        PSLISTKEYVAL header = pNode->payloadData;
         if (keyLen == header->key.Length) {
             mema2e(aKey , header->key.String , keyLen); // The headers are in ASCII
             if (memicmp (key , aKey , keyLen) == 0) {
@@ -396,7 +397,7 @@ PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
                 return value;
             }
         }
-	}
+    }
     *value = '\0';
     return value;
 }
@@ -469,7 +470,7 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 /* --------------------------------------------------------------------------- */
 static BOOL receivePayload (PREQUEST pRequest)
 {
-    PUCHAR buf = malloc (pRequest->contentLength +1); // Add a zero terniation
+    PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a zero terniation
     PUCHAR bufwin , end;
     LONG   rc;
 
@@ -502,7 +503,7 @@ static BOOL receivePayload (PREQUEST pRequest)
 /* --------------------------------------------------------------------------- */
 static BOOL receiveHeaderHTTP (PREQUEST pRequest)
 {
-    PUCHAR buf = malloc (SOCMAXREAD);
+    PUCHAR buf = memAlloc (SOCMAXREAD);
     PUCHAR bufWin = buf;
     ULONG  bufLen = 0;
     LONG   rc;
@@ -512,12 +513,12 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
     for(;;) {
         rc = socketWait (pRequest->pConfig->clientSocket, MAX_HEADER_WAIT);
         if (rc <= 0) {
-            free(buf);
+            memFree(&buf);
             return true;
         }
         rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
         if (rc <= 0) {
-            free(buf);
+            memFree(&buf);
             return true;
         }
 
@@ -529,6 +530,7 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
                     receivePayload (pRequest);
                 }
                 isLookingForHeaders = false;
+                // memFree(&buf); !! Dont !! this is now pRequest->completeHeader.String
                 return false; // TODO - Now only GET - no payload
             }
         }
@@ -578,7 +580,7 @@ void runServletByRouting (PREQUEST pRequest, PRESPONSE pResponse, SERVLET servle
 PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     PROUTING matchingRouting = NULL;
     PSLIST pRouts;
-	PSLISTNODE pRouteNode;
+    PSLISTNODE pRouteNode;
     PUCHAR end;
     PUCHAR l_resource;
 
@@ -591,7 +593,7 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
     pRequest->pRouting = NULL;
     
     // get the ebcdic version of the resource
-    l_resource = malloc(pRequest->resource.Length +1);
+    l_resource = memAlloc(pRequest->resource.Length +1);
     mema2e(l_resource ,  pRequest->resource.String , pRequest->resource.Length); // The headers are in ASCII
     l_resource[pRequest->resource.Length] = '\0';  // Need it as a string
 
@@ -601,7 +603,7 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
         *end = '\0';
     }
 
-	for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
+    for (pRouteNode = pRouts->pHead; pRouteNode ; pRouteNode = pRouteNode->pNext) {
 
         PROUTING pRouting = pRouteNode->payloadData;
 
@@ -617,7 +619,7 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
                     if (groupArray[g].rm_so == (size_t)-1)
                         break;  // No more groups
                     // Now make space for the UTF-8 version of the data    
-                    value = malloc (groupArray[g].rm_eo - groupArray[g].rm_so + 1);
+                    value = memAlloc (groupArray[g].rm_eo - groupArray[g].rm_so + 1);
                     substr( value, pRequest->resource.String + groupArray[g].rm_so, groupArray[g].rm_eo - groupArray[g].rm_so) ;  
                     pRequest->parmValue[g-1] = value;
                 }
@@ -627,7 +629,7 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
         }
     }
 
-    free (l_resource);
+    memFree (&l_resource);
 
     return matchingRouting;
 }
@@ -690,28 +692,20 @@ static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
     PROUTING pRoute = pRequest->pRouting;
     if (pRoute) {
         for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
-            if (pRequest->parmValue[i]) {
-                free(pRequest->parmValue[i]);
-                pRequest->parmValue[i] = NULL;
-            }
+            memFree(&pRequest->parmValue[i]);
         }
     }
     sList_free (pRequest->headerList);
     sList_free (pRequest->parmList);
+    sList_free (pRequest->resourceSegments);
     sList_free (pResponse->headerList);
 
     if (pRequest->threadMem) {
         jx_NodeDelete(pRequest->threadMem);
         pRequest->threadMem = NULL;
     }
-    if (pRequest->completeHeader.String) {
-        free(pRequest->completeHeader.String);
-        pRequest->completeHeader.String = NULL;
-    }
-    if (pRequest->content.String) {
-        free(pRequest->content.String);
-        pRequest->content.String = NULL;
-    }
+    memFree(&pRequest->completeHeader.String);
+    memFree(&pRequest->content.String);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -767,8 +761,9 @@ static void * serverThread (PINSTANCE pInstance)
         cleanupTransaction (&request , &response);
     }
     close(response.pConfig->clientSocket);
-    free(pInstance);
+    memFree(&pInstance);
     pthread_exit(NULL);
+    return NULL;
 }
 /* --------------------------------------------------------------------------- */
 static void * schedulerThread (PCONFIG pConfig)
@@ -980,7 +975,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         if (pConfig->protocol == PROT_FASTCGI
         ||  pConfig->protocol == PROT_SECFASTCGI) {
             // Setup arguments to pass
-            PINSTANCE pInstance = malloc(sizeof(INSTANCE));
+            PINSTANCE pInstance = memAlloc(sizeof(INSTANCE));
             memcpy(&pInstance->config , pConfig , sizeof(CONFIG));
             pInstance->config.clientSocket = 32760;
             pInstance->servlet = pParms->OpDescList->NbrOfParms >= 2 ? servlet : NULL;
@@ -1007,7 +1002,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         pConfig->rmtPort = client.sin_port;
 
         // Setup arguments to pass
-        pInstance = malloc(sizeof(INSTANCE));
+        pInstance = memAlloc(sizeof(INSTANCE));
         memcpy(&pInstance->config , pConfig , sizeof(CONFIG));
         pInstance->config.clientSocket   = clientSocket;
         pInstance->servlet = pParms->OpDescList->NbrOfParms >= 2 ? servlet : NULL;

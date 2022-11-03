@@ -29,6 +29,7 @@
 #include <regex.h>
 
 #include "ostypes.h"
+#include "teramem.h"
 #include "varchar.h"
 #include "sysdef.h"
 #include "strUtil.h"
@@ -141,7 +142,7 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
    if (pRequest->contentLength > 0) {
       int rem = pRequest->contentLength;
       int len; 
-      PUCHAR buf = malloc (pRequest->contentLength +1); // Add a zero terniation
+      PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a zero terniation
 
       // Build up the previous and the rest
       buf [pRequest->contentLength] = '\0';  // Enshure It will always be a zeroterminted string if used that way

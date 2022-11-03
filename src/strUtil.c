@@ -19,6 +19,7 @@
 #include <mih/setsppfp.h>
 
 #include "ostypes.h"
+#include "teramem.h"
 #include "strUtil.h"
 
 /* ------------------------------------------------------------- *\
@@ -155,7 +156,7 @@ LONG  memstrreplace(PUCHAR buf , LONG len , PUCHAR from , PUCHAR to )
    PUCHAR in , out = buf, inbuf, end;
    int lFrom = strlen(from), lTo = strlen(to);
 
-   in = inbuf = malloc(len);
+   in = inbuf = memAlloc(len);
    memcpy(in, buf, len);
    end = in + len;
 
@@ -169,7 +170,7 @@ LONG  memstrreplace(PUCHAR buf , LONG len , PUCHAR from , PUCHAR to )
        *(out++) = *(in++);
      }
    }
-   free(inbuf);
+   memFree(&inbuf);
    return out - buf;
 }
 /* ------------------------------------------------------------- *\

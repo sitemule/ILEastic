@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <qsysinc/h/QC3HASH>
 #include "ostypes.h"
+#include "teramem.h"
 #include "varchar.h"
 #include "utl100.h"
 #include "ServerCall.h"
@@ -251,12 +252,12 @@ LGL socket_connected (PHTTP pHttp)
 /* ------------------------------------------------------------- */
 LGL socket_read (PHTTP pHttp, PVARCHAR buf, LONG size, LONG timeout)
 {
-    PUCHAR tempbuf = malloc(size);
+    PUCHAR tempbuf = memAlloc(size);
     LONG  templen  = webSocketRead(pHttp, tempbuf , size , timeout);
     templen = templen < 0 ? 0: templen;
     templen = XlateXdBuf(&pHttp->a2e_1208_cd , buf->String , tempbuf ,  templen);
     buf->Length = templen < 0 ? 0: templen;
-    free (tempbuf);
+    memFree (&tempbuf);
     return  pHttp->SocketError ? OFF:ON;
 }
 /* ------------------------------------------------------------- */
@@ -275,11 +276,11 @@ LGL socket_writeBin (PHTTP pHttp, PVARCHAR buf)
 /* ------------------------------------------------------------- */
 LGL socket_write  (PHTTP pHttp, PVARCHAR buf)
 {
-    PUCHAR tempbuf = malloc (buf->Length * 2);  // When all is ÆØÅ then double size
+    PUCHAR tempbuf = memAlloc (buf->Length * 2);  // When all is ÆØÅ then double size
     LONG  templen = XlateXdBuf(&pHttp->e2a_1208_cd , tempbuf , buf->String , buf->Length);
     templen = templen < 0 ? 0 : templen;
     webSocketWrite(pHttp, tempbuf , templen , false);
 
-    free (tempbuf);
+    memFree (&tempbuf);
     return  pHttp->SocketError ? OFF:ON;
 } 

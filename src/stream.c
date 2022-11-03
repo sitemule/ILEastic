@@ -12,14 +12,15 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include "ostypes.h"
+#include "teramem.h"
 #include "streamer.h"
 
 // ----------------------------------------------------------------------------
 PSTREAM stream_new(ULONG size)
 {
-    PSTREAM pStream = malloc(sizeof(STREAM));
+    PSTREAM pStream = memAlloc(sizeof(STREAM));
     memset( pStream , 0,   sizeof(STREAM));
-    pStream->buffer = malloc(size);
+    pStream->buffer = memAlloc(size);
     pStream->pos = pStream->buffer;
     pStream->size = size;
     pStream->end = pStream->pos + size;
@@ -29,8 +30,8 @@ PSTREAM stream_new(ULONG size)
 void stream_delete(PSTREAM pStream)
 {
     stream_flush(pStream);
-    free (pStream->buffer);
-    free (pStream);
+    memFree (&pStream->buffer);
+    memFree (&pStream);
 }
 // ----------------------------------------------------------------------------
 LONG stream_write(PSTREAM pStream, PUCHAR buf , ULONG len)

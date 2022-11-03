@@ -40,6 +40,7 @@
 
 
 #include "ostypes.h"
+#include "teramem.h"
 #include "varchar.h"
 #include "sysdef.h"
 #include "strUtil.h"
@@ -134,7 +135,7 @@ static int urldecodeBuf (PUCHAR out , PUCHAR in , int inLen)
 /* --------------------------------------------------------------------------- */
 void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
 {
- 	PSLISTNODE pNode;
+     PSLISTNODE pNode;
     int  keyLen= strlen(parmName);
     UCHAR aKey [256];
     UCHAR temp [256];
@@ -142,20 +143,20 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
 
     PSLIST pParmList = pRequest->parmList;
 
-	if (pParmList != NULL) {
-		for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
-			PSLISTKEYVAL parm = pNode->payloadData;
-			if (keyLen == parm->key.Length) {
-				len = urldecodeBuf( temp  , parm->key.String , keyLen);
-				mema2e(aKey , temp, len ); // The parms are in ASCII
-				if (memicmp (parmName , aKey , keyLen) == 0) {
-					out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
-					return ;
-				}
-			}
-		}
-	}
-	
+    if (pParmList != NULL) {
+        for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
+            PSLISTKEYVAL parm = pNode->payloadData;
+            if (keyLen == parm->key.Length) {
+                len = urldecodeBuf( temp  , parm->key.String , keyLen);
+                mema2e(aKey , temp, len ); // The parms are in ASCII
+                if (memicmp (parmName , aKey , keyLen) == 0) {
+                    out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
+                    return ;
+                }
+            }
+        }
+    }
+    
     out->Length = dft->Length;
     substr(out->String , dft->String , dft->Length);
 }
@@ -177,14 +178,14 @@ void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , 
     int i;
     PROUTING pRoute = (PROUTING) pRequest->pRouting;
 
-	if (pRoute != NULL) {
-		for (i = 0 ; i< pRoute->parmNumbers ; i++) {
-			if (0==stricmp(parmName , pRoute->parmNames[i])) {
+    if (pRoute != NULL) {
+        for (i = 0 ; i< pRoute->parmNumbers ; i++) {
+            if (0==stricmp(parmName , pRoute->parmNames[i])) {
                 str2lvc (out  , pRequest->parmValue[i]);
-				return;
-			}
-		}
-	}
+                return;
+            }
+        }
+    }
     plvc2plvc (out, dft);
 }
 /* --------------------------------------------------------------------------- */
@@ -340,7 +341,7 @@ void il_setSchedulerPlugin (PCONFIG pConfig, SCHEDULER scheduler , ULONG timerSe
 \* --------------------------------------------------------------------------- */
 PVOID il_allocThreadMem  (PREQUEST pRequest , ULONG size)
 {
-    // pRequest->threadMem = calloc(1, size);
+    // pRequest->threadMem = memCalloc(1, size);
     return pRequest->threadMem;
 }
 /* --------------------------------------------------------------------------- *\
@@ -360,7 +361,7 @@ static parserRouting (PROUTING pRouting , PUCHAR finalExpr , PUCHAR routeReg)
             int len;
             if (end == NULL) return;
             len = end - routeReg;  
-            name =  malloc ( len + 1 );
+            name =  memAlloc ( len + 1 );
             substr( name ,routeReg , len);
             pRouting -> parmNames [pRouting -> parmNumbers ++] = name;
             routeReg = end +1;
@@ -410,7 +411,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     }
     
     if (pParms->OpDescList->NbrOfParms >= 4 && routeReg != NULL) {
-        routing.routeReg   = malloc(sizeof(regex_t));
+        routing.routeReg   = memAlloc(sizeof(regex_t));
         parserRouting (&routing , finalExpr , vc2str(routeReg));
         rc = regcomp(routing.routeReg, finalExpr , REG_EXTENDED );
         if (rc) {
@@ -421,7 +422,7 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     }
 
     if (pParms->OpDescList->NbrOfParms >= 5 && contentReg != NULL) {
-        routing.contentReg = malloc(sizeof(regex_t));
+        routing.contentReg = memAlloc(sizeof(regex_t));
         rc = regcomp(routing.contentReg, vc2str(contentReg) , REG_NOSUB + REG_EXTENDED );
         if (rc) {
             regerror(rc, routing.contentReg  , msg , 100);

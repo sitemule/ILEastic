@@ -46,33 +46,33 @@ static unsigned char X1252TO277 [] = {
 
 PUCHAR stra2e(PUCHAR out, PUCHAR in)
 {
-   PUCHAR res = out;
-   do  {
-      *(out++)  = X1252TO277[*(in++)];
-   } while (*in);
-   return res;
+    PUCHAR res = out;
+    do  {
+        *(out++)  = X1252TO277[*(in++)];
+    } while (*in);
+    return res;
 }
 PUCHAR stre2a(PUCHAR out, PUCHAR in)
 {
-   PUCHAR res = out;
-   do  {
-      *(out++)  = X277TO1252[*(in++)];
-   } while (*in);
-   return res;
+    PUCHAR res = out;
+    do  {
+        *(out++)  = X277TO1252[*(in++)];
+    } while (*in);
+    return res;
 }
 PUCHAR mema2e(PUCHAR out, PUCHAR in, LONG len)
 {
-   PUCHAR res = out;
-   for (;len>0; len--) {
-      *(out++)  = X1252TO277[*(in++)];
-   }
-   return res;
+    PUCHAR res = out;
+    for (;len>0; len--) {
+        *(out++)  = X1252TO277[*(in++)];
+    }
+    return res;
 }
 PUCHAR meme2a(PUCHAR out, PUCHAR in, LONG len)
 {
-   PUCHAR res = out;
-   for (;len>0; len--) {
-      *(out++)  = X277TO1252[*(in++)];
-   }
-   return res;
+    PUCHAR res = out;
+    for (;len>0; len--) {
+        *(out++)  = X277TO1252[*(in++)];
+    }
+    return res;
 }

@@ -17,13 +17,14 @@
 #include <QTQICONV.h>
 
 #include "ostypes.h"
+#include "teramem.h"
 #include "varchar.h"
 #include "xlate.h"
 
 /* ------------------------------------------------------------- */
 PXLATEDESC XlateXdOpen (int FromCCSID, int ToCCSID)
 {
-   PXLATEDESC pXd = malloc(sizeof(XLATEDESC));
+   PXLATEDESC pXd = memAlloc(sizeof(XLATEDESC));
    QtqCode_T To;
    QtqCode_T From;
 
@@ -50,7 +51,7 @@ PXLATEDESC XlateXdOpen (int FromCCSID, int ToCCSID)
    pXd->Iconv = QtqIconvOpen( &To, &From);
    pXd->Open = (pXd->Iconv.return_value != -1);
    if (! pXd->Open) {
-      free (pXd);
+      memFree (&pXd);
       return (NULL); // invalid CCSID
    }
    return (pXd);  // Number of bytes converted
@@ -60,7 +61,7 @@ void XlateXdClose  (PXLATEDESC pXd)
 {
    if ( pXd == NULL) return;
    iconv_close (pXd->Iconv);
-   free (pXd);
+   memFree (&pXd);
 }
 /* ------------------------------------------------------------- */
 ULONG XlateXdBuf(PXLATEDESC pXd, PUCHAR OutBuf, PUCHAR InBuf , ULONG Len)
@@ -146,10 +147,10 @@ PUCHAR XlateFromAnyAscii2ebcdic (PUCHAR outStr, PUCHAR inStr)
 
   // First guess the input ccssid by converting it to unicode...
   pXd =  XlateXdOpen(1208 , 1200 );
-  temp   = malloc(inLen  *2);  // Unicode requires double size
+  temp   = memAlloc(inLen  *2);  // Unicode requires double size
   xLen = XlateXdBuf(pXd , temp   , inStr , inLen  );
   XlateXdClose(pXd);
-  free(temp);
+  memFree(&temp);
   isCCSID = (xLen == -1) ? 1252 : 1208;
 
   // next convet to current job ccsid
