@@ -12,6 +12,8 @@
 // max number of concurrent threads
 #define FD_SETSIZE 4096
 #define MAXHEADERS 4096
+#define MAX_HEADER_WAIT 120
+#define MAX_PAYLOAD_WAIT 120
 
 #include "os2.h"
 #include <pthread.h>
@@ -482,7 +484,11 @@ static BOOL receivePayload (PREQUEST pRequest)
 
     end = buf + pRequest->contentLength;
     while (bufwin < end) {
-        socketWait (pRequest->pConfig->clientSocket, 60);
+        rc = socketWait (pRequest->pConfig->clientSocket, MAX_PAYLOAD_WAIT);
+        if (rc <= 0) {
+            return true;
+        }
+
         rc = read(pRequest->pConfig->clientSocket , bufwin , end - bufwin);
         if (rc <= 0) {
             return true;
@@ -504,7 +510,11 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
 
     // Load the complete request data
     for(;;) {
-        socketWait (pRequest->pConfig->clientSocket, 10);
+        rc = socketWait (pRequest->pConfig->clientSocket, MAX_HEADER_WAIT);
+        if (rc <= 0) {
+            free(buf);
+            return true;
+        }
         rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
         if (rc <= 0) {
             free(buf);
