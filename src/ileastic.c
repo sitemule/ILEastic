@@ -619,7 +619,7 @@ PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest) {
                     // Now make space for the UTF-8 version of the data    
                     value = malloc (groupArray[g].rm_eo - groupArray[g].rm_so + 1);
                     substr( value, pRequest->resource.String + groupArray[g].rm_so, groupArray[g].rm_eo - groupArray[g].rm_so) ;  
-                    pRouting->parmValue[g-1] = value;
+                    pRequest->parmValue[g-1] = value;
                 }
                 matchingRouting = pRouting;
                 break;
@@ -690,9 +690,9 @@ static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
     PROUTING pRoute = pRequest->pRouting;
     if (pRoute) {
         for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
-            if (pRoute->parmValue[i]) {
-                free(pRoute->parmValue[i]);
-                pRoute->parmValue[i] = NULL;
+            if (pRequest->parmValue[i]) {
+                free(pRequest->parmValue[i]);
+                pRequest->parmValue[i] = NULL;
             }
         }
     }

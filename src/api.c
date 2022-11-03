@@ -180,7 +180,7 @@ void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , 
 	if (pRoute != NULL) {
 		for (i = 0 ; i< pRoute->parmNumbers ; i++) {
 			if (0==stricmp(parmName , pRoute->parmNames[i])) {
-                str2lvc (out  , pRoute->parmValue[i]);
+                str2lvc (out  , pRequest->parmValue[i]);
 				return;
 			}
 		}

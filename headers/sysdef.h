@@ -92,6 +92,7 @@ typedef _Packed struct _REQUEST  {
     PSLIST      resourceSegments;
     PVOID       threadMem;
     PVOID       pRouting; // Not able to make cyclic defentions :(   
+    PUCHAR      parmValue [256];
     VARCHAR256  routeId; 
 } REQUEST , *PREQUEST;
 
@@ -137,7 +138,6 @@ typedef struct _ROUTING  {
     SERVLET servlet;
     int    parmNumbers;
     PUCHAR parmNames [256];
-    PUCHAR parmValue [256];
     VARCHAR256 routeId;
 } ROUTING, * PROUTING;
 

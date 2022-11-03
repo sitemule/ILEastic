@@ -86,7 +86,7 @@ dcl-proc $TestParmError;
     parmValName2 = il_getPathParameter (request: 'thisValuel' : ' ');
     parmValIndex2 = il_getPathParameter (request: 'thisValuel' : ' ' : 1);
 
-    il_responseWrite(response : 'Done...');
+    il_responseWrite(response : 'Done:' + parmValURL2 + ':' + parmValName2 + ':' +  parmValIndex2);
     return;
 end-proc;
 

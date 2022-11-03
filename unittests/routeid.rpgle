@@ -52,7 +52,6 @@ dcl-ds routing_t qualified template align(*full);
   servlet pointer(*proc);
   parmNumbers int(10);
   parmNames pointer dim(256);
-  parmValue pointer dim(256);
   routeId varchar(256);
 end-ds;
 
