@@ -4,7 +4,7 @@
 // TESTPARMS - REST API Driver
 //
 // Start it:
-// SBMJOB CMD(CALL PGM(TESTPARMS)) JOB(TESTPARMS) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)
+// SBMJOB CMD(CALL PGM(TESTPARMS)) JOB(TESTPARMS) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES) ccsid(37)
 //
 // @info: It requires your RPG code to be reentrant and compiled for
 // multithreading. Each client request is handled by a seperate thread.
@@ -69,24 +69,24 @@ dcl-proc $TestParmError;
     end-pi;
 
     // Local variable declarations
-    dcl-s parmValURL1               varchar(78)             inz;
-    dcl-s parmValURL2               varchar(78)             inz;
-    dcl-s parmValName1              varchar(78)             inz;
-    dcl-s parmValName2              varchar(78)             inz;
-    dcl-s parmValIndex1             varchar(78)             inz;
-    dcl-s parmValIndex2             varchar(78)             inz;
+    dcl-s parmValURL1               varchar(80) inz;
+    dcl-s parmValURL2               varchar(80) inz;
+    dcl-s parmValName1              varchar(80) inz;
+    dcl-s parmValName2              varchar(80) inz;
+    dcl-s parmValIndex1             varchar(80) inz;
+    dcl-s parmValIndex2             varchar(80) inz;
 
-    parmValURL1 = il_getRequestUrl(request);
     parmValName1 = il_getPathParameter (request: 'thisValuel' : ' ');
+    parmValURL1 = il_getRequestUrl(request);
     parmValIndex1 = il_getPathParameter (request: 'thisValuel' : ' ' : 1);
 
     // Stop here and run second request from Postman
-
+    
     parmValURL2 = il_getRequestUrl(request);
     parmValName2 = il_getPathParameter (request: 'thisValuel' : ' ');
     parmValIndex2 = il_getPathParameter (request: 'thisValuel' : ' ' : 1);
 
     il_responseWrite(response : 'Done:' + parmValURL2 + ':' + parmValName2 + ':' +  parmValIndex2);
-    return;
+
 end-proc;
 
