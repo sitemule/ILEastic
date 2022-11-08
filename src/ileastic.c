@@ -59,6 +59,16 @@
 BOOL (*receiveHeader)  (PREQUEST pRequest);
 BOOL shutdownFlag = false;
 
+
+/* --------------------------------------------------------------------------- */
+void prepareResponse  (PRESPONSE pResponse)
+{
+    // if not put yet
+    if (pResponse->firstWrite) {
+        putHeader (pResponse); 
+        pResponse->firstWrite = false;
+    }
+}
 /* --------------------------------------------------------------------------- */
 // end of chunks
 void putChunkEnd (PRESPONSE pResponse)
@@ -72,6 +82,8 @@ void putChunkEnd (PRESPONSE pResponse)
         return;
     }
 
+    prepareResponse  (pResponse);
+
     lenleni = sprintf (lenbuf , "0\r\n\r\n" );  // end of chunks
     meme2a(lenbuf,lenbuf, lenleni);
     rc = write(pResponse->pConfig->clientSocket,lenbuf, lenleni);
@@ -84,7 +96,7 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
     PUCHAR tempBuf = memAlloc ( len + 16);
     PUCHAR wrkBuf = tempBuf;
 
-    putHeader (pResponse); // if not put yet
+    prepareResponse  (pResponse);
 
     if (pResponse->pConfig->protocol == PROT_FASTCGI
     ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
@@ -119,7 +131,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     PUCHAR input;
     size_t inbytesleft, outbytesleft, totalWriteLen ;
 
-    putHeader (pResponse); // if not put yet
+    prepareResponse  (pResponse);
 
     input = buf;
     inbytesleft = len;
@@ -190,7 +202,6 @@ void putHeader (PRESPONSE pResponse)
     SLISTITERATOR headers;
     PSLISTNODE pNode;
 
-    if (!pResponse->firstWrite) return;
 
     p += sprintf(p ,
         "HTTP/1.1 %d %s\r\n"
@@ -233,7 +244,6 @@ void putHeader (PRESPONSE pResponse)
         rc = write(pResponse->pConfig->clientSocket, header , len);
     }
 
-    pResponse->firstWrite = false;
 }
 /* ---------------------------------------------------------------------------
    Split the url at "?" into resource, and queryString
@@ -311,7 +321,6 @@ PSLIST parseResource(LVARPUCHAR resource)
     PSLIST pResourceSegments = sList_new();
     char * SLASH = "\x2f"; // "/" = 0x2f in UTF-8
     
-    int segmentIndex = 0;
     int segmentStart = -1;
   
     int i = 0;
@@ -319,19 +328,18 @@ PSLIST parseResource(LVARPUCHAR resource)
     LVARPUCHAR segment;
   
     for (i = 0; i <= resource.Length; i++) {
-      if (resource.String[i] == *SLASH || i == resource.Length) {
-        if (segmentStart == -1) segmentStart = i;
-        else if (segmentStart >= 0) {
-          segment.Length = i - segmentStart - 1;
-          segment.String = resource.String + segmentStart + 1;
-  
-          segmentStart = i;
-          
-          sList_push(pResourceSegments, sizeof(LVARPUCHAR), &segment, OFF);
-          
-          segmentIndex += 1;
+        if (resource.String[i] == *SLASH || i == resource.Length) {
+            if (segmentStart == -1) {
+                segmentStart = i;
+            }
+            else if (segmentStart >= 0) {
+                segment.Length = i - segmentStart - 1;
+                segment.String = resource.String + segmentStart + 1;
+                segmentStart = i;
+                sList_push(pResourceSegments, sizeof(LVARPUCHAR), &segment, OFF);
+                
+            }
         }
-      }
     }
     
     return pResourceSegments;
@@ -342,7 +350,7 @@ PSLIST parseResource(LVARPUCHAR resource)
    --------------------------------------------------------------------------- */
 static void parseHeaders (PREQUEST pRequest)
 {
-    char eol [2]  = { 0x0d , 0x0a};
+    static char eol [2]  = { 0x0d , 0x0a};
 
     PUCHAR headend , begin, end, split;
 
@@ -410,7 +418,7 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 
     ULONG beforeHeadersLen;
     PUCHAR begin , next;
-    char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
+    static char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
     UCHAR temp [256];
     PUCHAR eoh = memmem ( buf ,bufLen , eol , 4);
 
@@ -689,12 +697,13 @@ BOOL runPlugins (PSLIST plugins , PREQUEST pRequest, PRESPONSE pResponse)
 static void cleanupTransaction (PREQUEST pRequest , PRESPONSE pResponse)
 {
     int i;
-    PROUTING pRoute = pRequest->pRouting;
-    if (pRoute) {
-        for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {
-            memFree(&pRequest->parmValue[i]);
-        }
-    }
+    PROUTING pRoute = pRequest->pRouting;                 
+    if (pRoute) {                                         
+        for (i = 0 ; i < pRoute->parmNumbers ; i++ ) {    
+            memFree(&pRequest->parmValue[i]);             
+        }                                                 
+    }                                                     
+
     sList_free (pRequest->headerList);
     sList_free (pRequest->parmList);
     sList_free (pRequest->resourceSegments);
@@ -716,8 +725,13 @@ static void * serverThread (PINSTANCE pInstance)
     BOOL     allSaysGo;
     volatile PRESPONSE pResponse;
     PROUTING matchingRouting;
+    BOOL     connected = true; 
+    UCHAR    temp [256]; 
     
-    while (pInstance->config.clientSocket > 0) {
+    pthread_detach(pthread_self());
+
+
+    while (pInstance->config.clientSocket > 0 && connected) {
         memset(&request  , 0, sizeof(REQUEST));
         memset(&response , 0, sizeof(RESPONSE));
         request.pConfig = &pInstance->config;
@@ -756,6 +770,10 @@ static void * serverThread (PINSTANCE pInstance)
         #pragma disable_handler
 
         putChunkEnd (&response);
+
+        if ( 0 == memicmpascii (getHeaderValue (temp , request.headerList, "connection") , "close" , 5)) {
+            connected = false;
+        } 
 
         // Clean up this roundtrip 
         cleanupTransaction (&request , &response);
@@ -940,10 +958,23 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 {
     PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
     BOOL     resetSocket = TRUE;
+    pthread_attr_t attr;
     pthread_t  pSchedulerThread;
     int rc;
 
-    rc = pthread_create(&pSchedulerThread , NULL, schedulerThread , pConfig);
+    rc = pthread_attr_init(&attr);
+    if (rc == -1) {
+        perror("error in pthread_attr_init");
+        exit(1);
+    }
+
+    rc = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (rc == -1) {
+        perror("error in pthread_attr_setdetachstate");
+        exit(2);
+    }
+
+    rc = pthread_create(&pSchedulerThread , &attr, schedulerThread , pConfig);
     setShutdownHandler ();
     setMaxSockets();
     pConfig->a2e = XlateXdOpen (1208, 0);
@@ -957,6 +988,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     // Infinit loop
     for (;;) {
         pthread_t  pServerThread;
+
         PINSTANCE pInstance;
         int clientSocket;
         struct sockaddr_in serveraddr, client;
@@ -1007,10 +1039,10 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         pInstance->config.clientSocket   = clientSocket;
         pInstance->servlet = pParms->OpDescList->NbrOfParms >= 2 ? servlet : NULL;
 
-        rc = pthread_create(&pServerThread , NULL, serverThread , pInstance);
+        rc = pthread_create(&pServerThread , &attr, serverThread , pInstance);
         if (rc) {
             errcde = rc;
-            il_joblog( "Thread not started: %d - %s" , (int) errcde, strerror((int) errcde));
+            il_joblog( "Thread not started - ensure ALWMLTTHD(*YES) on job: %d - %s" , (int) errcde, strerror((int) errcde));
             exit(0);
         }
 

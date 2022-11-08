@@ -2,3 +2,4 @@
 .fuse*
 mmap*
 examples/errorlist.txt
+**/node_modules

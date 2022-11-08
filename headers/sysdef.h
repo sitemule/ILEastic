@@ -161,6 +161,7 @@ typedef struct _PLUGIN  {
 /* ------------------------------------------------------------- */
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len);
 void putHeader (PRESPONSE pResponse);
+void prepareResponse  (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);
 int socketWait (int sd , int sec);
 PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);

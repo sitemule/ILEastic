@@ -943,3 +943,10 @@ dcl-pr il_getThreadMem pointer extproc('il_getThreadMem');
   request likeds(il_request);
 end-pr;
 
+///
+// dummy endpoint - does nothing, just set status 200 ok  
+///
+dcl-pr il_emptyEndpoint  extproc(*CWIDEN:'il_emptyEndpoint');
+    request     likeds(il_request);
+    response    likeds(il_response);
+end-pr;

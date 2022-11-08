@@ -107,6 +107,10 @@ void il_getRequestContent (PLVARCHAR out , PREQUEST pRequest)
     lvpc2lvc (out, &pRequest->content);
 }
 /* --------------------------------------------------------------------------- */
+void il_emptyEndpoint   (PREQUEST pRequest, PRESPONSE pResponse)
+{
+}
+/* --------------------------------------------------------------------------- */
 static UCHAR hex2bin (UCHAR c)
 {
     if (c >= 0x30 && c <= 0x39) return (c - 0x30);
