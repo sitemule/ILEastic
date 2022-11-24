@@ -28,8 +28,7 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_setSchedulerPlugin")
     EXPORT SYMBOL("il_addHeader")
     EXPORT SYMBOL("il_getRequestSegmentByIndex")
-    EXPORT SYMBOL("il_emptyEndpoint")
     EXPORT SYMBOL("il_getPathParameter")
-    
+    EXPORT SYMBOL("il_emptyEndpoint")
     
 ENDPGMEXP
