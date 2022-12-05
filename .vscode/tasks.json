@@ -58,7 +58,7 @@
         // NOTE: OBJECT are overridden by the command line, so OBJECT will be "this" files 
         {
             "label": "Compile current example file",
-            "command": "ssh -t my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT LIBLIST=\"ILEASTIC\"'",
+            "command": "ssh -t my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT'",
             "type": "shell",
             "group": {
                 "kind": "build",

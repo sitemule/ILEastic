@@ -4,7 +4,7 @@
 // TESTPARMS - REST API Driver
 //
 // Start it:
-// SBMJOB CMD(CALL PGM(TESTPARMS)) JOB(TESTPARMS) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES) ccsid(37)
+// SBMJOB CMD(CALL PGM(TESTPARMS1)) JOB(TESTPARMS1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES) ccsid(37)
 //
 // @info: It requires your RPG code to be reentrant and compiled for
 // multithreading. Each client request is handled by a seperate thread.
