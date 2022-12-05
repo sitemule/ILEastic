@@ -22,7 +22,7 @@
                 "path": [ 
                     "${workspaceFolder}" ,
                     "${workspaceFolder}/headers",
-                    "~/Desktop/DKSRV133/QIBM/include"
+                    "~/Desktop/MY_IBM_I/QIBM/include"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""

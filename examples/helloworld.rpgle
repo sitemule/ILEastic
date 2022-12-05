@@ -8,7 +8,7 @@
 //
 // Start it:
 // ADDLIBLE ILEASTIC
-// SBMJOB CMD(CALL PGM(HELLOWORLD)) JOB(ILEASTIC1) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// SBMJOB CMD(CALL PGM(HELLOWORLD)) JOB(HELLOWORLD) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
 // http://my_ibm_i:44000
