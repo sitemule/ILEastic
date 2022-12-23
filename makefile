@@ -34,7 +34,7 @@ INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include' 'noxDB/headers'
 # CCFLAGS = C compiler parameter
 CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT(*NONE) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
 
-MODULES = $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI $(BIN_LIB)/teramem
+MODULES = $(BIN_LIB)/githash $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI $(BIN_LIB)/teramem
 	
 all: env noxDB ILEfastCGI compile bind
  
@@ -47,6 +47,11 @@ env:
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.rpgle') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QRPGLEREF.file/ileastic.mbr') MBROPT(*REPLACE)"
 
 compile: .PHONY
+	# get the git hash and put it into the version file so it becomes part of the copyright notice in the service program
+	-$(eval gitshort := $(shell git rev-parse --short HEAD))
+	-$(eval githash := $(shell git rev-parse --verify HEAD))
+	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > src/githash.c 
+
 	cd src && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 noxDB: .PHONY
