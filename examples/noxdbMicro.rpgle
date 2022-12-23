@@ -10,13 +10,13 @@
 // SBMJOB CMD(CALL PGM(NOXDBMICRO)) JOB(NOXDBMICRO) JOBQ(QSYSNOMAX)  ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
-// http://my_ibm_i:44001/getservicesinfo
-// http://my_ibm_i:44001/getservicesinfo?search=ptf
-// http://my_ibm_i:44001/getservicesinfo?search=obj
+// http://my_ibm_i:44005/getservicesinfo
+// http://my_ibm_i:44005/getservicesinfo?search=ptf
+// http://my_ibm_i:44005/getservicesinfo?search=obj
 // 
 // Other examples, that needs the demo database 
-// http://my_ibm_i:44001/getuserbyview
-// http://my_ibm_i:44001/getuserbyproc
+// http://my_ibm_i:44005/getuserbyview
+// http://my_ibm_i:44005/getuserbyproc
 //
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
@@ -38,7 +38,7 @@ ctl-opt main(main);
 dcl-proc main;
 
     dcl-ds config likeds(IL_CONFIG);
-    config.port = 44001; 
+    config.port = 44005; 
     config.host = '*ANY';
 
     // The request end point is an regular expression: 
@@ -87,7 +87,7 @@ dcl-proc getServicesInfo;
         1:                  // Position: Starting from row
         JSON_ALLROWS:       // Limit   : Number of rows to read - here take all
         JSON_META +         // Option  : Produce a result object with a "meta" object   
-        JSON_FIELDS +       // Option  : The "meta" object will contain column atributes 
+        //JSON_FIELDS +       // Option  : The "meta" object will contain column atributes 
         JSON_COLUMN_TEXT +  // Option  : the "meta" will also contain the extra text/label info
         JSON_CAMEL_CASE     // Option  : name of the data will be cammel cased
     );
