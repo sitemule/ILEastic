@@ -33,5 +33,5 @@ MODULES = stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList 
 	
 all: compile
 
-compile: $(MODULES)
+compile: $(MODULES) 
 

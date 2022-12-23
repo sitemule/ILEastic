@@ -2,4 +2,5 @@
 .fuse*
 mmap*
 examples/errorlist.txt
+src/githash.c
 **/node_modules
