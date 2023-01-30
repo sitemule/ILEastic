@@ -395,6 +395,7 @@ dcl-ds il_request qualified template;
     resourceSegments pointer;
     threadLocal      pointer;
     routing          pointer;
+    parameterValues  pointer dim(256);
     routeId          varchar(256);
 end-ds;
 
