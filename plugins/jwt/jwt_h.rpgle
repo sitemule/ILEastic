@@ -27,6 +27,9 @@
 // HMAC SHA256 algorithm for creating the token signature.
 ///
 dcl-c JWT_HS256 'HS256';
+dcl-c JWT_RS256 'RS256';
+dcl-c JWT_RS384 'RS256';
+dcl-c JWT_RS512 'RS512';
 
 ///
 // Template for JWT token.
@@ -40,7 +43,7 @@ dcl-s jwt_signKey_t varchar(1000) template;
 
 ///
 // Template for registered claims. The data structure needs to be created with
-// inz(*likeds). Default values mean that the claim will not be added to the 
+// inz(*likeds). Default values mean that the claim will not be added to the
 // token. Note: Fields are varchar and any space will be added to the token, use
 // %trimr if you are using char variables.
 ///
@@ -55,10 +58,23 @@ dcl-ds jwt_claims_t qualified template;
 end-ds;
 
 ///
+// Tempalte for Public/Private keys or authorization URI.
+dcl-ds jwt_keyOrUriDs_t qualified template;
+    kid         Char(50);
+    method      Char(5);  //KEY for public key 'or' PROC for authorization end-point
+    //We are binding key to a fixed alg to avoid bad actors using public key to symmetric
+    // encryption to get access. https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+    // This is not an implementation requirement, but we are placing this restriction for safety.
+    alg         Char(5);
+    key         Char(5000) ccsid(819); //Public key for Asymetric alg, key for Symetric alg
+    procPtr     pointer(*PROC);  // Call back proc for token validation. Caller will have to implement
+end-ds;
+
+///
 // Verify token
 //
 // Verifies the token validity. It also checks if it is expired if the token
-// contains an "exp" claim. The "exp" claim is expected to be a number 
+// contains an "exp" claim. The "exp" claim is expected to be a number
 // representing the seconds from the Unix Epoch UTC.
 //
 // @param Token
@@ -67,7 +83,9 @@ end-ds;
 ///
 dcl-pr jwt_verify ind extproc(*dclcase);
   token like(jwt_token_t) const ccsid(*utf8);
-  signKey like(jwt_signKey_t) const ccsid(*utf8);
+  //signKey like(jwt_signKey_t) const ccsid(*utf8);
+  keyOrUriDs likeDs(jwt_keyOrUriDs_t) const;
+  noCaching  Ind  Options(*NoPass : *Omit) const; // for future
 end-pr;
 
 ///
@@ -103,7 +121,7 @@ end-pr;
 //
 // @param Algorithm (HS256)
 // @param Payload
-// @param Signing key (it has to be of a valid length corresponding to the 
+// @param Signing key (it has to be of a valid length corresponding to the
 //        selected algorithm (HS256 => 256 key = char(32))
 // @param Registered claims
 // @return Signed token
