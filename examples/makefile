@@ -28,7 +28,8 @@ SHELL=/QOpenSys/usr/bin/qsh
 OUTPUT=*NONE
 RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR('./..')
 SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR(''./..'')
-FILTER=| grep '*RNF' | grep -v '*RNF7031' | sed  "s!*!$<: &!"
+FILTER=| grep '*RNF' | grep -v '*RNF7031' | grep -v '*RNF5409' | sed  "s!*!$<: &!"
+
 NOFILTER=>errorlist.txt
 OBJECT_DESCRIPTION=ILEastic Example Server
 
