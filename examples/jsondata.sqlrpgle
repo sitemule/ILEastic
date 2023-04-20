@@ -54,7 +54,8 @@ dcl-proc listCustomers;
         response likeds(il_response);
     end-pi;
 
-    dcl-s result SQLTYPE(CLOB:10000); // ccsid(*UTF8);
+    dcl-s result varchar(10000); // ccsid(*UTF8);
+    
     
     response.status = 200;
     response.contentType = 'application/json';
