@@ -1,20 +1,20 @@
 **FREE
 
 ///
-// Integration to noxDB - Note it requires the NOXDB installed
+// Demo the ExtJs web desktop 
 //
 //
 // Start it:
-// SBMJOB CMD(CALL PGM(STATICFILE)) JOB(STATICFILE) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// SBMJOB CMD(CALL PGM(DESKTOP)) JOB(DESKTOP) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
-// http://my_ibm_i:44012/index.html
+// http://my_ibm_i:44022/index.html
 //
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
 ///
     
-ctl-opt copyright('Sitemule.com  (C), 2018-2022');
+ctl-opt copyright('Sitemule.com  (C), 2023');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
 ctl-opt debug(*yes) bndDir('ILEASTIC');
 ctl-opt thread(*CONCURRENT);
@@ -30,7 +30,7 @@ ctl-opt main(main);
 dcl-proc main;
 
     dcl-ds config likeds(IL_CONFIG);
-    config.port = 44012; 
+    config.port = 44022; 
     config.host = '*ANY';
 
     il_listen (config : %paddr(serveStaticFiles));
@@ -54,13 +54,13 @@ dcl-proc serveStaticFiles;
     file = il_getRequestResource(request);
 
     // No resource then default to: index.html
-    if file = '/'; 
+    if file = '/';
         file = 'index.html';
     endif;
 
     // You can now concatenate the file to point to 
     // any place on the IFS where your web content are located. i.e.:
-    file = '/www/ext-6.5.0/build/examples/admin-dashboard/' + file;
+    file = '/www/ext-6.5.0/build/examples/classic/desktop/' + file;
     
     // Serve any static files from the IFS
     if (FILE_NOT_FOUND = il_serveStatic (response : file));
