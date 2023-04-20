@@ -10,7 +10,6 @@
 // @project ILEastic
 ///
 
-
 ctl-opt nomain thread(*concurrent);
 
 
@@ -33,33 +32,115 @@ end-pr;
 dcl-c UNIX_EPOCH_START z'1970-01-01-00.00.00.000000';
 dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
 
-dcl-s signKey like(jwt_signKey_t) static(*allthread) ccsid(*utf8);
+/////dcl-s signKey like(jwt_signKey_t) static(*allthread) ccsid(*utf8);
 
 
 dcl-proc jwt_verify export;
+//////  dcl-pi *n ind;
+//////    token like(jwt_token_t) const ccsid(*utf8);
+//////    signKey like(jwt_signKey_t) const ccsid(*utf8);
+//////  end-pi;
   dcl-pi *n ind;
     token like(jwt_token_t) const ccsid(*utf8);
-    signKey like(jwt_signKey_t) const ccsid(*utf8);
+    keyOrUriDs likeDs(jwt_keyOrUriDs_t) const;
+    noCaching  Ind  Options(*NoPass : *Omit) const; // for future
   end-pi;
+
+  dcl-pr jwtAuthorizeEP  Ind    ExtProc(procPtr);
+    token like(jwt_token_t) const ccsid(*utf8);
+  end-pr;
 
   dcl-s valid ind inz(*off);
   dcl-s serverSignedToken like(jwt_token_t) ccsid(*utf8);
   dcl-s header like(jwt_token_t) ccsid(*utf8);
   dcl-s payload like(jwt_token_t);
   dcl-s json pointer;
+  dcl-s procPtr    pointer(*PROC);
+  dcl-s data like(jwt_token_t) ccsid(*utf8);
+  dcl-s signatureTmp like(jwt_token_t) ccsid(*utf8);
+  dcl-s signature like(jwt_token_t) ccsid(*utf8);
+  dcl-s utfcomma  Char(1) inz('.') ccsid(*utf8);
+  dcl-s payloadPos   Packed(3 : 0);
+  dcl-s expOrNotAct  Ind Inz(*Off);
+  dcl-s disableCaching  Ind Inz(*Off);
 
-  header = jwt_decodeHeader(token);
-  payload = jwt_decodePayload(token);
-  
-  serverSignedToken = jwt_sign(jwt_HS256 : payload : signKey);
+  monitor;
 
-  if (token = serverSignedToken);
+    if %Parms >= %ParmNum(noCaching) And %Addr(noCaching) <> *Null;
+      disableCaching = noCaching; // Disable/Enable caching. Default value is caching is active
+    endIf;
+    header = jwt_decodeHeader(token);
+    payload = jwt_decodePayload(token);
     json = json_parseString(payload);
-    valid = (not isExpired(json)) and isActive(json);
+    expOrNotAct = (not isExpired(json)) and isActive(json);
     json_close(json);
-  endif;
 
-  return valid;
+    Select;
+     When Not(expOrNotAct);
+      // Do nothing. Encryption/signature validation is costly and time consuming business.
+      // If the token is expired, do not even bother to waste time on checking signature.
+
+     // Token caching implementation for faster response.
+  //   When Not(disableCaching) And expOrNotAct And foundInCache(token);
+  //    valid = *On;
+
+     When keyOrUriDs.alg = 'none';
+      //No digital signature or MAC performed.
+      // Care should be taken on what you expose to consumers who supply JWT with no Encryption done
+      // If your organization implementation prohibits alg:'none', return *Off here.
+
+     When keyOrUriDs.method = 'PROC';
+      procPtr = keyOrUriDs.procPtr;
+      valid = jwtAuthorizeEP(token);
+
+     When %subSt(keyOrUriDs.alg : 1 : 2) = 'HS';
+     // Symmetric key encryption
+      serverSignedToken = jwt_sign(jwt_HS256 : payload : keyOrUriDs.key);
+      if (token = serverSignedToken);
+        valid = *On;
+
+        //Store token into Cache for faster validation next time
+        //if Not(disableCaching)
+        //  pushToCache(token);
+        //endif
+      endif;
+
+     When %subSt(keyOrUriDs.alg : 1 : 2) = 'RS';
+     // Asymmetric key encryption
+      payloadPos = %ScanR(utfcomma : token);
+
+      // If no '.' found, then this is not a valid JWT
+      If payloadPos <> 0;
+        data = %SubSt(token : 1 : payloadPos - 1);
+        signatureTmp = %SubSt(token : payloadPos + 1);
+        signature = decodeBase64Url(signatureTmp); // This is done to cheat system to convert UTF to EBCDIC.
+        If valAsymmetricEncryption(data : signature : keyOrUriDs.key);
+          valid = *On;
+
+          //Store token into Cache for faster validation next time
+          //if Not(disableCaching)
+          //  pushToCache(token);
+          //endif
+        endif;
+
+      endif;
+
+     //When %subSt(keyOrUriDs.alg : 1 : 2) = 'ES';
+     // future - Elliptic Curve Digital Signature Algorithm
+
+    endsl;
+
+
+
+    return valid;
+
+  on-error;
+    // If the given token is with wrong strucutre, base64 will fail.
+    return *Off;
+
+  endmon;
+
+
 end-proc;
 
 
@@ -166,8 +247,8 @@ dcl-proc jwt_sign export;
   dcl-s base64Encoded like(jwt_token_t) ccsid(*utf8);
   dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
   dcl-s payload like(jwt_token_t) ccsid(*utf8);
-  
-  
+
+
   if (algorithm <> jwt_HS256);
     il_joblog('Unsupported algorithm %s' : algorithm);
     return *blank;
@@ -179,7 +260,7 @@ dcl-proc jwt_sign export;
   if (%parms() >= 4);
     payload = addClaims(payload : claims);
   endif;
-  
+
   base64Encoded = encodeBase64Url(payload);
   base64Encoded = %trimr(base64Encoded : paddingChar);
   headerPayload = encodeBase64Url(header) + '.' + base64Encoded;
@@ -228,53 +309,53 @@ dcl-proc addClaims;
   dcl-s value like(jwt_token_t);
   dcl-s uxts int(10);
   dcl-s changed ind inz(*off);
-  
+
   payload = %trimr(pPayload) + x'00';
-  
+
   json = json_parseString(%addr(payload : *DATA));
-  
+
   if (%len(claims.issuer) > 0);
     value = claims.issuer + x'00';
     json_setStr(json : 'iss' : %addr(value : *DATA));
     changed = *on;
   endif;
-  
+
   if (%len(claims.subject) > 0);
     value = claims.subject + x'00';
     json_setStr(json : 'sub' : %addr(value : *DATA));
     changed = *on;
   endif;
-  
+
   if (%len(claims.audience) > 0);
     value = claims.audience + x'00';
     json_setStr(json : 'aud' : %addr(value : *DATA));
     changed = *on;
   endif;
-  
+
   if (%len(claims.jwtId) > 0);
     value = claims.jwtId + x'00';
     json_setStr(json : 'jti' : %addr(value : *DATA));
     changed = *on;
   endif;
-  
+
   if (claims.expirationTime <> *loval);
     uxts = toUnixTimestamp(claims.expirationTime);
     json_setInt(json : 'exp' : uxts);
     changed = *on;
   endif;
-  
+
   if (claims.notBefore <> *loval);
     uxts = toUnixTimestamp(claims.notBefore);
     json_setInt(json : 'nbf' : uxts);
     changed = *on;
   endif;
-  
+
   if (claims.issuedAt <> *loval);
     uxts = toUnixTimestamp(claims.issuedAt);
     json_setInt(json : 'iat' : uxts);
     changed = *on;
   endif;
-  
+
   if (changed);
     payload = json_asJsonText(json);
     json_close(json);
@@ -300,7 +381,7 @@ dcl-proc jwt_isExpired export;
   json = json_parseString(payload);
   expired = isExpired(json);
   json_close(json);
-  
+
   return expired;
 end-proc;
 
@@ -401,11 +482,74 @@ dcl-proc toUnixTimestamp;
   dcl-s offsetMinutes int(10);
   dcl-s offsetSeconds float(8);
   dcl-s uxts int(10);
-  
+
   sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
-  
+
   uxts = %diff(ts : UNIX_EPOCH_START : *SECONDS) - %int(offsetSeconds);
-  
+
   return uxts;
 end-proc;
 
+dcl-proc valAsymmetricEncryption;
+  dcl-pi  *n Ind;
+    DatatoCheck   Char(8000) const ccsid(*utf8);       // original data
+    signature     char(4096) const ccsid(*utf8);       // fingerprInt to verify
+    key           varChar(4096)  const ccsid(*utf8);   // certificate content in DER format (PEM)
+  end-pi;
+
+  dcl-pr verifySignature ExtProc('Qc3VerifySignature');
+    signature      Char(4096) ccsid(*utf8) const; // fingerprInt
+    signatureLen   Int(10) const;
+    Data           Char(8000) ccsid(*utf8) const; // original data
+    Datalen        Int(10) const;
+    Dataformat     Char(8) const;    //DATA0100 = data directly
+    Algo           likeds(algoDS);   // encryption algo -> RSA
+    AlgoFormat     Char(8) const;    //ALGD0400 = key parameters
+    Key            likeds(pemDS);    // content of PEM certificate
+    KeyFormat      Char(8) const;    //KEYD0600 = use key from PEM
+    CSPcertificate Char(1) const;    // 1=Soft,2=hard(fill in DEVICE),0=Any
+    CSPDEVICE      Char(10) const;   // blank if no co-processor
+    ErrorCode      Char(16);
+  end-pr;
+
+  dcl-ds ErrCd Qualified;
+    bytesProv Int(10) inz(0); // or 64 to see MSGID
+    bytesAvail Int(10) inz(0);
+    MSGID Char(7);
+    filler Char(1);
+    data Char(48);
+  end-ds;
+  dcl-ds algoDS qualified;
+    cipher   Int(10) inz(50) ; //RSA
+    PKA      Char(1) inz('1'); //PKCS block 0 or 1, 3=ISO 9796-1
+    filler   Char(3) inz(x'000000');
+    // the token must indicate RS256 (RSA) and not HS256 (HMAC = symmetric)
+    hash     Int(10) inz(5); // 3=SHA256 5=SHA512
+  End-Ds;
+  dcl-ds pemDS qualified;
+    keylen Int(10);
+    filler Char(4) INZ(x'00000000');
+    key Char(4096) ccsid(819);
+  End-Ds;
+
+  dcl-s signatureLen Int(10); // could be 256 or 512
+  dcl-s DataLen Int(10);
+
+  pemDS.key = key;
+  pemDS.keylen = %len(pemDS.key);
+
+  signatureLen = %len(%trimr(signature));
+  dataLen = %len(%trimr(datatocheck));
+
+
+  // IBM Crypto API.
+  monitor;
+    // Qc3VerifySignature will send ESCAPE message if in case it fails
+    verifySignature( signature : signatureLen : DatatoCheck : dataLen : 'DATA0100' :
+                algoDS : 'ALGD0400' : pemds : 'KEYD0600' : '0' : ' ' : ErrCd);
+  on-error;
+    return *Off;
+  endmon;
+
+  return *On;
+end-proc;
