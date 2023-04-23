@@ -28,7 +28,7 @@
 ///
 dcl-c JWT_HS256 'HS256';
 dcl-c JWT_RS256 'RS256';
-dcl-c JWT_RS384 'RS256';
+dcl-c JWT_RS384 'RS384';
 dcl-c JWT_RS512 'RS512';
 
 ///
@@ -58,7 +58,8 @@ dcl-ds jwt_claims_t qualified template;
 end-ds;
 
 ///
-// Tempalte for Public/Private keys or authorization URI.
+// Template for Public/Private keys or authorization URI.
+///
 dcl-ds jwt_keyOrUriDs_t qualified template;
     kid         Char(50);
     method      Char(5);  //KEY for public key 'or' PROC for authorization end-point
