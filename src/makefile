@@ -9,7 +9,7 @@
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
 BIN_LIB=ILEASTIC
-TARGET_RLS=V7R1M0
+TARGET_RLS=V7R2M0
 
 
 #
