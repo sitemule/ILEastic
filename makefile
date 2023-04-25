@@ -47,9 +47,11 @@ env:
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.rpgle') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QRPGLEREF.file/ileastic.mbr') MBROPT(*REPLACE)"
 
 compile: .PHONY
-	# get the git hash and put it into the version file so it becomes part of the copyright notice in the service program
+# get the git hash and put it into the version file so it becomes part of the copyright notice in the service program
 	-$(eval gitshort := $(shell git rev-parse --short HEAD))
 	-$(eval githash := $(shell git rev-parse --verify HEAD))
+	-touch src/githash.c 
+	-setccsid 1252 src/githash.c
 	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > src/githash.c 
 
 	cd src && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
