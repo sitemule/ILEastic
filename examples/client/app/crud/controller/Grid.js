@@ -106,10 +106,8 @@ Ext.define("Mvvm.crud.controller.Grid", {
 			o_json.row[i_record.idProperty] = 0;
 		}
 
-		// Ext.apply(o_json, i_grid.params.routes.update);
-
 		Ext.Ajax.request({
-			url: i_grid.url + '/' + i_grid.params.routes.update,
+			url: i_grid.url + '/' + i_grid.params.routes.upsert,
 			method: "POST",
 			jsonData: o_json,
 			success: function (response, request) {

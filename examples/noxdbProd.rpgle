@@ -1,8 +1,8 @@
 **FREE
 
 ///
-// Integration to noxDB - Note it requires the NOXDB installed
-// You need to run the SQL scripts in "demo.sql" by ACS to have the test data
+// Integration to noxDB - Note it requires the NOXDB installed - it comes when oyu build ILEastic 
+// You need to run the SQL scripts in "/examples/sql/ilproducts.sql" by ACS to have the test data
 //
 //
 // Start it:
@@ -18,12 +18,11 @@
 //        multithreading. Each client request is handled by a seperate thread.
 ///
    
-ctl-opt copyright('Sitemule.com  (C), 2018-2022');
+ctl-opt copyright('Sitemule.com  (C), 2018-2023');
 ctl-opt decEdit('0,') datEdit(*YMD.) ;
 ctl-opt debug(*yes) bndDir('ILEASTIC':'NOXDB');
 ctl-opt thread(*CONCURRENT);
 ctl-opt main(main);
-
 
 /include ./headers/ILEastic.rpgle
 /include ./noxdb/headers/jsonParser.rpgle
@@ -39,7 +38,7 @@ dcl-proc main;
 
     il_addRoute(config : %paddr(product_meta)     : IL_GET : 'router/product/meta');
     il_addRoute(config : %paddr(product_find)     : IL_ANY : 'router/product/find');
-    il_addRoute(config : %paddr(product_update)   : IL_ANY : 'router/product/update');
+    il_addRoute(config : %paddr(product_upsert)   : IL_ANY : 'router/product/upsert');
     il_addRoute(config : %paddr(product_delete)   : IL_ANY : 'router/product/delete');
     il_addRoute(config : %paddr(serveStaticFiles) : IL_ANY : '.*');
     il_listen(config);
@@ -93,8 +92,9 @@ dcl-proc product_meta;
 	
     pMeta = json_sqlGetMeta  ('-
         select * - 
-        from microdemo.ilProducts -
-    ');
+        from microdemo.ilProducts'
+        :JSON_COLUMN_TEXT    // Option  : the "meta" will also contain the extra text/label info
+    );
 
     // Add which column is the primary key
     itColumns = json_setIterator(pMeta);
@@ -103,7 +103,6 @@ dcl-proc product_meta;
             json_setBool (itColumns.this : 'isIdColumn' : *ON);
         endif;
     enddo;
-
 
     // Use the stream to input data from noxdb and output it to ILEastic 
     il_responseWriteStream(response : json_stream( pMeta));
@@ -121,13 +120,11 @@ dcl-proc product_find;
 
     dcl-s  pResultSet     	pointer;
     dcl-s  pInput       	pointer;
-    dcl-s  payload          varchar(4096);
     dcl-s  sqlStmt        	varchar(4096);
     dcl-s  start  			int(10);
     dcl-s  limit  			int(10) inz(-1);
 
-    payload = il_getRequestContent (request );
-    pInput = json_parseString( payload); 
+    pInput =  request_to_json (request);
 
     sqlStmt = ('+
         select * +
@@ -214,13 +211,12 @@ dcl-proc addOrderByClause;
         sqlStmt += ' order by ' + sort;
     endif; 
 
-
 end-proc;
 
 //  -------------------------------------------------------------------- 
-//  update row
+//  upsert is update or insert if no "id" is provided
 //  -------------------------------------------------------------------- 
-dcl-proc product_update ;
+dcl-proc product_upsert ;
 
     dcl-pi *n;
         request  likeds(IL_REQUEST);
@@ -231,12 +227,9 @@ dcl-proc product_update ;
     dcl-s  err			ind;
     dcl-s  pOutput		pointer;
     dcl-s  pRow			pointer;
-    dcl-s  payload      varchar(4096);
     dcl-s  id           int(10);
 
-
-    payload = il_getRequestContent (request );
-    pInput = json_parseString( payload); 
+    pInput =  request_to_json (request);
 
     // asume ok;
     pOutput = json_successTrue();
@@ -244,10 +237,9 @@ dcl-proc product_update ;
     // Find the sql rodata within my input
     pRow = json_locate (pInput : 'row');
 
-    ensureKey (pRow);
     id =  json_getInt  ( pRow : 'id') ;
 
-    // update using object as the row 
+    //  upsert ( update or insert if no "id" is provided
     err = json_sqlUpsert (                                                        
         'microdemo.ilProducts'            // table name                                     
         :pRow                  	        // row in object form {a:1,b:2} etc..             
@@ -266,33 +258,6 @@ dcl-proc product_update ;
 
 
 end-proc;
-// ------------------------------------------------------------------- 
-// if the key is null, it is a insert operation
-// then find the next key 
-// ------------------------------------------------------------------- 
-dcl-proc ensureKey;
-
-    dcl-pi *n;
-        pInput 			pointer value;
-    end-pi;
-
-    dcl-s pTemp			pointer;
-
-    // If no key is supplied, then create a new one, in steps +10 
-    if json_getint ( pInput : 'id') = 0;
-        pTemp = json_sqlResultRow ('-  
-            select max(id) + 10  as id -
-            from microdemo.ilProducts -
-        ');
-        json_copyvalue (pInput: 'id' : pTemp: 'id');
-        json_delete (pTemp);
-    endif;
-
-    // the ExtJs default "ID" does not make sense here;
-    //json_delete(json_locate(pInput:'id'));
-
-end-proc;
-
 //  -------------------------------------------------------------------- 
 //  delete row
 //  -------------------------------------------------------------------- 
@@ -306,12 +271,9 @@ dcl-proc product_delete;
     dcl-s  err			ind;
     dcl-s  pOutput		pointer;
     dcl-s  pInput       pointer;
-    dcl-s  id      int(10);
-    dcl-s  payload      varchar(4096);
+    dcl-s  id           int(10);
 
-    payload = il_getRequestContent (request );
-    pInput = json_parseString( payload); 
-
+    pInput =  request_to_json (request);
 
     // asume ok;
     pOutput = json_successTrue();
@@ -334,10 +296,8 @@ dcl-proc product_delete;
 
 
 end-proc;
-
-
 //  -------------------------------------------------------------------- 
-//  escape quotes so it comes in pars 
+//  escape quotes so it comes in pairs 
 //  -------------------------------------------------------------------- 
 dcl-proc strQuot ;
 
@@ -346,5 +306,21 @@ dcl-proc strQuot ;
     end-pi;
 
     return '''' + %scanrpl  ('''':'''''': input) + ''''; 
+
+end-proc;
+
+//  -------------------------------------------------------------------- 
+//  parse the request payload and returns it as JSON 
+//  -------------------------------------------------------------------- 
+dcl-proc request_to_json;
+
+    dcl-pi *n pointer;
+        request  likeds(IL_REQUEST);
+    end-pi;
+
+    dcl-s  payload      varchar(32000);
+
+    payload = il_getRequestContent (request );
+    return json_parseString( payload); 
 
 end-proc;

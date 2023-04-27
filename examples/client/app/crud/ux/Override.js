@@ -793,7 +793,7 @@ Ext.override(Ext.view.DragZone, {
 		data.records = selectionModel.getSelection();
 
 		Ext.fly(me.ddel).setHtml(me.getDragText());
-		me.proxy.update(me.ddel);
+		me.proxy.upsert(me.ddel);
 		me.onStartDrag(x, y);
 		return true;
 	},

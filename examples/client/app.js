@@ -15,7 +15,7 @@ Ext.application({
 			meta     : "meta",
  			getRows  : "find",
 			delete   : "delete",
-			update   : "update"
+			upsert   : "upsert"
 		}
 	},
 	viewport: null,
