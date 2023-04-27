@@ -36,17 +36,19 @@ dcl-proc main;
     config.port = 44025; 
     config.host = '*ANY';
 
-    il_addRoute(config : %paddr(product_meta)     : IL_GET : 'router/product/meta');
-    il_addRoute(config : %paddr(product_find)     : IL_ANY : 'router/product/find');
-    il_addRoute(config : %paddr(product_upsert)   : IL_ANY : 'router/product/upsert');
-    il_addRoute(config : %paddr(product_delete)   : IL_ANY : 'router/product/delete');
-    il_addRoute(config : %paddr(serveStaticFiles) : IL_ANY : '.*');
+    il_joblog('Product service listen on port: ' +  %char(config.port));
+
+    il_addRoute(config : %paddr(product_meta)     : IL_GET  : 'router/product/meta');
+    il_addRoute(config : %paddr(product_find)     : IL_POST : 'router/product/find');
+    il_addRoute(config : %paddr(product_upsert)   : IL_POST : 'router/product/upsert');
+    il_addRoute(config : %paddr(product_delete)   : IL_POST : 'router/product/delete');
+    il_addRoute(config : %paddr(serveStaticFiles) : IL_GET  : '.*');
     il_listen(config);
  
 end-proc;
 
 // -----------------------------------------------------------------------------
-// Servlet callback implementation
+// Endpoints for the service layer
 // -----------------------------------------------------------------------------     
 dcl-proc serveStaticFiles;
 
