@@ -954,31 +954,28 @@ void setShutdownHandler (void)
     sigaction( SIGTERM, &sigact, &osigact );
 }
 /* ------------------------------------------------------------- *\
-
     Load this from environment if set, overidding values;
-
     VARCHAR64   interface;
     int         port;
     PROTOCOL    protocol;
     VARCHAR256  certificateFile;
     VARCHAR64   certificatePassword;
-/* ------------------------------------------------------------- */
-
+\* ------------------------------------------------------------- */
 static void loadConfigFromEnvironment (PCONFIG pConfig)
 {
     PUCHAR pEnvVal;
 
-    pEnvVal = envvar("I_HOST");
+    pEnvVal = getenv("I_HOST");
     if (pEnvVal) {
-        str2vc (pConfig->interface , pEnvVal );
+        str2vc (&pConfig->interface , pEnvVal );
     } 
 
-    pEnvVal = envvar("I_PORT");
+    pEnvVal = getenv("I_PORT");
     if (pEnvVal) {
-        pConfig->port = atoi(*pEnvVal);
+        pConfig->port = atoi(pEnvVal);
     } 
 
-    pEnvVal = envvar("I_PROTOCOL");
+    pEnvVal = getenv("I_PROTOCOL");
     if (pEnvVal) {
         if        (0==strcmp(pEnvVal, "HTTP")) {
             pConfig->protocol = PROT_HTTP;
@@ -991,19 +988,17 @@ static void loadConfigFromEnvironment (PCONFIG pConfig)
         }
     }
 
-    pEnvVal = envvar("I_CERTIFICATE");
+    pEnvVal = getenv("I_CERTIFICATE");
     if (pEnvVal) {
-        str2vc (pConfig->certificateFile , pEnvVal );
+        str2vc (&pConfig->certificateFile , pEnvVal );
     } 
 
-    pEnvVal = envvar("I_CERTIFICATE_PASSWORD");
+    pEnvVal = getenv("I_CERTIFICATE_PASSWORD");
     if (pEnvVal) {
-        str2vc (pConfig->certificatePassword , pEnvVal );
+        str2vc (&pConfig->certificatePassword , pEnvVal );
     } 
-
 
 }
-
 /* ------------------------------------------------------------- */
 void il_listen (PCONFIG pConfig, SERVLET servlet)
 {
