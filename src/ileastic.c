@@ -953,6 +953,57 @@ void setShutdownHandler (void)
     sigact.sa_handler = catcher;
     sigaction( SIGTERM, &sigact, &osigact );
 }
+/* ------------------------------------------------------------- *\
+
+    Load this from environment if set, overidding values;
+
+    VARCHAR64   interface;
+    int         port;
+    PROTOCOL    protocol;
+    VARCHAR256  certificateFile;
+    VARCHAR64   certificatePassword;
+/* ------------------------------------------------------------- */
+
+static void loadConfigFromEnvironment (PCONFIG pConfig)
+{
+    PUCHAR pEnvVal;
+
+    pEnvVal = envvar("I_HOST");
+    if (pEnvVal) {
+        str2vc (pConfig->interface , pEnvVal );
+    } 
+
+    pEnvVal = envvar("I_PORT");
+    if (pEnvVal) {
+        pConfig->port = atoi(*pEnvVal);
+    } 
+
+    pEnvVal = envvar("I_PROTOCOL");
+    if (pEnvVal) {
+        if        (0==strcmp(pEnvVal, "HTTP")) {
+            pConfig->protocol = PROT_HTTP;
+        } else if (0==strcmp(pEnvVal, "HTTPS")) {
+            pConfig->protocol = PROT_HTTPS;
+        } else if (0==strcmp(pEnvVal, "FASTCGI")) {
+            pConfig->protocol = PROT_FASTCGI;
+        } else if (0==strcmp(pEnvVal, "SECFASTCGI")) {
+            pConfig->protocol = PROT_SECFASTCGI;
+        }
+    }
+
+    pEnvVal = envvar("I_CERTIFICATE");
+    if (pEnvVal) {
+        str2vc (pConfig->certificateFile , pEnvVal );
+    } 
+
+    pEnvVal = envvar("I_CERTIFICATE_PASSWORD");
+    if (pEnvVal) {
+        str2vc (pConfig->certificatePassword , pEnvVal );
+    } 
+
+
+}
+
 /* ------------------------------------------------------------- */
 void il_listen (PCONFIG pConfig, SERVLET servlet)
 {
@@ -961,6 +1012,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     pthread_attr_t attr;
     pthread_t  pSchedulerThread;
     int rc;
+
+    loadConfigFromEnvironment ( pConfig);
 
     rc = pthread_attr_init(&attr);
     if (rc == -1) {
