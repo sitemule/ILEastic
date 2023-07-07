@@ -965,7 +965,7 @@ static void loadConfigFromEnvironment (PCONFIG pConfig)
 {
     PUCHAR pEnvVal;
 
-    pEnvVal = getenv("I_HOST");
+    pEnvVal = getenv("I_INTERFACE");
     if (pEnvVal) {
         str2vc (&pConfig->interface , pEnvVal );
     } 

@@ -54,6 +54,8 @@ dcl-proc myservlet;
     
     dcl-s value char(10);
     dcl-s client int(10);
+
+    j = 123;
     
     // Get the client id from the query string. It should have been passed like
     // this: http://my_ibm_i:44001?client=123
