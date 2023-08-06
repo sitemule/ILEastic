@@ -409,6 +409,9 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     routing.contentReg = NULL;
     routing.servlet    = servlet;
     routing.routeType  = pParms->OpDescList->NbrOfParms >= 3 ? routeType : IL_ANY;
+    routing.routeId.String[0] = '\0';
+    routing.routeId.Length = 0;
+    
     if (pParms->OpDescList->NbrOfParms >= 6) {
         routing.routeId.Length = routeId->Length <= 256 ? routeId->Length : 256;
         memcpy(routing.routeId.String, routeId->String, routing.routeId.Length);
