@@ -25,12 +25,12 @@ SHELL=/QOpenSys/usr/bin/qsh
 # to compile a single file and get erros to the editor
 # User-defined part end
 #-------------------------------------------------------------------------------
-OUTPUT=*NONE
+OUTPUT=*print
 RCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR('./..')
 SQLRPGCFLAGS=OPTION(*NOUNREF) DBGVIEW(*LIST)  OUTPUT($(OUTPUT)) INCDIR(''./..'')
 FILTER=| grep '*RNF' | grep -v '*RNF7031' | grep -v '*RNF5409' | sed  "s!*!$<: &!"
 
-NOFILTER=>errorlist.txt
+__FILTER=>errorlist.txt
 OBJECT_DESCRIPTION=ILEastic Example Server
 
 .SUFFIXES: .rpgle .sqlrpgle

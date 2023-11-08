@@ -1,0 +1,49 @@
+**FREE
+/if defined (OPENAPI)
+/eof
+/endif
+
+/define OPENAPI
+
+///
+// ILEastic : OPENAPI dynamic load of programs and service programs procedure
+//
+// This service program offers procedures for adding routs to programs and service programs
+// compiled with  Ctl-Opt PGMINFO(*PCML:*MODULE);
+//
+// As an extra feature it also provide a endpoint for openAPI ( swagger) for 
+// endpoints loaded this way
+//
+// @author Niels Liisberg
+// @date   05.11.2023
+// @project ILEastic
+//
+// @rev 05.11.2023  Niels Liisberg
+//      Initial commit
+///
+
+
+
+///
+// Add servlet to server
+//
+// A servlet is added to the server with the passed routing information.
+//
+// @param Configuration
+// @param library name kwhere program exists
+// @param program name. Compiled with: Ctl-Opt PGMINFO(*PCML:*MODULE);
+// @param HTTP Method (multiple methods can be specified like this:
+//        IL_GET + IL_POST, default: IL_ANY)
+// @param Path (default: / )
+// @param Content type (default: application/json)
+// @param Route Id
+///
+dcl-pr il_addProgramRoute extproc(*CWIDEN:'il_addProgramRoute');
+    config       likeds(il_config);
+    library      char(10) const ccsid(37);
+    program      char(10) const ccsid(37);
+    httpMethods  int(5) value options(*nopass);
+    route        varchar(1024) const options(*omit : *nopass) ccsid(37);
+    contentType  varchar(1024) const options(*omit : *nopass) ccsid(37);
+    routeId      varchar(256) const options(*nopass);
+end-pr;

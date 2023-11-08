@@ -78,6 +78,28 @@
                     "message": 4
                 }
             }
-        }
+        },{
+            "label": "Compile openAPI plugin ",
+            "command": "ssh my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/plugins/openAPI/;gmake all'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "owner": "c",
+                "fileLocation": [ "relative","${relativeFileDirname}"],
+                "pattern": {
+                    // addpgmrte.c, 72.65: CZM0276(30) Syntax error: possible missing ')'?
+                    "regexp": "^(.*), (\\d+).(\\d+): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    // "severity": 4,
+                    "message": 4
+                }
+            }
+        },
+
     ]
 }

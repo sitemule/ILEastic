@@ -42,11 +42,13 @@ typedef  struct _SLISTKEYVAL {
 } SLISTKEYVAL, * PSLISTKEYVAL;
 
 void sList_lookupLVPC (PLVARCHAR pRetVal , PSLIST pSlist , PLVARCHAR key);
+void sList_tailLVPC (PLVARCHAR pRetVal , PSLIST pSlist );
 PSLISTNODE sList_pushLVPC (PSLIST pSlist , PLVARPUCHAR key , PLVARPUCHAR value);
 VOID sList_free (PSLIST pSlist);
 PSLISTNODE sList_push (PSLIST pSlist , LONG len , PVOID data, LGL head);
 PSLIST sList_new (void);
 LGL sList_foreach ( PSLISTITERATOR pIterator);
 SLISTITERATOR sList_setIterator( PSLIST pSlist);
+
 #endif
 

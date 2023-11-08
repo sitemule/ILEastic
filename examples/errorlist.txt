@@ -1,0 +1,1590 @@
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      1
+  Command  . . . . . . . . . . . . :   CRTBNDRPG
+    Issued by  . . . . . . . . . . :     NLI
+  Program  . . . . . . . . . . . . :   SWAGROUTE
+    Library  . . . . . . . . . . . :     ILEASTIC
+  Text 'description' . . . . . . . :   ILEastic Example Server
+  Source stream file   . . . . . . :   swagroute.rpgle
+    CCSID  . . . . . . . . . . . . :     1252
+  Target CCSID . . . . . . . . . . :   *SRC (500)
+  Text 'description' . . . . . . . :
+  Last Change  . . . . . . . . . . :   06-11-23  23:09:02
+  Generation severity level  . . . :   10
+  Default activation group . . . . :   *YES
+  Compiler options . . . . . . . . :   *XREF      *GEN       *NOSECLVL  *SHOWCPY
+                                       *EXPDDS    *EXT       *NOSHOWSKP *NOSRCSTMT
+                                       *DEBUGIO   *NOUNREF   *NOEVENTF
+  Debugging views  . . . . . . . . :   *LIST
+  Debug encryption key . . . . . . :   *NONE
+  Output . . . . . . . . . . . . . :   *PRINT
+  Optimization level . . . . . . . :   *NONE
+  Source listing indentation . . . :   *NONE
+  Type conversion options  . . . . :   *NONE
+  Sort sequence  . . . . . . . . . :   *HEX
+  Language identifier  . . . . . . :   *JOBRUN
+  Replace program  . . . . . . . . :   *YES
+  User profile . . . . . . . . . . :   *USER
+  Authority  . . . . . . . . . . . :   *LIBCRTAUT
+  Truncate numeric . . . . . . . . :   *YES
+  Fix numeric  . . . . . . . . . . :   *NONE
+  Target release . . . . . . . . . :   *CURRENT
+  Allow null values  . . . . . . . :   *NO
+  Define condition names . . . . . :   *NONE
+  Enable performance collection  . :   *PEP
+  Profiling data . . . . . . . . . :   *NOCOL
+  Licensed Internal Code options . :
+  Generate program interface . . . :   *NO
+  Include directory  . . . . . . . :   ./..
+  Preprocessor options . . . . . . :   *NONE
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      2
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+                          S o u r c e   L i s t i n g
+     1 **FREE                                                                                                               000001
+     2                                                                                                                      000002
+     3 ///                                                                                                                  000003
+     4 // Routing to a program adding openAPI ( swagger)                                                                    000004
+     5 //                                                                                                                   000005
+     6 // This example shows how to add multiple end points with differnt URLs.                                             000006
+     7 //                                                                                                                   000007
+     8 //                                                                                                                   000008
+     9 // Start it:                                                                                                         000009
+    10 // SBMJOB CMD(CALL PGM(SWAGROUTE)) JOB(SWAGROUTE) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)                                    000010
+    11 //                                                                                                                   000011
+    12 // The web service can be tested with the browser by entering the following URL:                                     000012
+    13 // http://my_ibm_i:44045/hello                                                                                       000013
+    14 //                                                                                                                   000014
+    15 // ÿinfo: It requires your RPG code to be reentrant and compiled for                                                 000015
+    16 //        multithreading. Each client request is handled by a seperate thread.                                       000016
+    17 ///                                                                                                                  000017
+    18                                                                                                                      000018
+    19 ctl-opt copyright('Sitemule.com  (C), 2023');                                                                        000019
+    20 ctl-opt decEdit('0,') datEdit(*YMD.) main(main);                                                                     000020
+    21 ctl-opt debug(*yes) bndDir('ILEASTIC':'OPENAPI');                                                                    000021
+    22 ctl-opt thread(*CONCURRENT);                                                                                         000022
+    23                                                                                                                      000023
+    24 /include ./headers/ileastic.rpgle                                                                                    000024
+Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
+Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
+        *--------------------------------------------------------------------------------------------*
+        * RPG member name  . . . . . :  ileastic.+                                                   *                     1
+        * External name  . . . . . . :  ./.././headers/ileastic.rpgle                                *                     1
+        * Last change  . . . . . . . :  31-10-23  14:15:30                                           *                     1
+        *--------------------------------------------------------------------------------------------*
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+    25+**FREE                                                                                                              1000001
+    26+                                                                                                                    1000002
+    27+/if defined (ILEASTIC)                                                                                              1000003
+            LINES EXCLUDED: 1
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      3
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+    28+/endif                                                                                                              1000005
+    29+                                                                                                                    1000006
+    30+/define ILEASTIC                                                                                                    1000007
+    31+                                                                                                                    1000008
+    32+///                                                                                                                 1000009
+    33+// ILEastic - Embedded application server for ILE on IBM i                                                          1000010
+    34+//                                                                                                                  1000011
+    35+// It is a self contained web application server for the ILE environment on                                         1000012
+    36+// IBM i for implementing microservices alike applications.                                                         1000013
+    37+// <p>                                                                                                              1000014
+    38+// ILEastic is a service program that provides a simple, blazing fast                                               1000015
+    39+// programmable HTTP server for your application so you can easily plug your RPG                                    1000016
+    40+// code into a service infrastructure or make simple web applications without                                       1000017
+    41+// the need of any third party webserver products.                                                                  1000018
+    42+//                                                                                                                  1000019
+    43+// ÿauthor Niels Liisberg                                                                                           1000020
+    44+// ÿdate 27.08.2018                                                                                                 1000021
+    45+// ÿproject ILEastic                                                                                                1000022
+    46+// ÿlink https://github.com/sitemule/ILEastic Project page                                                          1000023
+    47+// ÿversion 1.1.3                                                                                                   1000024
+    48+//                                                                                                                  1000025
+    49+// ÿinfo Source for HTTP status documentation is the Mozilla developer website                                      1000026
+    50+//       at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status .                                              1000027
+    51+///                                                                                                                 1000028
+    52+                                                                                                                    1000029
+    53+                                                                                                                    1000030
+    54+///                                                                                                                 1000031
+    55+// Template for UTF8 varchars.                                                                                      1000032
+    56+///                                                                                                                 1000033
+        *--------------------------------------------------------------------*
+        * Compiler Options in Effect:                                        *
+        *--------------------------------------------------------------------*
+        *  Text 'description' . . . . . . . :                                *
+        *                 ILEastic Example Server                            *
+        *  Generation severity level  . . . :   10                           *
+        *  Default activation group . . . . :   *NO                          *
+        *  Compiler options . . . . . . . . :   *XREF      *GEN              *
+        *                                       *NOSECLVL  *SHOWCPY          *
+        *                                       *EXPDDS    *EXT              *
+        *                                       *NOSHOWSKP *NOSRCSTMT        *
+        *                                       *DEBUGIO   *NOUNREF          *
+        *                                       *NOEVENTF                    *
+        *  Optimization level . . . . . . . :   *NONE                        *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      4
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+        *  Source listing indentation . . . :   *NONE                        *
+        *  Type conversion options  . . . . :   *NONE                        *
+        *  Sort sequence  . . . . . . . . . :   *HEX                         *
+        *  Language identifier  . . . . . . :   *JOBRUN                      *
+        *  User profile . . . . . . . . . . :   *USER                        *
+        *  Authority  . . . . . . . . . . . :   *LIBCRTAUT                   *
+        *  Truncate numeric . . . . . . . . :   *YES                         *
+        *  Fix numeric  . . . . . . . . . . :   *NONE                        *
+        *  Allow null values  . . . . . . . :   *NO                          *
+        *  Storage model . . .  . . . . . . :   *SNGLVL                      *
+        *  Binding directory from Command . :   *NONE                        *
+        *  Binding directory from Source  . :   ILEASTIC     OPENAPI         *
+        *    Library  . . . . . . . . . . . :     *LIBL        *LIBL         *
+        *  Activation group . . . . . . . . :   *STGMDL                      *
+        *  Enable performance collection  . :   *PEP                         *
+        *  Profiling data . . . . . . . . . :   *NOCOL                       *
+        *  Generate program interface . . . :   *NO                          *
+        *  REQUIRE PROTOTYPE FOR EXPORT . . :   *NO                          *
+        *--------------------------------------------------------------------*
+    57+dcl-s IL_LONGUTF8VARCHAR varchar(524284:4) ccsid(*utf8) template;                                                   1000034
+    58+                                                                                                                    1000035
+    59+///                                                                                                                 1000036
+    60+// Variable length string                                                                                           1000037
+    61+//                                                                                                                  1000038
+    62+// This data structure holds a string with variable length.                                                         1000039
+    63+// Note - it only occupies as much data as required only with the length and pointer as overhead.                   1000040
+    64+///                                                                                                                 1000041
+    65+dcl-ds il_varchar qualified template;                                                                               1000042
+    66+    length  uns(10);                                                                                                1000043
+    67+    string  pointer;                                                                                                1000044
+    68+end-ds;                                                                                                             1000045
+    69+                                                                                                                    1000046
+    70+                                                                                                                    1000047
+    71+///                                                                                                                 1000048
+    72+// Protocol plain HTTP                                                                                              1000049
+    73+///                                                                                                                 1000050
+    74+dcl-c IL_HTTP       0;                                                                                              1000051
+    75+                                                                                                                    1000052
+    76+///                                                                                                                 1000053
+    77+// Protocol HTTPS (Secure HTTP: Certificate and certificate password required)                                      1000054
+    78+///                                                                                                                 1000055
+    79+dcl-c IL_HTTPS      1;                                                                                              1000056
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      5
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+    80+                                                                                                                    1000057
+    81+///                                                                                                                 1000058
+    82+// Protocol FastCGI (For application plugin to NGINX or APACHE)                                                     1000059
+    83+///                                                                                                                 1000060
+    84+dcl-c IL_FASTCGI    2;                                                                                              1000061
+    85+                                                                                                                    1000062
+    86+///                                                                                                                 1000063
+    87+// Protocol FastCGI secure (For application plugin to NGINX or APACHE.Certificate and certificate pa                1000064
+ ...   ssword required)
+    88+///                                                                                                                 1000065
+    89+dcl-c IL_SECFASTCGI 3;                                                                                              1000066
+    90+                                                                                                                    1000067
+    91+///                                                                                                                 1000068
+    92+// The request has succeeded. The meaning of the success depends on the HTTP method:                                1000069
+    93+// <ul>                                                                                                             1000070
+    94+//   <li>GET: The resource has been fetched and is transmitted in the message body.</li>                            1000071
+    95+//   <li>HEAD: The entity headers are in the message body.</li>                                                     1000072
+    96+//   <li>PUT or POST: The resource describing the result of the action is transmitted in the message                1000073
+ ...    body.</li>
+    97+//   <li>TRACE: The message body contains the request message as received by the server.</li>                       1000074
+    98+// </ul>                                                                                                            1000075
+    99+///                                                                                                                 1000076
+   100+dcl-c IL_HTTP_OK 200;                                                                                               1000077
+   101+///                                                                                                                 1000078
+   102+// The request has succeeded and a new resource has been created as a result.                                       1000079
+   103+// This is typically the response sent after POST requests, or some PUT requests.                                   1000080
+   104+///                                                                                                                 1000081
+   105+dcl-c IL_HTTP_CREATED 201;                                                                                          1000082
+   106+///                                                                                                                 1000083
+   107+// The request has been received but not yet acted upon. It is noncommittal,                                        1000084
+   108+// since there is no way in HTTP to later send an asynchronous response indicating                                  1000085
+   109+// the outcome of the request. It is intended for cases where another process or                                    1000086
+   110+// server handles the request, or for batch processing.                                                             1000087
+   111+///                                                                                                                 1000088
+   112+dcl-c IL_HTTP_ACCEPTED 202;                                                                                         1000089
+   113+///                                                                                                                 1000090
+   114+// This response code means the returned meta-information is not exactly the same                                   1000091
+   115+// as is available from the origin server, but is collected from a local or a                                       1000092
+   116+// third-party copy. This is mostly used for mirrors or backups of another resource.                                1000093
+   117+// Except for that specific case, the "200 OK" response is preferred to this status.                                1000094
+   118+///                                                                                                                 1000095
+   119+dcl-c IL_HTTP_NON_AUTHORITIVE_INFO 203;                                                                             1000096
+   120+///                                                                                                                 1000097
+   121+// There is no content to send for this request, but the headers may be useful.                                     1000098
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      6
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   122+// The user-agent may update its cached headers for this resource with the new ones.                                1000099
+   123+///                                                                                                                 1000100
+   124+dcl-c IL_HTTP_NO_CONTENT 204;                                                                                       1000101
+   125+///                                                                                                                 1000102
+   126+// Tells the user-agent to reset the document which sent this request.                                              1000103
+   127+///                                                                                                                 1000104
+   128+dcl-c IL_HTTP_RESET_CONTENT 205;                                                                                    1000105
+   129+///                                                                                                                 1000106
+   130+// This response code is used when the Range header is sent from the client to                                      1000107
+   131+// request only part of a resource.                                                                                 1000108
+   132+///                                                                                                                 1000109
+   133+dcl-c IL_HTTP_PARTIAL_CONTENT 206;                                                                                  1000110
+   134+///                                                                                                                 1000111
+   135+// Conveys information about multiple resources, for situations where multiple                                      1000112
+   136+// status codes might be appropriate.                                                                               1000113
+   137+///                                                                                                                 1000114
+   138+dcl-c IL_HTTP_MULTI_STATUS 207;                                                                                     1000115
+   139+///                                                                                                                 1000116
+   140+// Used inside a &lt;dav:propstat&gt; response element to avoid repeatedly enumerating                              1000117
+   141+// the internal members of multiple bindings to the same collection.                                                1000118
+   142+///                                                                                                                 1000119
+   143+dcl-c IL_HTTP_ALREADY_REPORTED 208;                                                                                 1000120
+   144+///                                                                                                                 1000121
+   145+// The server has fulfilled a GET request for the resource, and the response is                                     1000122
+   146+// a representation of the result of one or more instance-manipulations applied                                     1000123
+   147+// to the current instance.                                                                                         1000124
+   148+///                                                                                                                 1000125
+   149+dcl-c IL_HTTP_IM_USED 226;                                                                                          1000126
+   150+///                                                                                                                 1000127
+   151+// The server could not understand the request due to invalid syntax.                                               1000128
+   152+///                                                                                                                 1000129
+   153+dcl-c IL_HTTP_BAD_REQUEST 400;                                                                                      1000130
+   154+///                                                                                                                 1000131
+   155+// Although the HTTP standard specifies "unauthorized", semantically this response                                  1000132
+   156+// means "unauthenticated". That is, the client must authenticate itself to get                                     1000133
+   157+// the requested response.                                                                                          1000134
+   158+///                                                                                                                 1000135
+   159+dcl-c IL_HTTP_UNAUTHORIZED 401;                                                                                     1000136
+   160+///                                                                                                                 1000137
+   161+// This response code is reserved for future use. The initial aim for creating                                      1000138
+   162+// this code was using it for digital payment systems, however this status code                                     1000139
+   163+// is used very rarely and no standard convention exists.                                                           1000140
+   164+///                                                                                                                 1000141
+   165+dcl-c IL_HTTP_PAYMENT_REQUIRED 402;                                                                                 1000142
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      7
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   166+///                                                                                                                 1000143
+   167+// The client does not have access rights to the content; that is, it is                                            1000144
+   168+// unauthorized, so the server is refusing to give the requested resource.                                          1000145
+   169+// Unlike 401, the client's identity is known to the server.                                                        1000146
+   170+///                                                                                                                 1000147
+   171+dcl-c IL_HTTP_FORBIDDEN 403;                                                                                        1000148
+   172+///                                                                                                                 1000149
+   173+// The server can not find the requested resource. In the browser, this means                                       1000150
+   174+// the URL is not recognized. In an API, this can also mean that the endpoint is                                    1000151
+   175+// valid but the resource itself does not exist. Servers may also send this                                         1000152
+   176+// response instead of 403 to hide the existence of a resource from an                                              1000153
+   177+// unauthorized client. This response code is probably the most famous one due                                      1000154
+   178+// to its frequent occurrence on the web.                                                                           1000155
+   179+///                                                                                                                 1000156
+   180+dcl-c IL_HTTP_NOT_FOUND 404;                                                                                        1000157
+   181+///                                                                                                                 1000158
+   182+// The request method is known by the server but has been disabled and cannot be                                    1000159
+   183+// used. For example, an API may forbid DELETE-ing a resource. The two mandatory                                    1000160
+   184+// methods, GET and HEAD, must never be disabled and should not return this error                                   1000161
+   185+// code.                                                                                                            1000162
+   186+///                                                                                                                 1000163
+   187+dcl-c IL_HTTP_METHOD_NOT_ALLOWED 405;                                                                               1000164
+   188+///                                                                                                                 1000165
+   189+// This response is sent when the web server, after performing server-driven                                        1000166
+   190+// content negotiation, doesn't find any content that conforms to the criteria                                      1000167
+   191+// given by the user agent.                                                                                         1000168
+   192+///                                                                                                                 1000169
+   193+dcl-c IL_HTTP_NOT_ACCEPTABLE 406;                                                                                   1000170
+   194+///                                                                                                                 1000171
+   195+// This is similar to 401 but authentication is needed to be done by a proxy.                                       1000172
+   196+///                                                                                                                 1000173
+   197+dcl-c IL_HTTP_PROXY_AUTH_REQUIRED 407;                                                                              1000174
+   198+///                                                                                                                 1000175
+   199+// This response is sent on an idle connection by some servers, even without any                                    1000176
+   200+// previous request by the client. It means that the server would like to shut                                      1000177
+   201+// down this unused connection. This response is used much more since some                                          1000178
+   202+// browsers, like Chrome, Firefox 27+, or IE9, use HTTP pre-connection mechanisms                                   1000179
+   203+// to speed up surfing. Also note that some servers merely shut down the                                            1000180
+   204+// connection without sending this message.                                                                         1000181
+   205+///                                                                                                                 1000182
+   206+dcl-c IL_HTTP_REQUEST_TIMEOUT 408;                                                                                  1000183
+   207+///                                                                                                                 1000184
+   208+// This response is sent when a request conflicts with the current state of the server.                             1000185
+   209+///                                                                                                                 1000186
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      8
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   210+dcl-c IL_HTTP_CONFLICT 409;                                                                                         1000187
+   211+///                                                                                                                 1000188
+   212+// This response is sent when the requested content has been permanently deleted                                    1000189
+   213+// from server, with no forwarding address. Clients are expected to remove their                                    1000190
+   214+// caches and links to the resource. The HTTP specification intends this status                                     1000191
+   215+// code to be used for "limited-time, promotional services". APIs should not feel                                   1000192
+   216+// compelled to indicate resources that have been deleted with this status code.                                    1000193
+   217+///                                                                                                                 1000194
+   218+dcl-c IL_HTTP_GONE 410;                                                                                             1000195
+   219+///                                                                                                                 1000196
+   220+// Server rejected the request because the Content-Length header field is not                                       1000197
+   221+// defined and the server requires it.                                                                              1000198
+   222+///                                                                                                                 1000199
+   223+dcl-c IL_HTTP_LENGTH_REQUIRED 411;                                                                                  1000200
+   224+///                                                                                                                 1000201
+   225+// The client has indicated preconditions in its headers which the server does not meet.                            1000202
+   226+///                                                                                                                 1000203
+   227+dcl-c IL_HTTP_PRECONDITION_FAILED 412;                                                                              1000204
+   228+///                                                                                                                 1000205
+   229+// Request entity is larger than limits defined by server; the server might                                         1000206
+   230+// close the connection or return an Retry-After header field.                                                      1000207
+   231+///                                                                                                                 1000208
+   232+dcl-c IL_HTTP_PAYLOAD_TOO_LARGE 413;                                                                                1000209
+   233+///                                                                                                                 1000210
+   234+// The URI requested by the client is longer than the server is willing to interpret.                               1000211
+   235+///                                                                                                                 1000212
+   236+dcl-c IL_HTTP_REQUEST_URI_TOO_LONG 414;                                                                             1000213
+   237+///                                                                                                                 1000214
+   238+// The media format of the requested data is not supported by the server, so the                                    1000215
+   239+// server is rejecting the request.                                                                                 1000216
+   240+///                                                                                                                 1000217
+   241+dcl-c IL_HTTP_UNSUPPORTED_MEDIA_TYPE 415;                                                                           1000218
+   242+///                                                                                                                 1000219
+   243+// The range specified by the Range header field in the request can't be                                            1000220
+   244+// fulfilled; it's possible that the range is outside the size of the target                                        1000221
+   245+// URI's data.                                                                                                      1000222
+   246+///                                                                                                                 1000223
+   247+dcl-c IL_HTTP_REQUESTED_RANGE_NOT_SATISFIABLE 416;                                                                  1000224
+   248+///                                                                                                                 1000225
+   249+// This response code means the expectation indicated by the Expect request                                         1000226
+   250+// header field can't be met by the server.                                                                         1000227
+   251+///                                                                                                                 1000228
+   252+dcl-c IL_HTTP_EXPECTATION_FAILED 417;                                                                               1000229
+   253+///                                                                                                                 1000230
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page      9
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   254+// The server refuses the attempt to brew coffee with a teapot.                                                     1000231
+   255+///                                                                                                                 1000232
+   256+dcl-c IL_HTTP_TEAPOT 418;                                                                                           1000233
+   257+///                                                                                                                 1000234
+   258+// The request was directed at a server that is not able to produce a response.                                     1000235
+   259+// This can be sent by a server that is not configured to produce responses for                                     1000236
+   260+// the combination of scheme and authority that are included in the request URI.                                    1000237
+   261+///                                                                                                                 1000238
+   262+dcl-c IL_HTTP_MISDIRECTED_REQUEST 421;                                                                              1000239
+   263+///                                                                                                                 1000240
+   264+// The request was well-formed but was unable to be followed due to semantic errors.                                1000241
+   265+///                                                                                                                 1000242
+   266+dcl-c IL_HTTP_UNPROCESSABLE_ENTITY 422;                                                                             1000243
+   267+///                                                                                                                 1000244
+   268+// The resource that is being accessed is locked.                                                                   1000245
+   269+///                                                                                                                 1000246
+   270+dcl-c IL_HTTP_LOCKED 423;                                                                                           1000247
+   271+///                                                                                                                 1000248
+   272+// The request failed due to failure of a previous request.                                                         1000249
+   273+///                                                                                                                 1000250
+   274+dcl-c IL_HTTP_FAILED_DEPENDENCY 424;                                                                                1000251
+   275+///                                                                                                                 1000252
+   276+// Indicates that the server is unwilling to risk processing a request that                                         1000253
+   277+// might be replayed.                                                                                               1000254
+   278+///                                                                                                                 1000255
+   279+dcl-c IL_HTTP_TOO_EARLY 425;                                                                                        1000256
+   280+///                                                                                                                 1000257
+   281+// The server refuses to perform the request using the current protocol but                                         1000258
+   282+// might be willing to do so after the client upgrades to a different protocol.                                     1000259
+   283+// The server sends an Upgrade header in a 426 response to indicate the required                                    1000260
+   284+// protocol(s).                                                                                                     1000261
+   285+///                                                                                                                 1000262
+   286+dcl-c IL_HTTP_UPGRADE_REQUIRED 426;                                                                                 1000263
+   287+///                                                                                                                 1000264
+   288+// The origin server requires the request to be conditional. This response is                                       1000265
+   289+// intended to prevent the 'lost update' problem, where a client GETs a                                             1000266
+   290+// resource's state, modifies it, and PUTs it back to the server, when meanwhile                                    1000267
+   291+// a third party has modified the state on the server, leading to a conflict.                                       1000268
+   292+///                                                                                                                 1000269
+   293+dcl-c IL_HTTP_PRECONDITION_REQUIRED 428;                                                                            1000270
+   294+///                                                                                                                 1000271
+   295+// The user has sent too many requests in a given amount of time ("rate limiting").                                 1000272
+   296+///                                                                                                                 1000273
+   297+dcl-c IL_HTTP_TOO_MANY_REQUESTS 429;                                                                                1000274
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     10
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   298+///                                                                                                                 1000275
+   299+// The server is unwilling to process the request because its header fields are                                     1000276
+   300+// too large. The request may be resubmitted after reducing the size of the                                         1000277
+   301+// request header fields.                                                                                           1000278
+   302+///                                                                                                                 1000279
+   303+dcl-c IL_HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE 431;                                                                  1000280
+   304+///                                                                                                                 1000281
+   305+// The user-agent requested a resource that cannot legally be provided, such as                                     1000282
+   306+// a web page censored by a government.                                                                             1000283
+   307+///                                                                                                                 1000284
+   308+dcl-c IL_HTTP_UNAVAILABLE_FOR_LEGAL_REASONS 451;                                                                    1000285
+   309+///                                                                                                                 1000286
+   310+// The server has encountered a situation it doesn't know how to handle.                                            1000287
+   311+///                                                                                                                 1000288
+   312+dcl-c IL_HTTP_INTERNAL_SERVER_ERROR 500;                                                                            1000289
+   313+///                                                                                                                 1000290
+   314+// The request method is not supported by the server and cannot be handled.                                         1000291
+   315+// The only methods that servers are required to support (and therefore that                                        1000292
+   316+// must not return this code) are GET and HEAD.                                                                     1000293
+   317+///                                                                                                                 1000294
+   318+dcl-c IL_HTTP_NOT_IMPLEMENTED 501;                                                                                  1000295
+   319+///                                                                                                                 1000296
+   320+// This error response means that the server, while working as a gateway to get                                     1000297
+   321+// a response needed to handle the request, got an invalid response.                                                1000298
+   322+///                                                                                                                 1000299
+   323+dcl-c IL_HTTP_BAD_GATEWAY 502;                                                                                      1000300
+   324+///                                                                                                                 1000301
+   325+// The server is not ready to handle the request. Common causes are a server                                        1000302
+   326+// that is down for maintenance or that is overloaded. Note that together with                                      1000303
+   327+// this response, a user-friendly page explaining the problem should be sent.                                       1000304
+   328+// This responses should be used for temporary conditions and the Retry-After:                                      1000305
+   329+// HTTP header should, if possible, contain the estimated time before the                                           1000306
+   330+// recovery of the service. The webmaster must also take care about the                                             1000307
+   331+// caching-related headers that are sent along with this response, as these                                         1000308
+   332+// temporary condition responses should usually not be cached.                                                      1000309
+   333+///                                                                                                                 1000310
+   334+dcl-c IL_HTTP_SERVICE_UNAVAILABLE 503;                                                                              1000311
+   335+///                                                                                                                 1000312
+   336+// This error response is given when the server is acting as a gateway and                                          1000313
+   337+// cannot get a response in time.                                                                                   1000314
+   338+///                                                                                                                 1000315
+   339+dcl-c IL_HTTP_GATEWAY_TIMEOUT 504;                                                                                  1000316
+   340+///                                                                                                                 1000317
+   341+// The HTTP version used in the request is not supported by the server.                                             1000318
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     11
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   342+///                                                                                                                 1000319
+   343+dcl-c IL_HTTP_VERSION_NOT_SUPPORTED 505;                                                                            1000320
+   344+///                                                                                                                 1000321
+   345+// The server has an internal configuration error: the chosen variant resource                                      1000322
+   346+// is configured to engage in transparent content negotiation itself, and is                                        1000323
+   347+// therefore not a proper end point in the negotiation process.                                                     1000324
+   348+///                                                                                                                 1000325
+   349+dcl-c IL_HTTP_VARIANT_ALSO_NEGOTIATES 506;                                                                          1000326
+   350+///                                                                                                                 1000327
+   351+// The method could not be performed on the resource because the server is                                          1000328
+   352+// unable to store the representation needed to successfully complete the request.                                  1000329
+   353+///                                                                                                                 1000330
+   354+dcl-c IL_HTTP_INSUFFICIENT_STORAGE 507;                                                                             1000331
+   355+///                                                                                                                 1000332
+   356+// The server detected an infinite loop while processing the request.                                               1000333
+   357+///                                                                                                                 1000334
+   358+dcl-c IL_HTTP_LOOP_DETECTED 508;                                                                                    1000335
+   359+///                                                                                                                 1000336
+   360+// Further extensions to the request are required for the server to fulfil it.                                      1000337
+   361+///                                                                                                                 1000338
+   362+dcl-c IL_HTTP_NOT_EXTENDED 510;                                                                                     1000339
+   363+///                                                                                                                 1000340
+   364+// The 511 status code indicates that the client needs to authenticate to gain                                      1000341
+   365+// network access.                                                                                                  1000342
+   366+///                                                                                                                 1000343
+   367+dcl-c IL_HTTP_NETWORK_AUTH_REQUIRED 511;                                                                            1000344
+   368+                                                                                                                    1000345
+   369+                                                                                                                    1000346
+   370+///                                                                                                                 1000347
+   371+// Any media type.                                                                                                  1000348
+   372+///                                                                                                                 1000349
+   373+dcl-c IL_MEDIA_TYPE_ALL '*/*';                                                                                      1000350
+   374+///                                                                                                                 1000351
+   375+// Default format for JSON data.                                                                                    1000352
+   376+///                                                                                                                 1000353
+   377+dcl-c IL_MEDIA_TYPE_JSON 'application/json';                                                                        1000354
+   378+///                                                                                                                 1000355
+   379+// Default format for XML data.                                                                                     1000356
+   380+///                                                                                                                 1000357
+   381+dcl-c IL_MEDIA_TYPE_XML 'application/xml';                                                                          1000358
+   382+                                                                                                                    1000359
+   383+                                                                                                                    1000360
+   384+///                                                                                                                 1000361
+   385+// Configuration                                                                                                    1000362
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     12
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   386+///                                                                                                                 1000363
+   387+dcl-ds il_config qualified template;                                                                                1000364
+   388+    host                varchar(64);                                                                                1000365
+   389+    port                int(10);                                                                                    1000366
+   390+    protocol            int(5);                                                                                     1000367
+   391+    certificateFile     varchar(256);                                                                               1000368
+   392+    certificatePassword varchar(64);                                                                                1000369
+   393+    filler              char(4096); // required - contains the private internal handlers                            1000370
+   394+end-ds;                                                                                                             1000371
+   395+                                                                                                                    1000372
+   396+///                                                                                                                 1000373
+   397+// HTTP request                                                                                                     1000374
+   398+//                                                                                                                  1000375
+   399+// This data structure contains the values of the incoming                                                          1000376
+   400+// HTTP request. The values can be retrieve by using the                                                            1000377
+   401+// il_getVarcharValue procedure or by using one of the                                                              1000378
+   402+// il_getRequest... procedures.                                                                                     1000379
+   403+///                                                                                                                 1000380
+   404+dcl-ds il_request qualified template;                                                                               1000381
+   405+    config           pointer;                                                                                       1000382
+   406+    method           likeds(il_varchar);                                                                            1000383
+   407+    url              likeds(il_varchar);                                                                            1000384
+   408+    resource         likeds(il_varchar);                                                                            1000385
+   409+    queryString      likeds(il_varchar);                                                                            1000386
+   410+    protocol         likeds(il_varchar);                                                                            1000387
+   411+    headers          likeds(il_varchar);                                                                            1000388
+   412+    content          likeds(il_varchar);                                                                            1000389
+   413+    contentType      varchar(256);                                                                                  1000390
+   414+    contentLength    uns(20);                                                                                       1000391
+   415+    completeHeader   likeds(il_varchar);                                                                            1000392
+   416+    headerList       pointer;                                                                                       1000393
+   417+    parameterList    pointer;                                                                                       1000394
+   418+    resourceSegments pointer;                                                                                       1000395
+   419+    threadLocal      pointer;                                                                                       1000396
+   420+    routing          pointer;                                                                                       1000397
+   421+    parameterValues  pointer dim(256);                                                                              1000398
+   422+    routeId          varchar(256);                                                                                  1000399
+   423+end-ds;                                                                                                             1000400
+   424+                                                                                                                    1000401
+   425+///                                                                                                                 1000402
+   426+// HTTP response                                                                                                    1000403
+   427+//                                                                                                                  1000404
+   428+// This data structure contains the details of the HTTP                                                             1000405
+   429+// response which will be sent by one of the il_response...                                                         1000406
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     13
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   430+// procedures.                                                                                                      1000407
+   431+///                                                                                                                 1000408
+   432+dcl-ds il_response qualified template;                                                                              1000409
+   433+    config      pointer;                                                                                            1000410
+   434+    status      int(5);                                                                                             1000411
+   435+    statusText  varchar(256);                                                                                       1000412
+   436+    contentType varchar(256);                                                                                       1000413
+   437+    charset     varchar(32) ;                                                                                       1000414
+   438+end-ds;                                                                                                             1000415
+   439+                                                                                                                    1000416
+   440+///                                                                                                                 1000417
+   441+// Get string value                                                                                                 1000418
+   442+//                                                                                                                  1000419
+   443+// Returns the value of a string data structure (il_varchar).                                                       1000420
+   444+//                                                                                                                  1000421
+   445+// ÿparam String                                                                                                    1000422
+   446+// ÿreturn Value of the string data structure                                                                       1000423
+   447+///                                                                                                                 1000424
+   448+dcl-pr il_getVarcharValue varchar(524284:4) ccsid(*utf8) rtnparm                                                    1000425
+   449+                extproc(*CWIDEN:'lvpc2lvc');                                                                        1000426
+   450+    string likeds(il_varchar);                                                                                      1000427
+   451+end-pr;                                                                                                             1000428
+   452+                                                                                                                    1000429
+   453+///                                                                                                                 1000430
+   454+// Get HTTP request method                                                                                          1000431
+   455+//                                                                                                                  1000432
+   456+// Returns the HTTP method from the request (like GET, POST, DELETE, ...).                                          1000433
+   457+//                                                                                                                  1000434
+   458+// ÿparam Request                                                                                                   1000435
+   459+// ÿreturn HTTP method                                                                                              1000436
+   460+///                                                                                                                 1000437
+   461+dcl-pr il_getRequestMethod  varchar(256:2) ccsid(*utf8) rtnparm                                                     1000438
+   462+                extproc(*CWIDEN:'il_getRequestMethod');                                                             1000439
+   463+    request likeds(il_request);                                                                                     1000440
+   464+end-pr;                                                                                                             1000441
+   465+                                                                                                                    1000442
+   466+///                                                                                                                 1000443
+   467+// Get request URL                                                                                                  1000444
+   468+//                                                                                                                  1000445
+   469+// Returns the request URL consisting of the resource and the query string.                                         1000446
+   470+// http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return                                        1000447
+   471+// /api/v1/iledocs/search?q=map&scope=full .                                                                        1000448
+   472+// <br/><br/>                                                                                                       1000449
+   473+// Any fragment entered in the request URL is not part of the return value.                                         1000450
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     14
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   474+//                                                                                                                  1000451
+   475+// ÿparam Request                                                                                                   1000452
+   476+// ÿreturn URL                                                                                                      1000453
+   477+///                                                                                                                 1000454
+   478+dcl-pr il_getRequestUrl  varchar(524284:4) ccsid(*utf8) rtnparm                                                     1000455
+   479+                extproc(*CWIDEN:'il_getRequestUrl');                                                                1000456
+   480+    request likeds(il_request);                                                                                     1000457
+   481+end-pr;                                                                                                             1000458
+   482+                                                                                                                    1000459
+   483+///                                                                                                                 1000460
+   484+// Get request resource                                                                                             1000461
+   485+//                                                                                                                  1000462
+   486+// Return the full resources path excluding the query string and the fragment.                                      1000463
+   487+// http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return                                        1000464
+   488+// /api/v1/iledocs/search .                                                                                         1000465
+   489+//                                                                                                                  1000466
+   490+// ÿparam Request                                                                                                   1000467
+   491+// ÿreturn Resource                                                                                                 1000468
+   492+///                                                                                                                 1000469
+   493+dcl-pr il_getRequestResource varchar(524284:4) ccsid(*utf8) rtnparm                                                 1000470
+   494+                extproc(*CWIDEN:'il_getRequestResource');                                                           1000471
+   495+    request likeds(il_request);                                                                                     1000472
+   496+end-pr;                                                                                                             1000473
+   497+                                                                                                                    1000474
+   498+///                                                                                                                 1000475
+   499+// Get segment of request resource                                                                                  1000476
+   500+//                                                                                                                  1000477
+   501+// Returns the specified segment of the request resource. The index starts with                                     1000478
+   502+// 0 (null). An empty value will be returned if the index is out of range. Empty                                    1000479
+   503+// segments do count and will be returned as an empty value, f. e.                                                  1000480
+   504+// http://localhost:8000/folder//file : the second segment is empty and will                                        1000481
+   505+// be returned as an empty value and the third segment is "file".                                                   1000482
+   506+//                                                                                                                  1000483
+   507+// ÿparam Request                                                                                                   1000484
+   508+// ÿparam Index (0-based)                                                                                           1000485
+   509+// ÿreturn Resource segment                                                                                         1000486
+   510+//                                                                                                                  1000487
+   511+// ÿdeprecated Use il_getPathParameter (parameter 4).                                                               1000488
+   512+///                                                                                                                 1000489
+   513+dcl-pr il_getRequestSegmentByIndex varchar(524284:4) ccsid(*utf8) rtnparm                                           1000490
+   514+                extproc(*CWIDEN:'il_getRequestSegmentByIndex');                                                     1000491
+   515+    request likeds(il_request);                                                                                     1000492
+   516+    index int(10) value;                                                                                            1000493
+   517+end-pr;                                                                                                             1000494
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     15
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   518+                                                                                                                    1000495
+   519+///                                                                                                                 1000496
+   520+// Get request query string                                                                                         1000497
+   521+//                                                                                                                  1000498
+   522+// Returns the request query string (without the starting ? separator). So for                                      1000499
+   523+// a request like http://localhost:8080/path?query=string you would get                                             1000500
+   524+// query=string as the return value. The ? sign as a separator of the resource                                      1000501
+   525+// path and the query string is not part of the return value. If the URL does                                       1000502
+   526+// not contain a query string a zero length string is returned.                                                     1000503
+   527+//                                                                                                                  1000504
+   528+// ÿparam Request                                                                                                   1000505
+   529+// ÿreturn Query string                                                                                             1000506
+   530+///                                                                                                                 1000507
+   531+dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm                                             1000508
+   532+                extproc(*CWIDEN:'il_getRequestQueryString');                                                        1000509
+   533+    request likeds(il_request);                                                                                     1000510
+   534+end-pr;                                                                                                             1000511
+   535+                                                                                                                    1000512
+   536+///                                                                                                                 1000513
+   537+// Get single parameter from query string                                                                           1000514
+   538+//                                                                                                                  1000515
+   539+// Returns the starting value for a request query string. So for                                                    1000516
+   540+// a request like http://localhost:8080/path?query=string you would get                                             1000517
+   541+// 'string' as the return value for the input of 'query'. The ? sign as a                                           1000518
+   542+// separator of the resource path and the query string is not part of the                                           1000519
+   543+// return value. If the URL does not contain a query string the default string                                      1000520
+   544+// is returned.                                                                                                     1000521
+   545+//                                                                                                                  1000522
+   546+// ÿparam Request                                                                                                   1000523
+   547+// ÿparam Query parameter key                                                                                       1000524
+   548+// ÿparam Default value (returned if key does not exist in query string)                                            1000525
+   549+// ÿreturn Query parameter string value                                                                             1000526
+   550+// ÿdeprecated Use il_getQueryParameter instead.                                                                    1000527
+   551+///                                                                                                                 1000528
+   552+dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm                                                         1000529
+   553+                extproc(*CWIDEN:'il_getParmStr');                                                                   1000530
+   554+    request     likeds(il_request);                                                                                 1000531
+   555+    parmName    pointer value options(*string);                                                                     1000532
+   556+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;                                     1000533
+   557+end-pr;                                                                                                             1000534
+   558+                                                                                                                    1000535
+   559+///                                                                                                                 1000536
+   560+// Get query parameter                                                                                              1000537
+   561+//                                                                                                                  1000538
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     16
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   562+// Returns the starting value for a request query string. So for                                                    1000539
+   563+// a request like http://localhost:8080/path?query=string you would get                                             1000540
+   564+// 'string' as the return value for the input of 'query'. The ? sign as a                                           1000541
+   565+// separator of the resource path and the query string is not part of the                                           1000542
+   566+// return value. If the URL does not contain a query string the default string                                      1000543
+   567+// is returned.                                                                                                     1000544
+   568+//                                                                                                                  1000545
+   569+// ÿparam Request                                                                                                   1000546
+   570+// ÿparam Query parameter key                                                                                       1000547
+   571+// ÿparam Default value (returned if key does not exist in query string)                                            1000548
+   572+// ÿreturn Query parameter string value                                                                             1000549
+   573+///                                                                                                                 1000550
+   574+dcl-pr il_getQueryParameter varchar(524284:4) ccsid(*utf8) rtnparm                                                  1000551
+   575+                extproc(*CWIDEN:'il_getParmStr');                                                                   1000552
+   576+    request     likeds(il_request);                                                                                 1000553
+   577+    parmName    pointer value options(*string);                                                                     1000554
+   578+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*nopass) const;                                     1000555
+   579+end-pr;                                                                                                             1000556
+   580+                                                                                                                    1000557
+   581+///                                                                                                                 1000558
+   582+// Get path parameter                                                                                               1000559
+   583+//                                                                                                                  1000560
+   584+// Returns the path parameter identified by the name of the path segment                                            1000561
+   585+// specified at il_addRoute (enclosed in Ê and Â ).                                                                 1000562
+   586+// <br><br>                                                                                                         1000563
+   587+// The passed default value will be returned when the URL does not contain the                                      1000564
+   588+// named segment and when the path segment does not exist in the route                                              1000565
+   589+// specified at il_addRoute().                                                                                      1000566
+   590+//                                                                                                                  1000567
+   591+// ÿparam Request                                                                                                   1000568
+   592+// ÿparam Path segment name                                                                                         1000569
+   593+// ÿparam Default value                                                                                             1000570
+   594+// ÿparam Path segment index (0-based)                                                                              1000571
+   595+// ÿreturn Path segment of the request URL or the default value                                                     1000572
+   596+///                                                                                                                 1000573
+   597+dcl-pr il_getPathParameter varchar(524284:4) ccsid(*utf8) rtnparm                                                   1000574
+   598+                extproc(*CWIDEN:'il_getPathParameter');                                                             1000575
+   599+    request     likeds(il_request);                                                                                 1000576
+   600+    parmName    pointer value options(*string);                                                                     1000577
+   601+    default     varchar(524284:4) ccsid(*utf8) options(*varsize:*omit:*nopass) const;                               1000578
+   602+    index       uns(5) value options(*nopass);                                                                      1000579
+   603+end-pr;                                                                                                             1000580
+   604+                                                                                                                    1000581
+   605+///                                                                                                                 1000582
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     17
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   606+// Get request protocol                                                                                             1000583
+   607+//                                                                                                                  1000584
+   608+// Returns the request protocol, f. e. HTTP/1.1 .                                                                   1000585
+   609+//                                                                                                                  1000586
+   610+// ÿparam Request                                                                                                   1000587
+   611+// ÿreturn Protocol                                                                                                 1000588
+   612+///                                                                                                                 1000589
+   613+dcl-pr il_getRequestProtocol  varchar(256:2)  ccsid(*utf8) rtnparm                                                  1000590
+   614+                extproc(*CWIDEN:'il_getRequestProtocol');                                                           1000591
+   615+    request likeds(il_request);                                                                                     1000592
+   616+end-pr;                                                                                                             1000593
+   617+                                                                                                                    1000594
+   618+///                                                                                                                 1000595
+   619+// Get request headers                                                                                              1000596
+   620+//                                                                                                                  1000597
+   621+// Returns the request headers as they are in the HTTP message.                                                     1000598
+   622+//                                                                                                                  1000599
+   623+// ÿparam Request                                                                                                   1000600
+   624+// ÿreturn HTTP headers                                                                                             1000601
+   625+///                                                                                                                 1000602
+   626+dcl-pr il_getRequestHeaders  varchar(524284:4)  ccsid(*utf8) rtnparm                                                1000603
+   627+                extproc(*CWIDEN:'il_getRequestHeaders');                                                            1000604
+   628+    request likeds(il_request);                                                                                     1000605
+   629+end-pr;                                                                                                             1000606
+   630+                                                                                                                    1000607
+   631+///                                                                                                                 1000608
+   632+// Get request header                                                                                               1000609
+   633+//                                                                                                                  1000610
+   634+// Returns a single request header.                                                                                 1000611
+   635+//                                                                                                                  1000612
+   636+// ÿparam Request                                                                                                   1000613
+   637+// ÿparam HTTP header key                                                                                           1000614
+   638+// ÿreturn HTTP header value                                                                                        1000615
+   639+///                                                                                                                 1000616
+   640+dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm                                                 1000617
+   641+                extproc(*CWIDEN:'il_getRequestHeader');                                                             1000618
+   642+    request  likeds(il_request);                                                                                    1000619
+   643+    header   pointer value options(*string);                                                                        1000620
+   644+end-pr;                                                                                                             1000621
+   645+                                                                                                                    1000622
+   646+///                                                                                                                 1000623
+   647+// Get request content                                                                                              1000624
+   648+//                                                                                                                  1000625
+   649+// Returns the body content of the HTTP message. If the content exceeds                                             1000626
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     18
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   650+// the length of the return value the subfield <em>content</em> of the                                              1000627
+   651+// request data structure can be accessed directly to process the                                                   1000628
+   652+// content block by block, see il_request.content.                                                                  1000629
+   653+//                                                                                                                  1000630
+   654+// ÿparam Request                                                                                                   1000631
+   655+// ÿreturn HTTP message content                                                                                     1000632
+   656+///                                                                                                                 1000633
+   657+dcl-pr il_getRequestContent  varchar(524284:4)  ccsid(*utf8) rtnparm                                                1000634
+   658+                extproc(*CWIDEN:'il_getRequestContent');                                                            1000635
+   659+    request likeds(il_request);                                                                                     1000636
+   660+end-pr;                                                                                                             1000637
+   661+                                                                                                                    1000638
+   662+///                                                                                                                 1000639
+   663+// Get file MIME type                                                                                               1000640
+   664+//                                                                                                                  1000641
+   665+// If the requested resource is a file then the corresponding MIME type to                                          1000642
+   666+// the file will be returned.                                                                                       1000643
+   667+//                                                                                                                  1000644
+   668+// ÿparam File name                                                                                                 1000645
+   669+// ÿreturn MIME type                                                                                                1000646
+   670+///                                                                                                                 1000647
+   671+dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm                                                                  1000648
+   672+                extproc(*CWIDEN:'il_getFileMimeType');                                                              1000649
+   673+    fileName    varchar(256:2);                                                                                     1000650
+   674+end-pr;                                                                                                             1000651
+   675+                                                                                                                    1000652
+   676+///                                                                                                                 1000653
+   677+// Get file extension                                                                                               1000654
+   678+//                                                                                                                  1000655
+   679+// If the requested resource is a file then the file extension will be returned.                                    1000656
+   680+// A request for http://localhost:8080/index.html will return html.                                                 1000657
+   681+//                                                                                                                  1000658
+   682+// ÿparam File name                                                                                                 1000659
+   683+// ÿreturn File extension                                                                                           1000660
+   684+///                                                                                                                 1000661
+   685+dcl-pr il_getFileExtension  varchar(256:2)  rtnparm                                                                 1000662
+   686+                extproc(*CWIDEN:'il_getFileExtension');                                                             1000663
+   687+    fileName    varchar(256:2);                                                                                     1000664
+   688+end-pr;                                                                                                             1000665
+   689+                                                                                                                    1000666
+   690+///                                                                                                                 1000667
+   691+// Start server                                                                                                     1000668
+   692+//                                                                                                                  1000669
+   693+// Starts the server with the passed configuration and for the passed servlet.                                      1000670
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     19
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   694+//                                                                                                                  1000671
+   695+// ÿparam Configuration                                                                                             1000672
+   696+// ÿparam Servlet                                                                                                   1000673
+   697+///                                                                                                                 1000674
+   698+dcl-pr il_listen extproc(*CWIDEN:'il_listen');                                                                      1000675
+   699+    config      likeds(il_config);                                                                                  1000676
+   700+    servlet     pointer(*PROC) value options(*nopass) ;                                                             1000677
+   701+end-pr;                                                                                                             1000678
+   702+                                                                                                                    1000679
+   703+///                                                                                                                 1000680
+   704+// Add HTTP header entry to the response                                                                            1000681
+   705+//                                                                                                                  1000682
+   706+// Adds an HTTP header to the response sent to the client. The same HTTP header                                     1000683
+   707+// key can be added multiple times to the response, the old value is not replaced.                                  1000684
+   708+//                                                                                                                  1000685
+   709+// ÿparam response Response                                                                                         1000686
+   710+// ÿparam HTTP header key                                                                                           1000687
+   711+// ÿparam HTTP header value                                                                                         1000688
+   712+///                                                                                                                 1000689
+   713+dcl-pr il_addHeader extproc(*CWIDEN:'il_addHeader');                                                                1000690
+   714+    response    likeds(il_response);                                                                                1000691
+   715+    header      varchar(256:2) const ccsid(37);                                                                     1000692
+   716+    value       varchar(3072:2) const ccsid(37);                                                                    1000693
+   717+end-pr;                                                                                                             1000694
+   718+                                                                                                                    1000695
+   719+///                                                                                                                 1000696
+   720+// Write response                                                                                                   1000697
+   721+//                                                                                                                  1000698
+   722+// Writes the passed buffer to the HTTP message. This procedure can be called                                       1000699
+   723+// multiple times for a single HTTP response. Each call will get send as a                                          1000700
+   724+// HTTP message in chunked transport mode. The receiving side builds one                                            1000701
+   725+// HTTP message from all sent chunks.                                                                               1000702
+   726+//                                                                                                                  1000703
+   727+// ÿparam Response                                                                                                  1000704
+   728+// ÿparam Response message content.                                                                                 1000705
+   729+//                                                                                                                  1000706
+   730+// ÿinfo The response data structure must be filled with the correct values                                         1000707
+   731+//       (f. e. the HTTP status code) for the response on the first call of                                         1000708
+   732+//       this procedure for the HTTP response.                                                                      1000709
+   733+///                                                                                                                 1000710
+   734+dcl-pr il_responseWrite extproc(*CWIDEN:'il_responseWrite');                                                        1000711
+   735+    response    likeds(il_response);                                                                                1000712
+   736+    buffer      varchar(524284:4) ccsid(*utf8) options(*varsize) const ;                                            1000713
+   737+end-pr;                                                                                                             1000714
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     20
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   738+                                                                                                                    1000715
+   739+///                                                                                                                 1000716
+   740+// Write binary response                                                                                            1000717
+   741+//                                                                                                                  1000718
+   742+// Writes the passed buffer to the HTTP message. This procedure can be called                                       1000719
+   743+// multiple times for a single HTTP response. Each call will get send as a                                          1000720
+   744+// HTTP message in chunked transport mode. The receiving side builds one                                            1000721
+   745+// HTTP message from all sent chunks. The content of the message will be                                            1000722
+   746+// written without any character conversion.                                                                        1000723
+   747+//                                                                                                                  1000724
+   748+// ÿparam Response                                                                                                  1000725
+   749+// ÿparam Response message content.                                                                                 1000726
+   750+//                                                                                                                  1000727
+   751+// ÿinfo The response data structure must be filled with the correct values                                         1000728
+   752+//       (f. e. the HTTP status code) for the response on the first call of                                         1000729
+   753+//       this procedure for the HTTP response.                                                                      1000730
+   754+///                                                                                                                 1000731
+   755+dcl-pr il_responseWriteBin extproc(*CWIDEN:'il_responseWrite');                                                     1000732
+   756+    response    likeds(il_response);                                                                                1000733
+   757+    buf         varchar(524284:4) options(*varsize) const ;                                                         1000734
+   758+end-pr;                                                                                                             1000735
+   759+                                                                                                                    1000736
+   760+///                                                                                                                 1000737
+   761+// Serve file                                                                                                       1000738
+   762+//                                                                                                                  1000739
+   763+// Writes the content of the file to the response message.                                                          1000740
+   764+//                                                                                                                  1000741
+   765+// ÿparam Response                                                                                                  1000742
+   766+// ÿparam File name                                                                                                 1000743
+   767+// ÿreturn <code>*on</code> = error , <code>*off</code> = success                                                   1000744
+   768+///                                                                                                                 1000745
+   769+dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');                                                        1000746
+   770+    response    likeds(il_response);                                                                                1000747
+   771+    fileName    varchar(256) options(*varsize) const;                                                               1000748
+   772+end-pr;                                                                                                             1000749
+   773+                                                                                                                    1000750
+   774+///                                                                                                                 1000751
+   775+// Write stream                                                                                                     1000752
+   776+//                                                                                                                  1000753
+   777+// Writes the content of the stream to the response message.                                                        1000754
+   778+//                                                                                                                  1000755
+   779+// ÿparam Response                                                                                                  1000756
+   780+// ÿparam Stream - Pointer returned by i.e. json_stream from noxDB                                                  1000757
+   781+///                                                                                                                 1000758
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     21
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   782+dcl-pr il_responseWriteStream extproc(*CWIDEN:'il_responseWriteStream');                                            1000759
+   783+    response    likeds(il_response);                                                                                1000760
+   784+    stream      pointer value;                                                                                      1000761
+   785+end-pr;                                                                                                             1000762
+   786+                                                                                                                    1000763
+   787+///                                                                                                                 1000764
+   788+// HTTP method GET                                                                                                  1000765
+   789+///                                                                                                                 1000766
+   790+dcl-c IL_GET     1;                                                                                                 1000767
+   791+///                                                                                                                 1000768
+   792+// HTTP method POST                                                                                                 1000769
+   793+///                                                                                                                 1000770
+   794+dcl-c IL_POST    2;                                                                                                 1000771
+   795+///                                                                                                                 1000772
+   796+// HTTP method DELETE                                                                                               1000773
+   797+///                                                                                                                 1000774
+   798+dcl-c IL_DELETE  4;                                                                                                 1000775
+   799+///                                                                                                                 1000776
+   800+// HTTP method PUT                                                                                                  1000777
+   801+///                                                                                                                 1000778
+   802+dcl-c IL_PUT     8;                                                                                                 1000779
+   803+///                                                                                                                 1000780
+   804+// HTTP method OPTIONS                                                                                              1000781
+   805+///                                                                                                                 1000782
+   806+dcl-c IL_OPTIONS 16;                                                                                                1000783
+   807+///                                                                                                                 1000784
+   808+// HTTP method HEAD                                                                                                 1000785
+   809+///                                                                                                                 1000786
+   810+dcl-c IL_HEAD 32;                                                                                                   1000787
+   811+///                                                                                                                 1000788
+   812+// HTTP method PATCH                                                                                                1000789
+   813+///                                                                                                                 1000790
+   814+dcl-c IL_PATCH 64;                                                                                                  1000791
+   815+///                                                                                                                 1000792
+   816+// Any HTTP method (used for adding servlets to the server for any HTTP method)                                     1000793
+   817+///                                                                                                                 1000794
+   818+dcl-c IL_ANY     const(1023);                                                                                       1000795
+   819+                                                                                                                    1000796
+   820+///                                                                                                                 1000797
+   821+// Add servlet to server                                                                                            1000798
+   822+//                                                                                                                  1000799
+   823+// A servlet is added to the server with the passed routing information.                                            1000800
+   824+//                                                                                                                  1000801
+   825+// ÿparam Configuration                                                                                             1000802
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     22
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   826+// ÿparam Servlet                                                                                                   1000803
+   827+// ÿparam HTTP Method (multiple methods can be specified like this:                                                 1000804
+   828+//        IL_GET + IL_POST, default: IL_ANY)                                                                        1000805
+   829+// ÿparam Path (default: / )                                                                                        1000806
+   830+// ÿparam Content type (default: application/json)                                                                  1000807
+   831+// ÿparam Route Id                                                                                                  1000808
+   832+///                                                                                                                 1000809
+   833+dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');                                                                  1000810
+   834+    config       likeds(il_config);                                                                                 1000811
+   835+    servlet      pointer(*PROC) value;                                                                              1000812
+   836+    httpMethods  int(5) value options(*nopass);                                                                     1000813
+   837+    route        varchar(1024) const options(*omit : *nopass) ccsid(37);                                            1000814
+   838+    contentType  varchar(1024) const options(*omit : *nopass) ccsid(37);                                            1000815
+   839+    routeId      varchar(256) const options(*nopass);                                                               1000816
+   840+end-pr;                                                                                                             1000817
+   841+                                                                                                                    1000818
+   842+///                                                                                                                 1000819
+   843+// Defining plugin execution time for a plugin before the request has been                                          1000820
+   844+// handed to the endpoint.                                                                                          1000821
+   845+///                                                                                                                 1000822
+   846+dcl-c IL_PREREQUEST   1;                                                                                            1000823
+   847+///                                                                                                                 1000824
+   848+// Defining plugin execution time for a plugin after the last response part                                         1000825
+   849+// has been sent.                                                                                                   1000826
+   850+///                                                                                                                 1000827
+   851+dcl-c IL_POSTRESPONSE 2;                                                                                            1000828
+   852+                                                                                                                    1000829
+   853+                                                                                                                    1000830
+   854+///                                                                                                                 1000831
+   855+// Add plugin server                                                                                                1000832
+   856+//                                                                                                                  1000833
+   857+// A servlet that can handle pre and post request. A prerequest can return                                          1000834
+   858+// *OFF to stop futher processing.                                                                                  1000835
+   859+//                                                                                                                  1000836
+   860+// ÿparam Configuration                                                                                             1000837
+   861+// ÿparam Plugin                                                                                                    1000838
+   862+// ÿparam Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be                                              1000839
+   863+//        either/or simply add together                                                                             1000840
+   864+///                                                                                                                 1000841
+   865+dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');                                                                1000842
+   866+    config       likeds(il_config);                                                                                 1000843
+   867+    plugin       pointer(*PROC) value;                                                                              1000844
+   868+    pluginType   int(5) value;                                                                                      1000845
+   869+end-pr;                                                                                                             1000846
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     23
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   870+                                                                                                                    1000847
+   871+                                                                                                                    1000848
+   872+///                                                                                                                 1000849
+   873+// Add scheduler callback plugin procedure ie for houskeeping / termination detection                               1000850
+   874+//                                                                                                                  1000851
+   875+// This starts an extra thread that calls your callback procedure.                                                  1000852
+   876+// Returning *OFF will terminate the ILEastic application server.                                                   1000853
+   877+//                                                                                                                  1000854
+   878+// ÿparam Configuration                                                                                             1000855
+   879+// ÿparam Address to plugin procedure                                                                               1000856
+   880+// ÿparam Seconds between calls                                                                                     1000857
+   881+///                                                                                                                 1000858
+   882+dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');                                              1000859
+   883+    config       likeds(il_config);                                                                                 1000860
+   884+    plugin       pointer(*PROC) value;                                                                              1000861
+   885+    timerSec     int(5) value;                                                                                      1000862
+   886+end-pr;                                                                                                             1000863
+   887+                                                                                                                    1000864
+   888+///                                                                                                                 1000865
+   889+// Enter thread safe mode                                                                                           1000866
+   890+//                                                                                                                  1000867
+   891+// Enter mode for non threaded application like "normal" RPG / CLLE.                                                1000868
+   892+///                                                                                                                 1000869
+   893+dcl-pr il_enterThreadSerialize extproc(*CWIDEN:'il_enterThreadSerialize');                                          1000870
+   894+end-pr;                                                                                                             1000871
+   895+                                                                                                                    1000872
+   896+///                                                                                                                 1000873
+   897+// Leave thread safe mode                                                                                           1000874
+   898+//                                                                                                                  1000875
+   899+// Leave mode for non threaded application like "normal" RPG / CLLE.                                                1000876
+   900+///                                                                                                                 1000877
+   901+dcl-pr il_exitThreadSerialize extproc(*CWIDEN:'il_exitThreadSerialize');                                            1000878
+   902+end-pr;                                                                                                             1000879
+   903+                                                                                                                    1000880
+   904+///                                                                                                                 1000881
+   905+// Base64 decode value                                                                                              1000882
+   906+//                                                                                                                  1000883
+   907+// Decodes a base64 encoded string.                                                                                 1000884
+   908+//                                                                                                                  1000885
+   909+// ÿparam Encoded string                                                                                            1000886
+   910+// ÿreturn Decoded string                                                                                           1000887
+   911+//                                                                                                                  1000888
+   912+// ÿinfo The character encoding for the original value is expected to be UTF-8.                                     1000889
+   913+///                                                                                                                 1000890
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     24
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   914+dcl-pr il_decodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_decodeBase64') rtnparm;                 1000891
+   915+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;                                                    1000892
+   916+end-pr;                                                                                                             1000893
+   917+                                                                                                                    1000894
+   918+///                                                                                                                 1000895
+   919+// Base64 encoding value                                                                                            1000896
+   920+//                                                                                                                  1000897
+   921+// Encodes a string into base64 .                                                                                   1000898
+   922+//                                                                                                                  1000899
+   923+// ÿparam string to encode                                                                                          1000900
+   924+// ÿreturn Encoded string                                                                                           1000901
+   925+//                                                                                                                  1000902
+   926+// ÿinfo The character encoding for the original value is expected to be UTF-8.                                     1000903
+   927+///                                                                                                                 1000904
+   928+dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_encodeBase64') rtnparm;                 1000905
+   929+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;                                                    1000906
+   930+end-pr;                                                                                                             1000907
+   931+                                                                                                                    1000908
+   932+///                                                                                                                 1000909
+   933+// Add message to job log                                                                                           1000910
+   934+//                                                                                                                  1000911
+   935+// Convenience function: put message in joblog.                                                                     1000912
+   936+// Works like printf but with strings only like                                                                     1000913
+   937+//                                                                                                                  1000914
+   938+//    il_joblog('This is %s a test' : 'Super');                                                                     1000915
+   939+//                                                                                                                  1000916
+   940+// ÿparam format string                                                                                             1000917
+   941+// ÿparam Parms : list of strings                                                                                   1000918
+   942+//                                                                                                                  1000919
+   943+///                                                                                                                 1000920
+   944+dcl-pr il_joblog extproc(*CWIDEN : 'il_joblog') ;                                                                   1000921
+   945+  formatString  pointer  options(*string)  value;                                                                   1000922
+   946+  string0       pointer  options(*string:*nopass) value;                                                            1000923
+   947+  string1       pointer  options(*string:*nopass) value;                                                            1000924
+   948+  string2       pointer  options(*string:*nopass) value;                                                            1000925
+   949+  string3       pointer  options(*string:*nopass) value;                                                            1000926
+   950+  string4       pointer  options(*string:*nopass) value;                                                            1000927
+   951+  string5       pointer  options(*string:*nopass) value;                                                            1000928
+   952+  string6       pointer  options(*string:*nopass) value;                                                            1000929
+   953+  string7       pointer  options(*string:*nopass) value;                                                            1000930
+   954+  string8       pointer  options(*string:*nopass) value;                                                            1000931
+   955+  string9       pointer  options(*string:*nopass) value;                                                            1000932
+   956+end-pr;                                                                                                             1000933
+   957+                                                                                                                    1000934
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     25
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   958+///                                                                                                                 1000935
+   959+// Get thread local storage                                                                                         1000936
+   960+//                                                                                                                  1000937
+   961+// Returns a graph of the thread local storage. You can access the graph with                                       1000938
+   962+// the noxDB API. Paths starting with /ileastic are framework specific values.                                      1000939
+   963+//                                                                                                                  1000940
+   964+// ÿreturn Pointer to thread local storage                                                                          1000941
+   965+///                                                                                                                 1000942
+   966+dcl-pr il_getThreadMem pointer extproc('il_getThreadMem');                                                          1000943
+   967+  request likeds(il_request);                                                                                       1000944
+   968+end-pr;                                                                                                             1000945
+   969+                                                                                                                    1000946
+   970+///                                                                                                                 1000947
+   971+// dummy endpoint - does nothing, just set status 200 ok                                                            1000948
+   972+///                                                                                                                 1000949
+   973+dcl-pr il_emptyEndpoint  extproc(*CWIDEN:'il_emptyEndpoint');                                                       1000950
+   974+    request     likeds(il_request);                                                                                 1000951
+   975+    response    likeds(il_response);                                                                                1000952
+   976+end-pr;                                                                                                             1000953
+   977 /include ./plugins/openAPI/headers/openAPI.rpgleinc                                                                  000025
+Line   <---------------------- Source Specifications ----------------------------><---- Comments ----> Do  Page  Change Src Seq
+Number ....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10 Num Line  Date   Id  Number
+        *--------------------------------------------------------------------------------------------*
+        * RPG member name  . . . . . :  openAPI.r+                                                   *                     2
+        * External name  . . . . . . :  ./.././plugins/openAPI/headers/openAPI.rpgleinc              *                     2
+        * Last change  . . . . . . . :  06-11-23  21:19:52                                           *                     2
+        *--------------------------------------------------------------------------------------------*
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   978+**FREE                                                                                                              2000001
+   979+/if defined (OPENAPI)                                                                                               2000002
+            LINES EXCLUDED: 1
+   980+/endif                                                                                                              2000004
+   981+                                                                                                                    2000005
+   982+/define OPENAPI                                                                                                     2000006
+   983+                                                                                                                    2000007
+   984+///                                                                                                                 2000008
+   985+// ILEastic : OPENAPI dynamic load of programs and service programs procedure                                       2000009
+   986+//                                                                                                                  2000010
+   987+// This service program offers procedures for adding routs to programs and service programs                         2000011
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     26
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+   988+// compiled with  Ctl-Opt PGMINFO(*PCML:*MODULE);                                                                   2000012
+   989+//                                                                                                                  2000013
+   990+// As an extra feature it also provide a endpoint for openAPI ( swagger) for                                        2000014
+   991+// endpoints loaded this way                                                                                        2000015
+   992+//                                                                                                                  2000016
+   993+// ÿauthor Niels Liisberg                                                                                           2000017
+   994+// ÿdate   05.11.2023                                                                                               2000018
+   995+// ÿproject ILEastic                                                                                                2000019
+   996+//                                                                                                                  2000020
+   997+// ÿrev 05.11.2023  Niels Liisberg                                                                                  2000021
+   998+//      Initial commit                                                                                              2000022
+   999+///                                                                                                                 2000023
+  1000+                                                                                                                    2000024
+  1001+                                                                                                                    2000025
+  1002+                                                                                                                    2000026
+  1003+///                                                                                                                 2000027
+  1004+// Add servlet to server                                                                                            2000028
+  1005+//                                                                                                                  2000029
+  1006+// A servlet is added to the server with the passed routing information.                                            2000030
+  1007+//                                                                                                                  2000031
+  1008+// ÿparam Configuration                                                                                             2000032
+  1009+// ÿparam library name kwhere program exists                                                                        2000033
+  1010+// ÿparam program name. Compiled with: Ctl-Opt PGMINFO(*PCML:*MODULE);                                              2000034
+  1011+// ÿparam HTTP Method (multiple methods can be specified like this:                                                 2000035
+  1012+//        IL_GET + IL_POST, default: IL_ANY)                                                                        2000036
+  1013+// ÿparam Path (default: / )                                                                                        2000037
+  1014+// ÿparam Content type (default: application/json)                                                                  2000038
+  1015+// ÿparam Route Id                                                                                                  2000039
+  1016+///                                                                                                                 2000040
+  1017+dcl-pr il_addProgramRoute extproc(*CWIDEN:'il_addProgramRoute');                                                    2000041
+  1018+    config       likeds(il_config);                                                                                 2000042
+  1019+    library      char(10) const ccsid(37);                                                                          2000043
+  1020+    program      char(10) const ccsid(37);                                                                          2000044
+  1021+    httpMethods  int(5) value options(*nopass);                                                                     2000045
+  1022+    route        varchar(1024) const options(*omit : *nopass) ccsid(37);                                            2000046
+  1023+    contentType  varchar(1024) const options(*omit : *nopass) ccsid(37);                                            2000047
+  1024+    routeId      varchar(256) const options(*nopass);                                                               2000048
+  1025+end-pr;                                                                                                             2000049
+  1026                                                                                                                      000026
+  1027 // -----------------------------------------------------------------------------                                     000027
+  1028 // Program Entry Point                                                                                               000028
+  1029 // -----------------------------------------------------------------------------                                     000029
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     27
+Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
+Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
+  1030 dcl-proc main;                                                                                                       000030
+  1031                                                                                                                      000031
+  1032     dcl-ds config likeds(il_config);                                                                                 000032
+  1033                                                                                                                      000033
+  1034     config.port = 44045;                                                                                             000034
+  1035     config.host = '*ANY';                                                                                            000035
+  1036                                                                                                                      000036
+  1037     // The resource paths must be entered as a regular expression.                                                   000037
+  1038     //                                                                                                               000038
+  1039     // ^ means that a matching request must start here                                                               000039
+  1040     // ≈ means that a matching request must end here                                                                 000040
+  1041     //                                                                                                               000041
+  1042     // This means that a request for /timestamp or /api/date will                                                    000042
+  1043     // not be routed to one of these end points and will return 404 NOT FOUND.                                       000043
+  1044     il_addProgramRoute(config : '*LIBL' : 'HELLOPGM'  : IL_ANY : '^/hello≈');                                        000044
+  1045                                                                                                                      000045
+  1046     il_listen(config);                                                                                               000046
+  1047                                                                                                                      000047
+  1048 end-proc;                                                                                                            000048
+  1049                                                                                                                      000049
+       * * * * *   E N D   O F   S O U R C E   * * * * *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     28
+          A d d i t i o n a l   D i a g n o s t i c   M e s s a g e s
+ Msg id  Sv Number Seq     Message text
+ * * * * *   E N D   O F   A D D I T I O N A L   D I A G N O S T I C   M E S S A G E S   * * * * *
+                            / C o p y   M e m b e r s
+Line   Src  RPG name   <-------- External name -------> CCSID  <- Last change ->
+Number Id              Library    File       Member            Date     Time
+    24    1 ileastic.+ ./.././headers/ileastic.rpgle     1208  31-10-23 14:15:30
+   977    2 openAPI.r+ ./.././plugins/openAPI/headers/+  1208  06-11-23 21:19:52
+         * * * * *   E N D   O F   / C O P Y   M E M B E R S   * * * * *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     29
+                          C r o s s   R e f e r e n c e
+      File and Record References:
+         File              Device             References (D=Defined)
+           Record
+         No references in the source.
+      Global Field References:
+         Field             Attributes         References (D=Defined M=Modified)
+*RNF7031 IL_ADDHEADER      PROTOTYPE             713D
+*RNF7031 IL_ADDPLUGIN      PROTOTYPE             865D
+         IL_ADDPROGRAMROUTE...
+                           PROTOTYPE            1017D   1044M
+*RNF7031 IL_ADDROUTE       PROTOTYPE             833D
+         IL_ANY            CONST                 818D   1044
+         IL_CONFIG         DS(4492)              387D    699     834     866
+                           TEMPLATE              883    1018    1032
+*RNF7031   CERTIFICATEFILE A(256)                391D
+                           VARYING(2)
+*RNF7031   CERTIFICATEPASSWORD...
+                           A(64)                 392D
+                           VARYING(2)
+*RNF7031   FILLER          A(4096)               393D
+*RNF7031   HOST            A(64)                 388D
+                           VARYING(2)
+*RNF7031   PORT            I(10,0)               389D
+*RNF7031   PROTOCOL        I(5,0)                390D
+*RNF7031 IL_DECODEBASE64   A(524284)             914D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_DELETE         CONST                 798D
+*RNF7031 IL_EMPTYENDPOINT  PROTOTYPE             973D
+*RNF7031 IL_ENCODEBASE64   A(524284)             928D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_ENTERTHREADSERIALIZE...
+                           PROTOTYPE             893D
+*RNF7031 IL_EXITTHREADSERIALIZE...
+                           PROTOTYPE             901D
+*RNF7031 IL_FASTCGI        CONST                  84D
+*RNF7031 IL_GET            CONST                 790D
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     30
+*RNF7031 IL_GETFILEEXTENSION...
+                           A(256)                685D
+                           VARYING(2)
+                           PROTOTYPE
+*RNF7031 IL_GETFILEMIMETYPE...
+                           A(256)                671D
+                           VARYING(2)
+                           PROTOTYPE
+*RNF7031 IL_GETPARMSTR     A(524284)             552D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETPATHPARAMETER...
+                           A(524284)             597D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETQUERYPARAMETER...
+                           A(524284)             574D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTCONTENT...
+                           A(524284)             657D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTHEADER...
+                           A(524284)             640D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTHEADERS...
+                           A(524284)             626D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTMETHOD...
+                           A(256)                461D
+                           VARYING(2)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTPROTOCOL...
+                           A(256)                613D
+                           VARYING(2)
+                           CCSID(1208)
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     31
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTQUERYSTRING...
+                           A(524284)             531D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTRESOURCE...
+                           A(524284)             493D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTSEGMENTBYINDEX...
+                           A(524284)             513D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETREQUESTURL  A(524284)             478D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_GETTHREADMEM   *(16)                 966D
+                           PROTOTYPE
+*RNF7031 IL_GETVARCHARVALUE...
+                           A(524284)             448D
+                           VARYING(4)
+                           CCSID(1208)
+                           PROTOTYPE
+*RNF7031 IL_HEAD           CONST                 810D
+*RNF7031 IL_HTTP           CONST                  74D
+*RNF7031 IL_HTTP_ACCEPTED  CONST                 112D
+*RNF7031 IL_HTTP_ALREADY_REPORTED...
+                           CONST                 143D
+*RNF7031 IL_HTTP_BAD_GATEWAY...
+                           CONST                 323D
+*RNF7031 IL_HTTP_BAD_REQUEST...
+                           CONST                 153D
+*RNF7031 IL_HTTP_CONFLICT  CONST                 210D
+*RNF7031 IL_HTTP_CREATED   CONST                 105D
+*RNF7031 IL_HTTP_EXPECTATION_FAILED...
+                           CONST                 252D
+*RNF7031 IL_HTTP_FAILED_DEPENDENCY...
+                           CONST                 274D
+*RNF7031 IL_HTTP_FORBIDDEN CONST                 171D
+*RNF7031 IL_HTTP_GATEWAY_TIMEOUT...
+                           CONST                 339D
+*RNF7031 IL_HTTP_GONE      CONST                 218D
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     32
+*RNF7031 IL_HTTP_IM_USED   CONST                 149D
+*RNF7031 IL_HTTP_INSUFFICIENT_STORAGE...
+                           CONST                 354D
+*RNF7031 IL_HTTP_INTERNAL_SERVER_ERROR...
+                           CONST                 312D
+*RNF7031 IL_HTTP_LENGTH_REQUIRED...
+                           CONST                 223D
+*RNF7031 IL_HTTP_LOCKED    CONST                 270D
+*RNF7031 IL_HTTP_LOOP_DETECTED...
+                           CONST                 358D
+*RNF7031 IL_HTTP_METHOD_NOT_ALLOWED...
+                           CONST                 187D
+*RNF7031 IL_HTTP_MISDIRECTED_REQUEST...
+                           CONST                 262D
+*RNF7031 IL_HTTP_MULTI_STATUS...
+                           CONST                 138D
+*RNF7031 IL_HTTP_NETWORK_AUTH_REQUIRED...
+                           CONST                 367D
+*RNF7031 IL_HTTP_NO_CONTENT...
+                           CONST                 124D
+*RNF7031 IL_HTTP_NON_AUTHORITIVE_INFO...
+                           CONST                 119D
+*RNF7031 IL_HTTP_NOT_ACCEPTABLE...
+                           CONST                 193D
+*RNF7031 IL_HTTP_NOT_EXTENDED...
+                           CONST                 362D
+*RNF7031 IL_HTTP_NOT_FOUND CONST                 180D
+*RNF7031 IL_HTTP_NOT_IMPLEMENTED...
+                           CONST                 318D
+*RNF7031 IL_HTTP_OK        CONST                 100D
+*RNF7031 IL_HTTP_PARTIAL_CONTENT...
+                           CONST                 133D
+*RNF7031 IL_HTTP_PAYLOAD_TOO_LARGE...
+                           CONST                 232D
+*RNF7031 IL_HTTP_PAYMENT_REQUIRED...
+                           CONST                 165D
+*RNF7031 IL_HTTP_PRECONDITION_FAILED...
+                           CONST                 227D
+*RNF7031 IL_HTTP_PRECONDITION_REQUIRED...
+                           CONST                 293D
+*RNF7031 IL_HTTP_PROXY_AUTH_REQUIRED...
+                           CONST                 197D
+*RNF7031 IL_HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE...
+                           CONST                 303D
+*RNF7031 IL_HTTP_REQUEST_TIMEOUT...
+                           CONST                 206D
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     33
+*RNF7031 IL_HTTP_REQUEST_URI_TOO_LONG...
+                           CONST                 236D
+*RNF7031 IL_HTTP_REQUESTED_RANGE_NOT_SATISFIABLE...
+                           CONST                 247D
+*RNF7031 IL_HTTP_RESET_CONTENT...
+                           CONST                 128D
+*RNF7031 IL_HTTP_SERVICE_UNAVAILABLE...
+                           CONST                 334D
+*RNF7031 IL_HTTP_TEAPOT    CONST                 256D
+*RNF7031 IL_HTTP_TOO_EARLY CONST                 279D
+*RNF7031 IL_HTTP_TOO_MANY_REQUESTS...
+                           CONST                 297D
+*RNF7031 IL_HTTP_UNAUTHORIZED...
+                           CONST                 159D
+*RNF7031 IL_HTTP_UNAVAILABLE_FOR_LEGAL_REASONS...
+                           CONST                 308D
+*RNF7031 IL_HTTP_UNPROCESSABLE_ENTITY...
+                           CONST                 266D
+*RNF7031 IL_HTTP_UNSUPPORTED_MEDIA_TYPE...
+                           CONST                 241D
+*RNF7031 IL_HTTP_UPGRADE_REQUIRED...
+                           CONST                 286D
+*RNF7031 IL_HTTP_VARIANT_ALSO_NEGOTIATES...
+                           CONST                 349D
+*RNF7031 IL_HTTP_VERSION_NOT_SUPPORTED...
+                           CONST                 343D
+*RNF7031 IL_HTTPS          CONST                  79D
+*RNF7031 IL_JOBLOG         PROTOTYPE             944D
+         IL_LISTEN         PROTOTYPE             698D   1046M
+*RNF7031 IL_LONGUTF8VARCHAR...
+                           A(524284)              57D
+                           VARYING(4)
+                           CCSID(1208)
+                           TEMPLATE
+*RNF7031 IL_MEDIA_TYPE_ALL CONST                 373D
+*RNF7031 IL_MEDIA_TYPE_JSON...
+                           CONST                 377D
+*RNF7031 IL_MEDIA_TYPE_XML CONST                 381D
+*RNF7031 IL_OPTIONS        CONST                 806D
+*RNF7031 IL_PATCH          CONST                 814D
+*RNF7031 IL_POST           CONST                 794D
+*RNF7031 IL_POSTRESPONSE   CONST                 851D
+*RNF7031 IL_PREREQUEST     CONST                 846D
+*RNF7031 IL_PUT            CONST                 802D
+         IL_REQUEST        DS(4978)              404D    463     480     495
+                           TEMPLATE              515     533     554     576
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     34
+                                                 599     615     628     642
+                                                 659     967     974
+*RNF7031   COMPLETEHEADER  DS(32)                415D
+*RNF7031   CONFIG          *(16)                 405D
+*RNF7031   CONTENT         DS(32)                412D
+*RNF7031   CONTENTLENGTH   U(20,0)               414D
+*RNF7031   CONTENTTYPE     A(256)                413D
+                           VARYING(2)
+*RNF7031   HEADERLIST      *(16)                 416D
+*RNF7031   HEADERS         DS(32)                411D
+*RNF7031   METHOD          DS(32)                406D
+*RNF7031   PARAMETERLIST   *(16)                 417D
+*RNF7031   PARAMETERVALUES(256)...
+                           *(16)                 421D
+*RNF7031   PROTOCOL        DS(32)                410D
+*RNF7031   QUERYSTRING     DS(32)                409D
+*RNF7031   RESOURCE        DS(32)                408D
+*RNF7031   RESOURCESEGMENTS...
+                           *(16)                 418D
+*RNF7031   ROUTEID         A(256)                422D
+                           VARYING(2)
+*RNF7031   ROUTING         *(16)                 420D
+*RNF7031   THREADLOCAL     *(16)                 419D
+*RNF7031   URL             DS(32)                407D
+         IL_RESPONSE       DS(568)               432D    714     735     756
+                           TEMPLATE              770     783     975
+*RNF7031   CHARSET         A(32)                 437D
+                           VARYING(2)
+*RNF7031   CONFIG          *(16)                 433D
+*RNF7031   CONTENTTYPE     A(256)                436D
+                           VARYING(2)
+*RNF7031   STATUS          I(5,0)                434D
+*RNF7031   STATUSTEXT      A(256)                435D
+                           VARYING(2)
+*RNF7031 IL_RESPONSEWRITE  PROTOTYPE             734D
+*RNF7031 IL_RESPONSEWRITEBIN...
+                           PROTOTYPE             755D
+*RNF7031 IL_RESPONSEWRITESTREAM...
+                           PROTOTYPE             782D
+*RNF7031 IL_SECFASTCGI     CONST                  89D
+*RNF7031 IL_SERVESTATIC    N(1)                  769D
+                           PROTOTYPE
+*RNF7031 IL_SETSCHEDULERPLUGIN...
+                           PROTOTYPE             882D
+         IL_VARCHAR        DS(32)                 65D    406     407     408
+                           TEMPLATE              409     410     411     412
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     35
+                                                 415     450
+*RNF7031   LENGTH          U(10,0)                66D
+*RNF7031   STRING          *(16)                  67D
+         MAIN              PROTOTYPE              20    1030
+      Field References for subprocedure MAIN
+         Field             Attributes         References (D=Defined M=Modified)
+         CONFIG            DS(4492)             1032D   1034M   1035M   1044
+                                                1046
+           HOST            A(64)                1035
+                           VARYING(2)
+           PORT            I(10,0)              1034
+      Indicator References:
+         Indicator                            References (D=Defined M=Modified)
+       * * * * *   E N D   O F   C R O S S   R E F E R E N C E   * * * * *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     36
+                      E x t e r n a l   R e f e r e n c e s
+      Statically bound procedures:
+         Procedure                            References
+         lvpc2lvc                                449
+         il_listen                               698    1046
+         il_joblog                               944
+         il_addRoute                             833
+         il_addHeader                            713
+         il_addPlugin                            865
+         il_getParmStr                           553     575
+         il_serveStatic                          769
+         il_decodeBase64                         914
+         il_encodeBase64                         928
+         il_getThreadMem                         966
+         il_getRequestUrl                        479
+         il_responseWrite                        734     755
+         il_emptyEndpoint                        973
+         il_getFileMimeType                      672
+         il_addProgramRoute                     1017    1044
+         il_getRequestMethod                     462
+         il_getPathParameter                     598
+         il_getRequestHeader                     641
+         il_getFileExtension                     686
+         il_getRequestHeaders                    627
+         il_getRequestContent                    658
+         il_getRequestResource                   494
+         il_getRequestProtocol                   614
+         il_setSchedulerPlugin                   882
+         il_responseWriteStream                  782
+         il_exitThreadSerialize                  901
+         il_enterThreadSerialize                 893
+         il_getRequestQueryString                532
+         il_getRequestSegmentByIndex             514
+      Imported fields:
+         Field             Attributes         Defined
+         No references in the source.
+      Exported fields:
+         Field             Attributes         Defined
+         No references in the source.
+   * * * * *   E N D   O F   E X T E R N A L   R E F E R E N C E S   * * * * *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     37
+                          M e s s a g e   S u m m a r y
+ Msg id  Sv Number Message text
+*RNF7031 00    148 The name or indicator is not referenced.
+       * * * * *   E N D   O F   M E S S A G E   S U M M A R Y   * * * * *
+ 5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     38
+                            F i n a l   S u m m a r y
+  Message Totals:
+    Information  (00) . . . . . . . :      148
+    Warning      (10) . . . . . . . :        0
+    Error        (20) . . . . . . . :        0
+    Severe Error (30+)  . . . . . . :        0
+    ---------------------------------  -------
+    Total . . . . . . . . . . . . . :      148
+  Source Totals:
+    Records . . . . . . . . . . . . :     1049
+    Specifications  . . . . . . . . :      267
+    Data records  . . . . . . . . . :        0
+    Comments  . . . . . . . . . . . :      769
+         * * * * *   E N D   O F   F I N A L   S U M M A R Y   * * * * *
+                 B i n d   D i a g n o s t i c   M e s s a g e s
+Errors were found during the binding step. See the job log for more information.
+ * * * * *   E N D   O F   B I N D   D I A G N O S T I C   M E S S A G E S    * * * * *
+Program SWAGROUTE in library ILEASTIC not created.
+          * * * * *   E N D   O F   C O M P I L A T I O N   * * * * *

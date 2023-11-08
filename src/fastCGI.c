@@ -31,6 +31,7 @@
 #include "ostypes.h"
 #include "teramem.h"
 #include "varchar.h"
+#include "streamer.h"
 #include "sysdef.h"
 #include "strUtil.h"
 #include "streamer.h"

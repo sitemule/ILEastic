@@ -44,6 +44,7 @@
 #include "ostypes.h"
 #include "teramem.h"
 #include "varchar.h"
+#include "streamer.h"
 #include "sysdef.h"
 #include "sndpgmmsg.h"
 #include "strUtil.h"
