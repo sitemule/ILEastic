@@ -1,0 +1,20 @@
+**FREE
+
+/if defined (ILEASTIC_OPENAPI_STATIC)
+/eof
+/endif
+
+/define ILEASTIC_OPENAPI_STATIC
+
+/include 'ileastic.rpgle'
+
+dcl-s ileastic_openapi_document_t varchar(1048576) ccsid(*utf8) template;
+
+dcl-pr ileastic_openapi_static extproc(*dclcase);
+    request  likeds(IL_REQUEST);
+    response likeds(IL_RESPONSE);
+end-pr;
+
+dcl-pr ileastic_openapi_setContentType extproc(*dclcase);
+    contentType varchar(100) ccsid(*utf8) const;
+end-pr;
