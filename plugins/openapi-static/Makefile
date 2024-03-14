@@ -21,13 +21,14 @@ TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
 
 
 # CFLAGS = compiler parameter
-RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' 'ext/llist') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
 
 # CCFLAGS = C/C++ compiler parameter
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TGT_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*LIST)
 
-MODULES = openapi openapiini oapimodgen
-
+MODULES = openapi openapiini oapimodgen oapisrcgen
+COMMANDS = oapimodgen.cmd 
+PROGRAMS = oapimodgen.pgm oapisrcgen.pgm
 
 .SUFFIXES: .cpp .rpgmod
 
@@ -41,20 +42,39 @@ MODULES = openapi openapiini oapimodgen
 
 
 
-all: env compile bind
+all: env compile bind commands
 
 env:
 
 compile: $(MODULES)
+	$(MAKE) -C ext/llist/ compile $*
 
-bind:
+bind: $(PROGRAMS)
+
+oapisrcgen.pgm: .PHONY
+	system -k "CRTPGM PGM($(BIN_LIB)/OAPISRCGEN) MODULE($(BIN_LIB)/OAPISRCGEN $(BIN_LIB)/LLIST $(BIN_LIB)/LLIST_SORT)"
+
+oapimodgen.pgm: .PHONY
 	system -k "CRTPGM PGM($(BIN_LIB)/OAPIMODGEN)"
 	
-commands:
+commands: $(COMMANDS)
+
+oapisrcgen.cmd: .PHONY
+	system -iK "CRTCMD $(BIN_LIB)/OAPISRCGEN PGM(*LIBL/OAPISRCGEN) SRCSTMF('oapisrcgen.cmd')"
+
+oapimodgen.cmd: .PHONY
 	system -iK "CRTCMD $(BIN_LIB)/OAPIMODGEN PGM(*LIBL/OAPIMODGEN) SRCSTMF('oapimodgen.cmd')"
 
 clean:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OPENAPI) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OPENAPIINI) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPIMODGEN) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPIMODGEN) OBJTYPE(*PGM)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPIMODGEN) OBJTYPE(*CMD)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPISRCGEN) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPISRCGEN) OBJTYPE(*PGM)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPISRCGEN) OBJTYPE(*CMD)"
+	$(MAKE) -C ext/llist/ clean $*
 
 .PHONY:
 
