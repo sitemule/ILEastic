@@ -233,6 +233,10 @@ dcl-proc escapeVariantChars export;
     dcl-s apos2 char(2) inz('''''') ccsid(1252);
     dcl-s unicodeLiteral char(15) ccsid(1252);
     
+    if (%len(string) = 0);
+        return escaped;
+    endif;
+    
     ptr = %addr(string : *data);
     dou (i >= %len(string));
       if (%scan(c : invariantChars) = 0);

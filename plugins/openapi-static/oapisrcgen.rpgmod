@@ -153,6 +153,10 @@ dcl-proc writeLines;
     dcl-s sectionHeader varchar(20) ccsid(1252);
     dcl-s spaces char(256) ccsid(1252);
     
+    if (list_isEmpty(lines));
+        return;
+    endif;
+    
     if (%parms() >= 3);
         sectionHeader = p_sectionHeader;
         callp write(fd : %addr(sectionHeader : *data) : %len(sectionHeader));
@@ -165,7 +169,9 @@ dcl-proc writeLines;
         endif;
     
         length = strlen(ptr);
-        callp write(fd : %addr(buffer) : length);
+        if (length > 0);
+            callp write(fd : %addr(buffer) : length);
+        endif;
         callp write(fd : %addr(LF) : 1);
         
         ptr = list_iterate(lines);
