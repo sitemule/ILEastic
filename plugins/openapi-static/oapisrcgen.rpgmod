@@ -1,8 +1,6 @@
 **FREE
 
 // 
-// TODO Ausgeben des OpenAPI Textes
-// TODO support multiple input files
 // TODO support stream files and source members
 //
 
@@ -59,15 +57,21 @@ dcl-pr strlen uns(10) extproc('strlen');
 end-pr;
 
 /include 'llist_h.rpgle'
+/include 'message_h.rpgle'
+
+dcl-ds inputFilePaths_t qualified template;
+    count int(5);
+    filePath char(1000) dim(100);
+end-ds;
 
 
 dcl-pr OAPISRCGEN extpgm('OAPISRCGEN');
-    p_inputFilePath char(1000);
+    p_inputFilePaths likeds(inputFilePaths_t);
     p_outputFilePath char(1000);
 end-pr;
 
 dcl-pi *n;
-    p_inputFilePath char(1000);
+    p_input likeds(inputFilePaths_t);
     p_outputFilePath char(1000);
 end-pi;
 
@@ -78,7 +82,7 @@ main();
 
 dcl-proc main export;
     dcl-s lines pointer;
-    
+    dcl-s i int(5);
     dcl-s openapi_main pointer;
     dcl-s openapi_path pointer;
     dcl-s openapi_comp pointer;
@@ -87,8 +91,11 @@ dcl-proc main export;
     openapi_path = list_create();
     openapi_comp = list_create();
     
-    lines = readLines(%trim(p_inputFilePath));
-    parseLines(lines : openapi_main : openapi_path : openapi_comp);
+    for i = 1 to p_input.count;
+        lines = readLines(%trim(p_input.filePath(i)));
+        parseLines(lines : openapi_main : openapi_path : openapi_comp);
+    endfor;    
+    
     writeOpenApiDocument(%trim(p_outputFilePath) : openapi_main : openapi_path : openapi_comp);
     
     on-exit;
@@ -111,15 +118,15 @@ dcl-proc writeOpenApiDocument export;
     end-pi;
 
     dcl-s fd int(10) inz(-1);
-    dcl-s message char(50);
+    dcl-s message char(255);
     dcl-s c_errno int(10) based(pErrno);
     
     unlink(p_outputFilePath);
     fd = open(p_outputFilePath : O_WRONLY+O_CREAT+O_TEXTDATA+O_CCSID : S_IRWXU : 1252 : 1252);
     if (fd < 0);
         pErrno = errno();
-        message = %str(strerror(c_errno) : 50);
-        dsply message;
+        message = %str(strerror(c_errno) : %size(message));
+        message_info(message);
         return;
     endif;
     
@@ -249,7 +256,8 @@ dcl-proc readLines;
     
     inputFd = open(p_inputFilePath : O_RDONLY + O_CCSID + O_TEXTDATA : S_IRWXU : 1252);
     if (inputFd < 0);
-        dsply 'Could not open input file.';
+        message_info('Could not open input file. Skipping ' + p_inputFilePath);
+        return lines;
     endif;
 
     bufferLength = read(inputFd : %addr(buffer) : %size(buffer));
@@ -265,9 +273,6 @@ dcl-proc readLines;
     if (%len(line) > 0);
         list_add(lines : %addr(line) : %size(line));
     endif;
-
-    
-    
     
     return lines;
     
@@ -303,6 +308,3 @@ dcl-proc nextLine export;
     
     return moreLines;
 end-proc;
-
-
-

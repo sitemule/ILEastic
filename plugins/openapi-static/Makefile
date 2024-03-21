@@ -26,8 +26,8 @@ RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../
 # CCFLAGS = C/C++ compiler parameter
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TGT_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*LIST)
 
-MODULES = openapi openapiini oapimodgen oapisrcgen
-COMMANDS = oapimodgen.cmd 
+MODULES = message openapi openapiini oapimodgen oapisrcgen
+COMMANDS = oapimodgen.cmd oapisrcgen.cmd 
 PROGRAMS = oapimodgen.pgm oapisrcgen.pgm
 
 .SUFFIXES: .cpp .rpgmod
@@ -41,7 +41,6 @@ PROGRAMS = oapimodgen.pgm oapisrcgen.pgm
 	system -k "CRTCPPMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
 
 
-
 all: env compile bind commands
 
 env:
@@ -52,10 +51,10 @@ compile: $(MODULES)
 bind: $(PROGRAMS)
 
 oapisrcgen.pgm: .PHONY
-	system -k "CRTPGM PGM($(BIN_LIB)/OAPISRCGEN) MODULE($(BIN_LIB)/OAPISRCGEN $(BIN_LIB)/LLIST $(BIN_LIB)/LLIST_SORT)"
+	system -k "CRTPGM PGM($(BIN_LIB)/OAPISRCGEN) MODULE($(BIN_LIB)/OAPISRCGEN $(BIN_LIB)/MESSAGE $(BIN_LIB)/LLIST $(BIN_LIB)/LLIST_SORT)"
 
 oapimodgen.pgm: .PHONY
-	system -k "CRTPGM PGM($(BIN_LIB)/OAPIMODGEN)"
+	system -k "CRTPGM PGM($(BIN_LIB)/OAPIMODGEN) MODULE($(BIN_LIB)/OAPIMODGEN $(BIN_LIB)/MESSAGE)"
 	
 commands: $(COMMANDS)
 
