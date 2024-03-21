@@ -13,8 +13,6 @@
 //
 // The padding character = is stripped from the end of the token.
 //
-// @info Only HS256 is supported.
-//
 // @author Mihael Schmidt
 // @date   04.05.2019
 // @project ILEastic
@@ -24,7 +22,7 @@
 ///
 
 ///
-// HMAC SHA256 algorithm for creating the token signature.
+// The available signing algorithms
 ///
 dcl-c JWT_HS256 'HS256';
 dcl-c JWT_RS256 'RS256';
@@ -37,14 +35,14 @@ dcl-c JWT_RS512 'RS512';
 dcl-s jwt_token_t varchar(8090) template;
 
 ///
-// Template for the signing key which is used to create the token signature.
+// Template for the signing key used to create the token signature.
 ///
 dcl-s jwt_signKey_t varchar(1000) template;
 
 ///
 // Template for registered claims. The data structure needs to be created with
 // inz(*likeds). Default values mean that the claim will not be added to the
-// token. Note: Fields are varchar and any space will be added to the token, use
+// token. Note: Fields are varchar, and any space will be added to the token; use
 // %trimr if you are using char variables.
 ///
 dcl-ds jwt_claims_t qualified template;
@@ -63,12 +61,12 @@ end-ds;
 dcl-ds jwt_keyOrUriDs_t qualified template;
     kid         Char(50);
     method      Char(5);  //KEY for public key 'or' PROC for authorization end-point
-    //We are binding key to a fixed alg to avoid bad actors using public key to symmetric
+    // We are binding the key to a fixed alg to avoid bad actors using a public key to symmetric
     // encryption to get access. https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
     // This is not an implementation requirement, but we are placing this restriction for safety.
     alg         Char(5);
-    key         Char(5000) ccsid(819); //Public key for Asymetric alg, key for Symetric alg
-    procPtr     pointer(*PROC);  // Call back proc for token validation. Caller will have to implement
+    key         Char(5000) ccsid(819); //Public key for Asymmetric alg, key for Symmetric alg
+    procPtr     pointer(*PROC);  // Call back proc for token validation. The caller will have to implement
 end-ds;
 
 ///

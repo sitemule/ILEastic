@@ -130,7 +130,6 @@ typedef enum _ROUTETYPE  {
 } ROUTETYPE , *PROUTETYPE ;
 #pragma enum     (pop)
 
-
 typedef struct _ROUTING  {
     ROUTETYPE  routeType;
     regex_t *  routeReg;
@@ -139,9 +138,8 @@ typedef struct _ROUTING  {
     int    parmNumbers;
     PUCHAR parmNames [256];
     VARCHAR256 routeId;
+    PVOID   pluginData;
 } ROUTING, * PROUTING;
-
-
 
 #pragma enum     (2)
 typedef enum _PLUGINTYPE  {
@@ -172,5 +170,12 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest);
 LONG fcgiWriter(PRESPONSE pResponse, PUCHAR buf , LONG len);
 PSLIST parseParms(LVARPUCHAR parmString);
 PSLIST parseResource(LVARPUCHAR resource); 
+void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCHAR routeReg , PVARCHAR contentReg , PVARCHAR routeId);
+#pragma descriptor ( void il_addRoute    (void))
+void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft);
+void il_responseWriteStream (PRESPONSE pResponse, PSTREAM pStream);
+
+
+
 
 #endif

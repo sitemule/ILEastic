@@ -1,0 +1,35 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+/include 'ileastic.rpgle'
+/include 'openapi.rpginc'
+
+dcl-s contentType varchar(100) inz('application/openapi+yaml') ccsid(*utf8) static(*allthread);
+
+dcl-s openApiDocument like(ileastic_openapi_document_t) static(*allthread) import;
+
+dcl-proc ileastic_openapi_static export;
+    dcl-pi *n;
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
+    end-pi;
+
+    if (openApiDocument = *blank);
+        response.status = 404;
+        il_responseWrite(response : 'No OpenAPI document provided.');
+    else;
+        response.status = 200;
+        response.contentType = contentType;
+        il_responseWrite(response : openApiDocument);
+    endif;
+end-proc;
+
+
+dcl-proc ileastic_openapi_setContentType export;
+    dcl-pi *n;
+        p_contentType varchar(100) ccsid(*utf8) const;
+    end-pi;
+
+    contentType = p_contentType;
+end-proc;

@@ -1,0 +1,13 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+dcl-s CRLF char(2) inz(x'0D0A') ccsid(*utf8);
+
+dcl-s openApiDocument varchar(1048576) ccsid(*utf8) static(*allthread) export;
+
+dcl-pr ileastic_openapi_static_init extproc(*dclcase) end-pr;
+
+dcl-proc ileastic_openapi_static_init export;
+
+openApiDocument = 

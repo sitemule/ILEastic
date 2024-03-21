@@ -60,7 +60,7 @@ dcl-proc jwt_verify export;
   dcl-s signatureTmp like(jwt_token_t) ccsid(*utf8);
   dcl-s signature like(jwt_token_t) ccsid(*utf8);
   dcl-s utfcomma  Char(1) inz('.') ccsid(*utf8);
-  dcl-s payloadPos   Packed(3 : 0);
+  dcl-s payloadPos   int(10);
   dcl-s expOrNotAct  Ind Inz(*Off);
   dcl-s disableCaching  Ind Inz(*Off);
 

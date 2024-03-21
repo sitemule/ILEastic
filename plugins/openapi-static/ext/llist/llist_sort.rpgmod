@@ -1,0 +1,217 @@
+     /**
+      * @brief Linked List : Sorting Algorithms
+      *
+      *
+      * @author Mihael Schmidt
+      * @date   2009-02-17
+      *
+      */
+
+      *------------------------------------------------------------------------------
+      *                          The MIT License (MIT)
+      *
+      * Copyright (c) 2017 Mihael Schmidt
+      *
+      * Permission is hereby granted, free of charge, to any person obtaining a copy 
+      * of this software and associated documentation files (the "Software"), to deal 
+      * in the Software without restriction, including without limitation the rights 
+      * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+      * copies of the Software, and to permit persons to whom the Software is 
+      * furnished to do so, subject to the next conditions:
+      * 
+      * The above copyright notice and this permission notice shall be included in 
+      * all copies or substantial portions of the Software.
+      *
+      * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+      * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+      * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+      * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+      * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+      * SOFTWARE.
+      *------------------------------------------------------------------------------
+
+
+     H NOMAIN
+     
+      /if defined(THREAD_SAFE)
+     H THREAD(*CONCURRENT)
+      /endif
+
+
+      *---------------------------------------------------------------
+      * Prototypen
+      *---------------------------------------------------------------
+      /copy 'llist_h.rpgle'
+      /copy 'llist_in_h.rpgle'
+      /copy 'ceeapi_h.rpgle'
+
+     D list_sort_compareBytes...
+     D                 PR            10I 0 extproc('list_sort_compareBytes')
+     D   entry1                        *   const
+     D   length1                     10I 0 const
+     D   entry2                        *   const
+     D   length2                     10I 0 const
+
+      *-------------------------------------------------------------------------
+      * Procedures
+      *-------------------------------------------------------------------------
+
+     P list_sort_insertionSort...
+     P                 B                   export
+     D                 PI
+     D   listPtr                       *   const
+     D   comparePtr                    *   const options(*nopass) procptr
+      *
+     D header          DS                  likeds(tmpl_header) based(listPtr)
+     D keepRunning     S               N   inz(*on)
+     D entryPtr1       S               *
+     D entry1          DS                  likeds(tmpl_entry) based(entryPtr1)
+     D entryPtr2       S               *
+     D entry2          DS                  likeds(tmpl_entry) based(entryPtr2)
+     D top             S               N   inz(*off)
+     D bottom          S               N   inz(*off)
+     D valuePtr1       S               *
+     D valuePtr2       S               *
+      *
+     D compareProcedurePtr...
+     D                 S               *   procptr
+     D compare         PR            10I 0 extproc(compareProcedurePtr)
+     D   value1                        *   const
+     D   length1                     10I 0 const
+     D   value2                        *   const
+     D   length2                     10I 0 const
+      /free
+       if (header.size <= 1);
+         return;
+       endif;
+       
+       if (%parms() = 1);
+         compareProcedurePtr = %paddr('list_sort_compareBytes');
+       else;
+         compareProcedurePtr = comparePtr;
+       endif;
+
+       entryPtr1 = getListEntryDs(listPtr : 0);
+       entryPtr2 = getListEntryDs(listPtr : 1);
+
+       dow (keepRunning);
+         if (entryPtr1 = *null);
+           valuePtr1 = *null;
+         else;
+           valuePtr1 = entry1.value;
+         endif;
+         
+         if (entryPtr2 = *null);
+           valuePtr2 = *null;
+         else;
+           valuePtr2 = entry2.value;
+         endif;
+         
+         if (compare(valuePtr1 : entry1.length : valuePtr2:entry2.length) > 0);
+           top = *off;
+           bottom = *off;
+
+           internal_swap(listPtr : *omit : *omit : entryPtr1 : entryPtr2);
+
+           //
+           // get next entries to check
+           //
+
+           // check if we are already at the top
+           if (entry2.prev <> *null); // note: entry2 is now above entry1
+             // go one up
+             entryPtr1 = entry2.prev;
+           else;
+             // we are at the top, now go down again
+             top = *on;
+
+             // skip one entry because we just made the check
+             if (entry1.next <> *null);
+               entryPtr2 = entry1.next;
+             else;
+               bottom = *on;
+             endif;
+           endif;
+
+         else;
+           // check next entries
+           if (bottom); // need to go up
+
+             if (entry1.prev <> *null);
+               entryPtr2 = entryPtr1;
+               entryPtr1 = entry2.prev;
+             else;
+               top = *on;
+
+               // go down
+               entryPtr1 = entryPtr2;
+               entryPtr2 = entry1.next;
+             endif;
+
+           else;        // need to go down
+
+             if (entry2.next <> *null);
+               entryPtr1 = entryPtr2;
+               entryPtr2 = entry1.next;
+             else;
+               bottom = *on;
+
+               if (entry1.prev <> *null);
+                 // go up again
+                 entryPtr2 = entryPtr1;
+                 entryPtr1 = entry2.prev;
+               else;
+                 top = *on;
+               endif;
+
+             endif;
+
+           endif;
+         endif;
+
+
+         // if both ends have been visited without change => end loop
+         if (top and bottom);
+           keepRunning = *off;
+         endif;
+       enddo;
+      /end-free
+     P                 E
+
+     /**
+      * Compare two entries
+      *
+      * Compares the two entries byte by byte. 
+      *
+      * @param Entry (pointer to list_entry_t)
+      * @param Entry (pointer to list_entry_t)
+      * @return 0 if entries are the same, < 0 if entry 1 has a higher sort order
+      *         and > 0 if entry 2 has a higher sort order
+      */
+     P list_sort_compareBytes...
+     P                 B                   export
+     D                 PI            10I 0
+     D   entry1                        *   const
+     D   length1                     10I 0 const
+     D   entry2                        *   const
+     D   length2                     10I 0 const
+      *
+     D length          S             10I 0
+     D rc              S             10I 0
+      
+       if (length1 < length2);
+         length = length1;
+       else;
+         length = length2;
+       endif;
+
+       rc = memcmp(entry1 : entry2 : length);
+       if (rc = 0 and length1 < length2);
+         return 1;
+       else;
+         return rc;
+       endif;
+       
+     P                 E
+     

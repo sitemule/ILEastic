@@ -1,0 +1,260 @@
+**FREE
+
+dcl-c O_RDONLY   1;
+dcl-c O_WRONLY   2;
+dcl-c O_CREAT    8;
+dcl-c O_CCSID    32;
+dcl-c O_TRUNC    64;
+dcl-c O_CODEPAGE 8388608;
+dcl-c O_TEXTDATA 16777216;
+// Note: O_TEXT_CREAT requires all of the following flags to work:
+//           O_CREAT+O_TEXTDATA+(O_CODEPAGE or O_CCSID)
+dcl-c O_TEXT_CREATE 33554432;
+
+dcl-c S_IRWXU 448;
+
+dcl-pr close int(10) extproc('close');
+    fildes int(10) value;
+end-pr;
+
+dcl-pr open int(10) extproc('open');
+    path pointer value options(*string);
+    openflags int(10) value;
+    mode uns(10) value options(*nopass);
+    ccsid uns(10) value options(*nopass);
+    txtcreatid uns(10) value options(*nopass);
+end-pr;
+
+dcl-pr read int(10) extproc('read');
+    fildes int(10) value;
+    buffer pointer value;
+    bytes uns(10) value;
+end-pr;
+   
+dcl-pr write int(10) extproc('write');
+    fildes int(10) value;
+    buffer pointer value;
+    bytes uns(10) value;
+end-pr;
+
+dcl-pr unlink int(10) extproc(*dclcase);
+  path pointer value options(*string);
+end-pr;
+
+dcl-pr errno pointer extproc('__errno') end-pr;
+
+dcl-pr strerror pointer extproc('strerror');
+  errno  int(10) value;
+end-pr;
+
+dcl-pr charToHex extproc('cvthc');            
+    hexValue pointer value;
+    charValue pointer value;
+    hexBufferSize int(10) value;
+end-pr;
+
+dcl-pr OAPIMODGEN extpgm('OAPIMODGEN');
+    p_templateDirectory char(1000);
+    p_openApiDocumentPath char(1000);
+    p_targetFilePath char(1000);
+end-pr;
+
+dcl-pi *n;
+    p_templateDirectory char(1000);
+    p_openApiDocumentPath char(1000);
+    p_targetFilePath char(1000);
+end-pi;
+
+
+main();
+*inlr = *on;
+
+
+dcl-proc main export;
+    dcl-s fd int(10) inz(-1);
+    dcl-s path varchar(1024);
+    dcl-s message char(50);
+    dcl-s c_errno int(10) based(pErrno);
+    
+    path = %trim(p_targetFilePath);
+    
+    unlink(path);
+    fd = open(path : O_WRONLY+O_CREAT+O_TEXTDATA+O_CCSID : S_IRWXU : 1252 : 1252);
+    if (fd < 0);
+        pErrno = errno();
+        message = %str(strerror(c_errno) : 50);
+        dsply message;
+        return;
+    endif;
+    
+    appendOpenApiDocStart(fd : %trim(p_templateDirectory));
+    appendOpenApiDocument(fd : %trim(p_openApiDocumentPath));
+    appendOpenApiDocEnd(fd : %trim(p_templateDirectory));
+
+    callp close(fd);    
+end-proc;
+
+
+dcl-proc appendOpenApiDocStart;
+    dcl-pi *n;
+        fd int(10) const;
+        templateDirectory varchar(1024) const;
+    end-pi;
+
+    dcl-s templateFilePath varchar(1024);
+    dcl-s templateFd int(10);
+    dcl-s buffer char(1000) ccsid(*hex);
+    dcl-s length int(10);
+    
+    templateFilePath = templateDirectory + '/openapidoc-start';
+    templateFd = open(templateFilePath : O_RDONLY);
+    if (templateFd < 0);
+        dsply 'Could not open template openapidoc-start';
+    endif;
+    
+    length = read(templateFd : %addr(buffer) : %size(buffer));
+    dow (length > 0);
+        callp write(fd : %addr(buffer) : length);
+        length = read(templateFd : %addr(buffer) : %size(buffer));
+    enddo;
+
+    callp close(templateFd);
+end-proc;
+
+
+dcl-proc appendOpenApiDocEnd;
+    dcl-pi *n;
+        fd int(10) const;
+        templateDirectory varchar(1024) const;
+    end-pi;
+
+    dcl-s templateFilePath varchar(1024);
+    dcl-s templateFd int(10);
+    dcl-s buffer char(1000) ccsid(*hex);
+    dcl-s length int(10);
+    
+    templateFilePath = templateDirectory + '/openapidoc-end';
+    templateFd = open(templateFilePath : O_RDONLY);
+    if (templateFd < 0);
+        dsply 'Could not open template openapidoc-end';
+    endif;
+
+    length = read(templateFd : %addr(buffer) : %size(buffer));
+    dow (length > 0);
+        callp write(fd : %addr(buffer) : length);
+        length = read(templateFd : %addr(buffer) : %size(buffer));
+    enddo;
+
+    callp close(templateFd);
+end-proc;
+
+
+dcl-proc appendOpenApiDocument;
+    dcl-pi *n;
+        fd int(10) const;
+        openApiDocumentPath varchar(1024) const;
+    end-pi;
+
+    dcl-s CRLF char(2) inz(x'0D0A') ccsid(*hex);
+    dcl-s openApiDocFd int(10);
+    dcl-s buffer char(1048576) ccsid(*hex);
+    dcl-s bufferLength int(10);
+    dcl-s line varchar(4096) ccsid(*hex);
+    dcl-s position int(10) inz(1);
+    dcl-s moreLines ind;
+
+    openApiDocFd = open(openApiDocumentPath : O_RDONLY);
+    if (openApiDocFd < 0);
+        dsply 'Could not open OpenAPI document.';
+    endif;
+
+    bufferLength = read(openApiDocFd : %addr(buffer) : %size(buffer));
+    
+    moreLines = nextLine(buffer : bufferLength : position : line);
+    dou (not moreLines);
+        line = %trimr(line);
+        callp write(fd : %addr(line : *data) : %len(line));
+        
+        moreLines = nextLine(buffer : bufferLength : position : line);
+    enddo;
+    
+    if (%len(line) > 0);
+        callp write(fd : %addr(line : *data) : %len(line));
+    endif;
+
+    callp close(openApiDocFd);
+end-proc;
+
+    
+dcl-proc nextLine export;
+    dcl-pi *n ind;
+        buffer char(1048576) ccsid(*hex);
+        bufferLength int(10) const;
+        position int(10);
+        line varchar(4096) ccsid(*hex);
+    end-pi;
+
+    dcl-s LF char(1) inz(x'0A') ccsid(1252);
+    dcl-s prefix char(1) inz('''') ccsid(1252);
+    dcl-s suffix char(10) inz(''' + CRLF +') ccsid(1252);
+    dcl-s x int(10);
+    dcl-s temp varchar(4096) ccsid(*hex);
+    dcl-s moreLines ind;
+    
+    x = %scan(LF : buffer : position);
+    if (x = 0);
+        temp = %subst(buffer : position : bufferLength - position + 1);
+        moreLines = *off;
+    else;
+        temp = %subst(buffer : position : x - position);
+        position = x + 1;
+        moreLines = *on;
+    endif;
+    
+    temp = escapeVariantChars(temp);
+    line = prefix + temp + suffix + LF;
+    
+    return moreLines;
+end-proc;
+
+
+dcl-proc escapeVariantChars export;
+    dcl-pi *n varchar(4096) ccsid(*hex);
+        string varchar(4096) ccsid(*hex);
+    end-pi;
+
+    dcl-s invariantChars char(80) inz(' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+<=>%&*"''(),./:;?') ccsid(1252);
+    dcl-s escaped varchar(4096) ccsid(*hex);
+    dcl-s c char(1) ccsid(1252) based(ptr);
+    dcl-s ucs2Char ucs2(1);
+    dcl-s i int(10);
+    dcl-s hex char(4);
+    dcl-s apos char(1) inz('''') ccsid(1252);
+    dcl-s apos2 char(2) inz('''''') ccsid(1252);
+    dcl-s unicodeLiteral char(15) ccsid(1252);
+    
+    if (%len(string) = 0);
+        return escaped;
+    endif;
+    
+    ptr = %addr(string : *data);
+    dou (i >= %len(string));
+      if (%scan(c : invariantChars) = 0);
+          // variant char => "escape"
+          ucs2Char = c;
+          charToHex(%addr(hex) : %addr(ucs2Char) : 4);
+          unicodeLiteral = ''' + u''' + hex + ''' + ''';
+          escaped += unicodeLiteral;
+      elseif (c = apos);
+          escaped += apos2;
+      else;
+          escaped += c;
+      endif;
+       
+      i += 1;
+      ptr += 1;
+    enddo;
+    
+    return escaped;
+end-proc;
+

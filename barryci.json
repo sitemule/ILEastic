@@ -1,6 +1,0 @@
-{
-	"build": [{
-		"command": "gmake",
-		"args": ["BIN_LIB=ILEASTIC"]
-	}]
-}

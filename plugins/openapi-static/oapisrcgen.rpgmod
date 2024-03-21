@@ -1,0 +1,316 @@
+**FREE
+
+// 
+// TODO support stream files and source members
+//
+
+
+dcl-c O_RDONLY   1;
+dcl-c O_WRONLY   2;
+dcl-c O_CREAT    8;
+dcl-c O_CCSID    32;
+dcl-c O_TRUNC    64;
+dcl-c O_CODEPAGE 8388608;
+dcl-c O_TEXTDATA 16777216;
+// Note: O_TEXT_CREAT requires all of the following flags to work:
+//           O_CREAT+O_TEXTDATA+(O_CODEPAGE or O_CCSID)
+dcl-c O_TEXT_CREATE 33554432;
+
+dcl-c S_IRWXU 448;
+
+dcl-pr close int(10) extproc('close');
+    fildes int(10) value;
+end-pr;
+
+dcl-pr open int(10) extproc('open');
+    path pointer value options(*string);
+    openflags int(10) value;
+    mode uns(10) value options(*nopass);
+    ccsid uns(10) value options(*nopass);
+    txtcreatid uns(10) value options(*nopass);
+end-pr;
+
+dcl-pr read int(10) extproc('read');
+    fildes int(10) value;
+    buffer pointer value;
+    bytes uns(10) value;
+end-pr;
+   
+dcl-pr write int(10) extproc('write');
+    fildes int(10) value;
+    buffer pointer value;
+    bytes uns(10) value;
+end-pr;
+
+dcl-pr unlink int(10) extproc(*dclcase);
+  path pointer value options(*string);
+end-pr;
+
+dcl-pr errno pointer extproc('__errno') end-pr;
+
+dcl-pr strerror pointer extproc('strerror');
+  errno  int(10) value;
+end-pr;
+
+dcl-pr strlen uns(10) extproc('strlen');
+  string pointer value;
+end-pr;
+
+/include 'llist_h.rpgle'
+/include 'message_h.rpgle'
+
+dcl-ds inputFilePaths_t qualified template;
+    count int(5);
+    filePath char(1000) dim(100);
+end-ds;
+
+
+dcl-pr OAPISRCGEN extpgm('OAPISRCGEN');
+    p_inputFilePaths likeds(inputFilePaths_t);
+    p_outputFilePath char(1000);
+end-pr;
+
+dcl-pi *n;
+    p_input likeds(inputFilePaths_t);
+    p_outputFilePath char(1000);
+end-pi;
+
+
+main();
+*inlr = *on;
+
+
+dcl-proc main export;
+    dcl-s lines pointer;
+    dcl-s i int(5);
+    dcl-s openapi_main pointer;
+    dcl-s openapi_path pointer;
+    dcl-s openapi_comp pointer;
+    
+    openapi_main = list_create();
+    openapi_path = list_create();
+    openapi_comp = list_create();
+    
+    for i = 1 to p_input.count;
+        lines = readLines(%trim(p_input.filePath(i)));
+        parseLines(lines : openapi_main : openapi_path : openapi_comp);
+    endfor;    
+    
+    writeOpenApiDocument(%trim(p_outputFilePath) : openapi_main : openapi_path : openapi_comp);
+    
+    on-exit;
+        list_dispose(openapi_main);
+        list_dispose(openapi_path);
+        list_dispose(openapi_comp);
+    
+        if (lines <> *null);
+            list_dispose(lines);
+        endif;
+end-proc;
+
+
+dcl-proc writeOpenApiDocument export;
+    dcl-pi *n;
+        p_outputFilePath varchar(1000) const;
+        p_openapi_main pointer value;
+        p_openapi_path pointer value;
+        p_openapi_comp pointer value;
+    end-pi;
+
+    dcl-s fd int(10) inz(-1);
+    dcl-s message char(255);
+    dcl-s c_errno int(10) based(pErrno);
+    
+    unlink(p_outputFilePath);
+    fd = open(p_outputFilePath : O_WRONLY+O_CREAT+O_TEXTDATA+O_CCSID : S_IRWXU : 1252 : 1252);
+    if (fd < 0);
+        pErrno = errno();
+        message = %str(strerror(c_errno) : %size(message));
+        message_info(message);
+        return;
+    endif;
+    
+    writeLines(fd : p_openapi_main);
+    writeLines(fd : p_openapi_path : 'paths:' : 2);
+    writeLines(fd : p_openapi_comp : 'components:' : 2);
+    
+    on-exit;
+        callp close(fd);
+end-proc;
+
+
+dcl-proc writeLines;
+    dcl-pi *n;
+        fd int(10) value;
+        lines pointer value;
+        p_sectionHeader varchar(20) ccsid(1252) const options(*nopass);
+        indentLevel uns(3) const options(*nopass);
+    end-pi;
+
+    dcl-s LF char(1) inz(x'0A') ccsid(*hex);
+    dcl-s buffer char(4096) ccsid(*hex) based(ptr);
+    dcl-s length uns(10);
+    dcl-s sectionHeader varchar(20) ccsid(1252);
+    dcl-s spaces char(256) ccsid(1252);
+    
+    if (list_isEmpty(lines));
+        return;
+    endif;
+    
+    if (%parms() >= 3);
+        sectionHeader = p_sectionHeader;
+        callp write(fd : %addr(sectionHeader : *data) : %len(sectionHeader));
+    endif;
+    
+    ptr = list_iterate(lines);
+    dow (ptr <> *null);
+        if (%parms() >= 4);
+            callp write(fd : %addr(spaces) : indentLevel);
+        endif;
+    
+        length = strlen(ptr);
+        if (length > 0);
+            callp write(fd : %addr(buffer) : length);
+        endif;
+        callp write(fd : %addr(LF) : 1);
+        
+        ptr = list_iterate(lines);
+    enddo;
+end-proc;
+
+
+dcl-proc parseLines;
+    dcl-pi *n;
+        lines pointer;
+        p_openapi_main pointer value;
+        p_openapi_path pointer value;
+        p_openapi_comp pointer value;
+    end-pi;
+
+    dcl-s OPENAPI_MAIN char(20) ccsid(1252) inz('@openApi');
+    dcl-s OPENAPI_PATH char(20) ccsid(1252) inz('@openApiPath');
+    dcl-s OPENAPI_COMP char(20) ccsid(1252) inz('@openApiComponent');
+    dcl-s sectionType char(20) ccsid(1252);
+    dcl-s line varchar(4096) ccsid(1252) based(ptr);
+    dcl-s temp varchar(4096) ccsid(1252);
+    dcl-s tempSection varchar(20) ccsid(1252);
+    dcl-s space char(1) ccsid(1252);
+    dcl-s tempStart char(2) ccsid(1252) based(tempStartPtr);
+    dcl-s commentChars char(2) ccsid(1252) inz('//');
+    dcl-s message char(52);
+    dcl-s i int(10);
+
+    tempStartPtr = %addr(temp : *data);
+
+    ptr = list_iterate(lines);
+    dow (ptr <> *null);
+        temp = %triml(line : space);
+        
+        if (%len(temp) < 2 or tempStart <> commentChars);
+            // no comment anymore
+            sectionType = *blank;
+        else;
+        
+            // strip comment chars
+            if (%len(temp) <= 3);
+                clear temp;
+            elseif (%len(temp) > 3);
+                temp = %subst(temp : 4);
+            endif;
+            
+            tempSection = %trim(temp : space);
+            if (tempSection = OPENAPI_MAIN);
+                sectionType = OPENAPI_MAIN;
+            elseif (tempSection = OPENAPI_PATH);
+                sectionType = OPENAPI_PATH;
+            elseif (tempSection = OPENAPI_COMP);
+                sectionType = OPENAPI_COMP;
+            elseif (sectionType <> *blank);
+            
+                select;
+                when (sectionType = OPENAPI_MAIN);
+                    list_add(p_openapi_main : %addr(temp : *data) : %len(temp));
+                when (sectionType = OPENAPI_PATH);
+                    list_add(p_openapi_path : %addr(temp : *data) : %len(temp));
+                when (sectionType = OPENAPI_COMP);
+                    list_add(p_openapi_comp : %addr(temp : *data) : %len(temp));
+                endsl;
+
+            endif;
+        endif;
+        
+        ptr = list_iterate(lines);
+    enddo;
+    
+end-proc;
+
+
+dcl-proc readLines;
+    dcl-pi *n pointer;
+        p_inputFilePath varchar(1000) const;
+    end-pi;
+
+    dcl-s lines pointer;
+    dcl-s buffer char(1048576) ccsid(*hex);
+    dcl-s bufferLength int(10);
+    dcl-s line varchar(4096) ccsid(1252);
+    dcl-s position int(10) inz(1);
+    dcl-s moreLines ind;
+    dcl-s inputFd int(10);
+    
+    lines = list_create();
+    
+    inputFd = open(p_inputFilePath : O_RDONLY + O_CCSID + O_TEXTDATA : S_IRWXU : 1252);
+    if (inputFd < 0);
+        message_info('Could not open input file. Skipping ' + p_inputFilePath);
+        return lines;
+    endif;
+
+    bufferLength = read(inputFd : %addr(buffer) : %size(buffer));
+    
+    moreLines = nextLine(buffer : bufferLength : position : line);
+    dou (not moreLines);
+        line = %trimr(line);
+        list_add(lines : %addr(line) : %size(line));
+        
+        moreLines = nextLine(buffer : bufferLength : position : line);
+    enddo;
+    
+    if (%len(line) > 0);
+        list_add(lines : %addr(line) : %size(line));
+    endif;
+    
+    return lines;
+    
+    on-exit;
+        if (inputFd >= 0);
+            callp close(inputFd);
+        endif;
+end-proc;
+
+
+dcl-proc nextLine export;
+    dcl-pi *n ind;
+        buffer char(1048576) ccsid(*hex);
+        bufferLength int(10) const;
+        position int(10);
+        line varchar(4096) ccsid(1252);
+    end-pi;
+
+    dcl-s LF char(1) inz(x'0A') ccsid(1252);
+    dcl-s x int(10);
+    dcl-s temp varchar(4096) ccsid(*hex);
+    dcl-s moreLines ind;
+    
+    x = %scan(LF : buffer : position);
+    if (x = 0);
+        line = %subst(buffer : position : bufferLength - position + 1);
+        moreLines = *off;
+    else;
+        line = %subst(buffer : position : x - position);
+        position = x + 1;
+        moreLines = *on;
+    endif;
+    
+    return moreLines;
+end-proc;
