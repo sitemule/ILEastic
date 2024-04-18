@@ -1,0 +1,16 @@
+**FREE
+
+/if defined (JWT_BASE64URL)
+/eof
+/endif
+
+/define JWT_BASE64URL
+
+
+dcl-pr jwt_encodeBase64Url varchar(524284) ccsid(*utf8) extproc(*dclcase);
+  string varchar(524284) const ccsid(*utf8);
+end-pr;
+
+dcl-pr jwt_decodeBase64Url varchar(524284) ccsid(*utf8) extproc(*dclcase);
+  string varchar(524284) const ccsid(*utf8);
+end-pr;

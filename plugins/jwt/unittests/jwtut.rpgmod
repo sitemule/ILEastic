@@ -3,9 +3,13 @@
 ctl-opt nomain;
 
 
-/include RPGUNIT/QINCLUDE,ASSERT
-/include 'jwt_h.rpgle'
+/include 'assert.rpginc'
+/include 'jwt.rpginc'
+/include 'hmac.rpginc'
 
+
+dcl-s token like(jwt_token_t) inz('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.enc3UilS4swTRKV5J8R_TK8Z-208tZFJjduNQQc-hEE');
+dcl-s signKey like(jwt_signKey_t) inz('123456789012345678901234567890AB'); 
 
 dcl-proc test_verify export;
   dcl-s signKey like(jwt_signKey_t);

@@ -25,6 +25,8 @@
 // The available signing algorithms
 ///
 dcl-c JWT_HS256 'HS256';
+dcl-c JWT_HS384 'HS384';
+dcl-c JWT_HS512 'HS512';
 dcl-c JWT_RS256 'RS256';
 dcl-c JWT_RS384 'RS384';
 dcl-c JWT_RS512 'RS512';
@@ -32,7 +34,7 @@ dcl-c JWT_RS512 'RS512';
 ///
 // Template for JWT token.
 ///
-dcl-s jwt_token_t varchar(8090) template;
+dcl-s jwt_token_t varchar(65530) template;
 
 ///
 // Template for the signing key used to create the token signature.

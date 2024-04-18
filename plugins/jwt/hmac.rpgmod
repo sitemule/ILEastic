@@ -1,0 +1,128 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+
+/if not defined(QUSEC)
+/define QUSEC
+/copy QSYSINC/QRPGLESRC,QUSEC
+/endif
+
+/include 'base64url.rpginc'
+/include 'jwt.rpginc'
+/include 'hmac.rpginc'
+/include 'message.rpginc'
+
+dcl-pr memcpy pointer extproc('memcpy');
+  dest pointer value;
+  source pointer value;
+  count uns(10) value;
+end-pr;
+
+dcl-pr sys_calculateHmac extproc('Qc3CalculateHMAC');
+  input pointer value;
+  inputLength int(10) const;
+  inputDataFormat char(8) const;
+  algorithm char(65535) const;
+  algorithmFormat char(8) const;
+  key char(1000) const;
+  keyFormat char(8) const;
+  cryptoServiceProvier char(1) const;
+  cryptoDeviceName char(10) const;
+  hash char(32);
+  errorCode likeds(QUSEC);
+end-pr;
+
+dcl-ds algd0500_t qualified template;
+  algorithm int(10);
+end-ds;
+
+dcl-c ALGORITHM_SHA256 3;
+dcl-c ALGORITHM_SHA384 4;
+dcl-c ALGORITHM_SHA512 5;
+dcl-c KEY_TYPE_HMAC_SHA256 3;
+dcl-c KEY_TYPE_HMAC_SHA384 4;
+dcl-c KEY_TYPE_HMAC_SHA512 5;
+
+dcl-ds keyd0200_t qualified template;
+  type int(10);
+  length int(10);
+  format char(1);
+  reserved char(3);
+  key char(512) ccsid(*utf8);
+end-ds;
+
+dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
+
+
+dcl-proc jwt_hmac_encode export;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    algorithm varchar(100) const;
+    pData like(jwt_token_t) const ccsid(*utf8);
+    signKey like(jwt_signKey_t) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s encoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s hash char(64);
+  dcl-s hashSize int(10);
+  dcl-s tmpHash char(64) ccsid(*utf8);
+  dcl-ds algd0500 likeds(algd0500_t);
+  dcl-ds keyparam likeds(keyd0200_t) inz;
+  dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
+  dcl-s data like(jwt_token_t) ccsid(*utf8);
+  
+  data = pData;
+
+  keyparam.length = %len(signKey);
+  // add padding for the case where if sign key is too short
+  keyparam.key = *all'0';
+  keyparam.key = signKey + keyparam.key;
+  keyparam.format = '0';
+  
+  select;
+    when (algorithm = JWT_HS256);
+      hashSize = 32;
+      keyparam.type = KEY_TYPE_HMAC_SHA256;
+      algd0500.algorithm = ALGORITHM_SHA256;
+    when (algorithm = JWT_HS384);
+      hashSize = 48;
+      keyparam.type = KEY_TYPE_HMAC_SHA384;
+      algd0500.algorithm = ALGORITHM_SHA384;
+    when (algorithm = JWT_HS512);
+      hashSize = 64;
+      keyparam.type = KEY_TYPE_HMAC_SHA512;
+      algd0500.algorithm = ALGORITHM_SHA512;
+    other;
+      message_escape('Unsupported algorithm + sign key combination');
+  endsl;
+
+  // minimum 32 bytes for SHA-256
+  
+  if (algorithm = JWT_HS256 and keyparam.length < 32);
+    keyparam.length = 32;
+  elseif (algorithm = JWT_HS384 and keyparam.length < 48);
+    keyparam.length = 48;
+  elseif (algorithm = JWT_HS512 and keyparam.length < 64);
+    keyparam.length = 64;
+  endif;
+
+  clear QUSEC;
+  sys_calculateHmac(
+      %addr(data : *data) :
+      %len(data) :
+      'DATA0100' :
+      algd0500 :
+      'ALGD0500' :
+      keyparam :
+      'KEYD0200' :
+      '0' : // crypto
+      *blank : // crypto dev
+      hash :
+      QUSEC);
+
+  memcpy(%addr(tmpHash) : %addr(hash) : hashSize);
+  encoded = jwt_encodeBase64Url(%subst(tmpHash : 1 : hashSize));
+  encoded = %trimr(encoded : paddingChar);
+
+  return pData + UTF8_PERIOD + encoded;
+end-proc;

@@ -10,27 +10,47 @@ BIN_LIB=ILEASTIC
 
 BIND_LIB=*LIBL
 
+TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
+OUTPUT=*NONE
+
+# Library which contains RUTESTCASE service program
+RU_LIB=*LIBL
 
 #
 # User-defined part end
 #-------------------------------------------------------------------------------
 
+TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
 
-# CFLAGS = compiler parameter
-CFLAGS=OUTPUT(*PRINT) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../..') DBGVIEW(*ALL) TGTRLS($(TARGET_RLS))
+# RCFLAGS = RPG compiler parameter
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers') DBGVIEW(*ALL) TGTRLS($(TARGET_RLS)) DEFINE($(DEFINE)) $(TGTCCSID)
 
-MODULES = jwt jwtplugin
+# Do not touch below
+INCLUDE='/QIBM/include' '.' '../../headers/'  
 
-.SUFFIXES: .rpgle
+# C compile flags
+CCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOSHOWINC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL) DEFINE($(DEFINE)) TGTCCSID($(TARGET_CCSID)) TGTRLS($(TARGET_RLS))
 
-.rpgle:
-	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(819)"
-	-system -i "RMVM FILE($(BIN_LIB)/JWTSRC) MBR($@)"
-	system -i "CPYFRMSTMF FROMSTMF('$<') TOMBR('/QSYS.LIB/$(BIN_LIB).LIB/JWTSRC.FILE/$@.MBR') MBROPT(*ADD)"
-	system -ikK "CRTRPGMOD MODULE($(BIN_LIB)/$@) SRCFILE($(BIN_LIB)/JWTSRC) SRCMBR($@) $(CFLAGS)"
-	
+MODULES = base64url.rpgmod hmac.rpgmod jwt.rpgmod jwtplugin.rpgmod message.c
+
 all: env compile bind
+
+# remove all default suffix rules
+.SUFFIXES:
+
+%.rpgmod: .PHONY
+	system -q "CHGATR OBJ('$*.rpgmod') ATR(*CCSID) VALUE(819)"
+	system -i "CRTRPGMOD MODULE($(BIN_LIB)/$*) SRCSTMF('$*.rpgmod') $(RCFLAGS)"
+
+%.c: .PHONY
+	system -q "CHGATR OBJ('$*.c') ATR(*CCSID) VALUE(1252)"
+	system "CRTCMOD MODULE($(BIN_LIB)/$(notdir $*)) SRCSTMF('$*.c') $(CCFLAGS)"
+
+HMACUT:
+	system -i "CHGATR OBJ('hmacut.rpgmod') ATR(*CCSID) VALUE(1252)"
+	system -ik "CRTRPGMOD MODULE($(BIN_LIB)/HMACUT) SRCSTMF('hmacut.rpgmod') $(RCFLAGS)"
+	system -i "CRTSRVPGM $(BIN_LIB)/HMACUT MODULE(($(BIN_LIB)/HMACUT)) $(BINDFLAGS)"
 
 env:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTSRC) OBJTYPE(*FILE)"
@@ -53,5 +73,8 @@ bind:
 clean:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTSRC) OBJTYPE(*FILE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/HMAC) OBJTYPE(*MODULE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWT) OBJTYPE(*MODULE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTPLUGIN) OBJTYPE(*MODULE)"
+
+.PHONY:

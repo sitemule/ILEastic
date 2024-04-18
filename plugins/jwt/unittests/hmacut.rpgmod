@@ -1,0 +1,44 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include 'assert.rpginc'
+/include 'jwt.rpginc'
+/include 'hmac.rpginc'
+
+// header: {"alg":"HS256","typ":"JWT"}
+// payload: {"sub":"test","name":"Mihael"}
+
+dcl-proc test_verify_256 export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.enc3UilS4swTRKV5J8R_TK8Z-208tZFJjduNQQc-hEE');
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
+    dcl-s signKey like(jwt_signKey_t) inz('123456789012345678901234567890AB'); 
+    dcl-s jwt like(jwt_token_t) ccsid(*utf8);
+  
+    jwt = jwt_hmac_encode(JWT_HS256 : headerPayload : signKey);
+  
+    assert(jwt = token : 'Token is invalid.');
+end-proc;
+
+dcl-proc test_verify_384 export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.EqgborL7UfwBAAInOPzn0C4X1ZA0kcRW2TkLw397Fy2MwXRK8D-x-YPbH01c29U3');
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
+    dcl-s signKey like(jwt_signKey_t) inz('1234567890123456789012345678901234567890ABCDEFGH'); 
+    dcl-s jwt like(jwt_token_t) ccsid(*utf8);
+  
+    jwt = jwt_hmac_encode(JWT_HS384 : headerPayload : signKey);
+  
+    assert(jwt = token : 'Token is invalid.');
+end-proc;
+
+dcl-proc test_verify_512 export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.2q_4iW_kSzZDV5zWQxLWWXPGBHppTMTK3ZeVw9yv9Y38I7KQ5uCchFXUd1my7TAiXR4QtkYkec8ZRyfK9fYjAA');
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
+    dcl-s signKey like(jwt_signKey_t) inz('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt');
+    dcl-s jwt like(jwt_token_t) ccsid(*utf8);
+  
+    jwt = jwt_hmac_encode(JWT_HS512 : headerPayload : signKey);
+  
+    assert(jwt = token : 'Token is invalid.');
+end-proc;

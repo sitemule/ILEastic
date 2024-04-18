@@ -1,0 +1,40 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+
+/include 'base64.rpginc'
+/include 'base64url.rpginc'
+
+
+dcl-proc jwt_encodeBase64Url export;
+  dcl-pi *n varchar(524284) ccsid(*utf8);
+    string varchar(524284) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s FROM char(2) inz('+/') ccsid(*utf8);
+  dcl-s TO   char(2) inz('-_') ccsid(*utf8);
+  dcl-s encoded varchar(524284) ccsid(*utf8);
+
+  encoded = il_encodeBase64(string);
+  encoded = %xlate(FROM : TO : encoded);
+
+  return encoded;
+end-proc;
+
+
+dcl-proc jwt_decodeBase64Url export;
+  dcl-pi *n varchar(524284) ccsid(*utf8);
+    string varchar(524284) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s TO   char(2) inz('+/') ccsid(*utf8);
+  dcl-s FROM char(2) inz('-_') ccsid(*utf8);
+  dcl-s decoded varchar(524284) ccsid(*utf8);
+  dcl-s value varchar(524284) ccsid(*utf8);
+
+  value = %xlate(FROM : TO : string);
+  decoded = il_decodeBase64(value);
+
+  return decoded;
+end-proc;

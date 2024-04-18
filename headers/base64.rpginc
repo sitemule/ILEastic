@@ -1,0 +1,50 @@
+**FREE
+
+/if defined (BASE64_H)
+/eof
+/endif
+
+/define BASE64_H
+
+
+///
+// Base64 decode value
+//
+// Decodes a base64 encoded string.
+//
+// @param Encoded string
+// @return Decoded string
+//
+// @info The character encoding for the original value is expected to be UTF-8.
+///
+dcl-pr il_decodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_decodeBase64') rtnparm;
+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
+end-pr;
+
+///
+// Base64 encoding value
+//
+// Encodes a string into base64 .
+//
+// @param string to encode
+// @return Encoded string
+//
+// @info The character encoding for the original value is expected to be UTF-8.
+///
+dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_encodeBase64') rtnparm;
+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;
+end-pr;
+
+
+dcl-pr base64_encodeBuffer int(20) extproc(*CWIDEN : 'base64_encodeBuffer');
+   output pointer value;
+   input pointer value;
+   inputLength int(20) value; 
+end-pr;
+
+
+dcl-pr base64_decodeBuffer int(20) extproc(*CWIDEN : 'base64_decodeBuffer');
+   output pointer value;
+   input pointer value;
+   inputLength int(20) value; 
+end-pr;
