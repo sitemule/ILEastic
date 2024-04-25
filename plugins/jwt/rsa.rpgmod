@@ -1,0 +1,215 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+/include 'base64url.rpginc'
+/include 'jwt.rpginc'
+/include 'rsa.rpginc'
+/include 'message.rpginc'
+
+dcl-ds qusec_t qualified template;
+  bytesProvided int(10);
+  bytesAvailable int(10);
+  exceptionId char(7);
+  reserved char(1);
+  data char(48);
+end-ds;
+
+dcl-pr memcpy pointer extproc('memcpy');
+  dest pointer value;
+  source pointer value;
+  count uns(10) value;
+end-pr;
+
+dcl-c ALGORITHM_SHA256 3;
+dcl-c ALGORITHM_SHA384 4;
+dcl-c ALGORITHM_SHA512 5;
+
+dcl-ds keyd0400_t qualified template;
+    fqn char(20);
+    label char(32);
+    filler char(4) inz(x'00000000');
+end-ds;
+
+dcl-ds keyd0600_t qualified template;
+    length int(10);
+    filler char(4) inz(x'00000000');
+    key char(10000) ccsid(*utf8);
+end-ds;
+
+dcl-ds algd0400_t qualified template;
+    cipher int(10) inz(50) ;       // RSA
+    pka char(1) inz('1');          // PKCS#1 block type 1
+    filler char(3) inz(x'000000');
+    hash int(10) inz(3);           // 3=SHA256 5=SHA512
+end-ds;
+
+dcl-pr sys_verifySignature extproc('Qc3VerifySignature');
+    signature pointer value;
+    signatureLength int(10) const;
+    input pointer value;
+    inputLength int(10) const;
+    inputDataFormat char(8) const;
+    algorithm pointer value;
+    algorithmFormat char(8) const;
+    key pointer value;
+    keyFormat char(8) const;
+    cryptoServiceProvier char(1) const;
+    cryptoDeviceName char(10) const;
+    errorCode likeds(qusec_t);
+end-pr;
+
+dcl-pr sys_calculateSignature extproc('Qc3CalculateSignature');
+    input pointer value;
+    inputLength int(10) const;
+    inputDataFormat char(8) const;
+    algorithm pointer value;
+    algorithmFormat char(8) const;
+    key pointer value;
+    keyFormat char(8) const;
+    cryptoServiceProvier char(1) const;
+    cryptoDeviceName char(10) const;
+    signature pointer value;
+    signatureLengthAvailable int(10) const;
+    signatureLength int(10);
+    errorCode likeds(qusec_t);
+end-pr;
+
+dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
+
+
+dcl-proc jwt_rsa_sign export;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+      jwtAlgorithm varchar(100) const;
+      data like(jwt_token_t) const ccsid(*hex);
+      privateKey like(jwt_signKey_t) const ccsid(*hex);
+  end-pi;
+  
+    dcl-s token like(jwt_token_t) ccsid(*utf8);
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8);
+    dcl-s signature varchar(8192) ccsid(*utf8);
+    dcl-s signatureLength int(10);
+    dcl-s encodedSignature varchar(10000) ccsid(*hex);
+    dcl-ds algorithm likeds(algd0400_t) inz(*likeds);
+    dcl-ds key likeds(keyd0600_t) inz(*likeds);
+    dcl-ds errorCode likeds(qusec_t) inz;
+    
+    // TODO key format needs to be KEYD0200
+    // TODO private key needs to be in DER/BER format
+    
+    errorCode.bytesProvided = %size(qusec_t);
+   
+    key.key = privateKey;
+    key.length = %len(privateKey);
+   
+    select;
+      when (jwtAlgorithm = JWT_RS256);
+        algorithm.hash = ALGORITHM_SHA256;
+      when (jwtAlgorithm = JWT_RS384);
+        algorithm.hash = ALGORITHM_SHA384;
+      when (jwtAlgorithm = JWT_RS512);
+        algorithm.hash = ALGORITHM_SHA512;
+      other;
+          return *off;
+    endsl;
+    
+    monitor;
+        %len(signature) = 8192;
+        
+        headerPayload = data;
+    
+        sys_calculateSignature(
+            %addr(headerPayload : *data) :
+            %len(headerPayload) :
+            'DATA0100' :
+            %addr(algorithm) :
+            'ALGD0400' :
+            %addr(key) :
+            'KEYD0600' :
+            '0' :
+            '          ' :
+            %addr(signature : *data) : 
+            %len(signature) :
+            signatureLength :
+            errorCode
+        );
+      
+        %len(signature) = signatureLength;
+        encodedSignature = jwt_encodeBase64Url(signature);
+        token = headerPayload + '.' + jwt_encodeBase64Url(signature);
+       
+        return token;
+    on-error *all;
+        return *blank;
+    endmon;
+end-proc;
+
+
+dcl-proc jwt_rsa_verify export;
+    dcl-pi *n ind;
+        jwtAlgorithm varchar(100) const;
+        data like(jwt_token_t) const ccsid(*hex);
+        publicKey like(jwt_signKey_t) const ccsid(*utf8);
+    end-pi;
+    
+    dcl-s payload like(jwt_token_t) ccsid(*utf8);
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8);
+    dcl-s signature varchar(8192) ccsid(*utf8);
+    dcl-s signatureLength int(10);
+    dcl-s payloadLength int(10);
+    dcl-ds algorithm likeds(algd0400_t) inz(*likeds);
+    dcl-ds key likeds(keyd0600_t) inz(*likeds);
+    dcl-s decodedSig varchar(8192) ccsid(*hex);
+    dcl-ds errorCode likeds(qusec_t) inz;
+    dcl-s signaturePos int(10);
+    
+    errorCode.bytesProvided = %size(qusec_t);
+   
+    key.key = publicKey;
+    key.length = %len(publicKey);
+   
+    select;
+      when (jwtAlgorithm = JWT_RS256);
+        algorithm.hash = ALGORITHM_SHA256;
+      when (jwtAlgorithm = JWT_RS384);
+        algorithm.hash = ALGORITHM_SHA384;
+      when (jwtAlgorithm = JWT_RS512);
+        algorithm.hash = ALGORITHM_SHA512;
+      other;
+          return *off;
+    endsl;
+    
+    monitor;
+        signaturePos = %scanr(UTF8_PERIOD : data);
+        if (signaturePos = 0);
+            return *off;
+        endif;
+        
+        headerPayload = %subst(data : 1 : signaturePos - 1);
+    
+        decodedSig = jwt_decodeBase64Url(%subst(data : signaturePos + 1));
+        
+        signatureLength = %len(decodedSig);
+        payload = headerPayload;
+        payloadLength = %len(headerPayload);
+        
+        sys_verifySignature(
+            %addr(decodedSig : *data) :
+            signatureLength :
+            %addr(payload : *data) :
+            payloadLength :
+            'DATA0100' :
+            %addr(algorithm) :
+            'ALGD0400' :
+            %addr(key) :
+            'KEYD0600' :
+            '0' :
+            '          ' :
+            errorCode
+        );
+      
+       return errorCode.exceptionId = *blank;
+    on-error *all;
+        return *off;
+    endmon;
+end-proc;

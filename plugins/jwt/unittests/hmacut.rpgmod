@@ -7,7 +7,6 @@ ctl-opt nomain;
 /include 'jwt.rpginc'
 /include 'hmac.rpginc'
 
-// header: {"alg":"HS256","typ":"JWT"}
 // payload: {"sub":"test","name":"Mihael"}
 
 dcl-proc test_verify_256 export;

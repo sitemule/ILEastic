@@ -1,0 +1,354 @@
+**FREE
+
+///
+// ILEastic : JWT Service Program
+//
+// This service program offers procedures for signing and verifying JWT tokens.
+//
+// @author Mihael Schmidt
+// @date 04.05.2019
+// @project ILEastic
+///
+
+ctl-opt nomain thread(*concurrent);
+
+
+/if not defined(QUSEC)
+/define QUSEC
+/copy QSYSINC/QRPGLESRC,QUSEC
+/endif
+
+/include 'base64url.rpginc'
+/include 'jwt.rpginc'
+/include 'hmac.rpginc'
+/include 'rsa.rpginc'
+/include 'noxDB/headers/jsonparser.rpgle'
+
+dcl-pr sys_getUtcOffset extproc('CEEUTCO');
+  offsetHours int(10);
+  offsetMinutes int(10);
+  offsetSeconds float(8);
+  feedback char(12) options(*omit);
+end-pr;
+
+dcl-c UNIX_EPOCH_START z'1970-01-01-00.00.00.000000';
+dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
+
+
+dcl-proc jwt_verify export;
+  dcl-pi *n ind;
+    token like(jwt_token_t) const ccsid(*utf8);
+    options likeDs(jwt_options_t) const;
+  end-pi;
+
+  dcl-s validatePtr pointer(*proc);
+  dcl-pr validateToken ind extproc(validatePtr);
+    token like(jwt_token_t) const ccsid(*utf8);
+  end-pr;
+
+  dcl-s valid ind inz(*off);
+  dcl-s signedToken like(jwt_token_t) ccsid(*utf8);
+  dcl-s tokenAlgorithm char(100);
+  dcl-s signaturePos int(10);
+  dcl-s headerPayload like(jwt_token_t) ccsid(*utf8);
+  dcl-s header like(jwt_token_t);
+  dcl-s payload like(jwt_token_t);
+  dcl-s json pointer;
+
+  monitor;
+    header = jwt_decodeHeader(token);
+    json = json_parseString(header);
+    tokenAlgorithm = json_getStr(json : 'alg' : '');
+    json_close(json);
+    
+    payload = jwt_decodePayload(token);
+    json = json_parseString(payload);
+
+    select;
+      when (isExpired(json) or not isActive(json));
+        // Do nothing. Encryption/signature validation is costly and time consuming business.
+        // If the token is expired, do not even bother to waste time on checking signature.
+
+      when options.alg = JWT_ALG_NONE;
+        // JWT algorithm "none" is not supported
+        valid = *off;
+
+      when (options.validate <> *null);
+        validatePtr = options.validate;
+        valid = validateToken(token);
+
+      when (tokenAlgorithm = *blank);
+        // token doesn't contain algorithm claim in header
+        valid = *off;
+        
+      when (options.alg <> *blank and options.alg <> tokenAlgorithm);
+        // token algorithm does not match the configured valid algorithm
+        valid = *off;
+      
+      when (%subst(tokenAlgorithm : 1 : 2) = 'HS');
+        signaturePos = %scanr(UTF8_PERIOD : token);
+        if (signaturePos > 0);
+            headerPayload = %subst(token : 1 : signaturePos - 1);
+            signedToken = jwt_hmac_encode(tokenAlgorithm : headerPayload : options.key);
+            valid = (token = signedToken);
+        endif;
+
+      when %subst(tokenAlgorithm : 1 : 2) = 'RS';
+        valid = jwt_rsa_verify(tokenAlgorithm : token : options.key);
+      
+    endsl;
+
+    return valid;
+
+  on-error;
+    return *off;
+  endmon;
+  
+  on-exit;
+      json_close(json);
+end-proc;
+
+
+dcl-proc jwt_decodeHeader export;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    token like(jwt_token_t) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s x int(10);
+  dcl-s decoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s header like(jwt_token_t) ccsid(*utf8);
+
+  // JWT header
+  x = %scan(UTF8_PERIOD : token);
+  if (x = 0);
+    return *blank;
+  endif;
+
+  header = %subst(token : 1 : x - 1);
+  decoded = jwt_decodeBase64Url(header);
+
+  return decoded;
+end-proc;
+
+
+dcl-proc jwt_decodePayload export;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    token like(jwt_token_t) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s x int(10);
+  dcl-s x2 int(10);
+  dcl-s decoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+
+  // JWT header
+  x = %scan(UTF8_PERIOD : token);
+  if (x = 0);
+    return *blank;
+  endif;
+
+  // JWT payload
+  x2 = %scan(UTF8_PERIOD : token : x+1);
+  if (x2 = 0);
+    return *blank;
+  endif;
+
+  payload = %subst(token : x+1 : x2 - x);
+  decoded = jwt_decodeBase64Url(payload);
+
+  return decoded;
+end-proc;
+
+
+dcl-proc jwt_sign export;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    algorithm char(100) const;
+    p_payload like(jwt_token_t) const ccsid(*utf8);
+    options likeds(jwt_options_t) const;
+    claims likeds(jwt_claims_t) const options(*nopass);
+  end-pi;
+
+  dcl-s headerPayload char(65535) ccsid(*utf8);
+  dcl-s header like(jwt_token_t) ccsid(*utf8);
+  dcl-s encoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s base64Encoded like(jwt_token_t) ccsid(*utf8);
+  dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+
+  // TODO add kid if set in options
+  header = '{"alg":"' + algorithm + '","typ":"JWT"}'; 
+
+  payload = p_payload;
+  if (%parms() >= 4);
+    payload = addClaims(payload : claims);
+  endif;
+
+  base64Encoded = jwt_encodeBase64Url(payload);
+  base64Encoded = %trimr(base64Encoded : paddingChar);
+  headerPayload = jwt_encodeBase64Url(header) + '.' + base64Encoded;
+
+  // TODO
+
+  return 'TODO';
+end-proc;
+
+
+dcl-proc addClaims;
+  dcl-pi *n like(jwt_token_t) ccsid(*utf8);
+    pPayload like(jwt_token_t) const ccsid(*utf8);
+    claims likeds(jwt_claims_t) const;
+  end-pi;
+
+  dcl-s payload like(jwt_token_t) ccsid(*utf8);
+  dcl-s json pointer;
+  dcl-s value like(jwt_token_t);
+  dcl-s uxts int(10);
+  dcl-s changed ind inz(*off);
+
+  payload = %trimr(pPayload) + x'00';
+
+  json = json_parseString(%addr(payload : *DATA));
+
+  if (%len(claims.issuer) > 0);
+    value = claims.issuer + x'00';
+    json_setStr(json : 'iss' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+
+  if (%len(claims.subject) > 0);
+    value = claims.subject + x'00';
+    json_setStr(json : 'sub' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+
+  if (%len(claims.audience) > 0);
+    value = claims.audience + x'00';
+    json_setStr(json : 'aud' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+
+  if (%len(claims.jwtId) > 0);
+    value = claims.jwtId + x'00';
+    json_setStr(json : 'jti' : %addr(value : *DATA));
+    changed = *on;
+  endif;
+
+  if (claims.expirationTime <> *loval);
+    uxts = toUnixTimestamp(claims.expirationTime);
+    json_setInt(json : 'exp' : uxts);
+    changed = *on;
+  endif;
+
+  if (claims.notBefore <> *loval);
+    uxts = toUnixTimestamp(claims.notBefore);
+    json_setInt(json : 'nbf' : uxts);
+    changed = *on;
+  endif;
+
+  if (claims.issuedAt <> *loval);
+    uxts = toUnixTimestamp(claims.issuedAt);
+    json_setInt(json : 'iat' : uxts);
+    changed = *on;
+  endif;
+
+  if (changed);
+    payload = json_asJsonText(json);
+    json_close(json);
+    return payload;
+  else;
+    json_close(json);
+    return pPayload;
+  endif;
+end-proc;
+
+
+dcl-proc jwt_isExpired export;
+  dcl-pi *n ind;
+    pPayload like(jwt_token_t) const ccsid(*utf8);
+  end-pi;
+
+  dcl-s payload like(jwt_token_t);
+  dcl-s expired ind inz(*off);
+  dcl-s json pointer;
+
+  payload = pPayload;
+
+  json = json_parseString(payload);
+  expired = isExpired(json);
+  json_close(json);
+
+  return expired;
+end-proc;
+
+
+dcl-proc isExpired;
+  dcl-pi *n ind;
+    json pointer const;
+  end-pi;
+
+  dcl-s expired ind inz(*off);
+  dcl-s exp int(20);
+  dcl-s expTimestamp timestamp;
+  dcl-s now timestamp;
+  dcl-s offsetHours int(10);
+  dcl-s offsetMinutes int(10);
+  dcl-s offsetSeconds float(8);
+
+  now = %timestamp();
+  sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
+
+  exp = json_getInt(json : 'exp' : -1);
+
+  if (exp >= 0);
+    expTimestamp = UNIX_EPOCH_START + %seconds(exp + %int(offsetSeconds));
+    expired = (now >= expTimestamp);
+  endif;
+
+  return expired;
+end-proc;
+
+
+dcl-proc isActive;
+  dcl-pi *n ind;
+    json pointer const;
+  end-pi;
+
+  dcl-s active ind inz(*on);
+  dcl-s nbf int(20);
+  dcl-s nbfTimestamp timestamp;
+  dcl-s now timestamp;
+  dcl-s offsetHours int(10);
+  dcl-s offsetMinutes int(10);
+  dcl-s offsetSeconds float(8);
+
+  now = %timestamp();
+  sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
+
+  nbf = json_getInt(json : 'nbf' : -1);
+
+  if (nbf >= 0);
+    nbfTimestamp = UNIX_EPOCH_START + %seconds(nbf + %int(offsetSeconds));
+    active = (now >= nbfTimestamp);
+  endif;
+
+  return active;
+end-proc;
+
+
+dcl-proc toUnixTimestamp;
+  dcl-pi *n int(10);
+    ts timestamp const;
+  end-pi;
+
+  dcl-s offsetHours int(10);
+  dcl-s offsetMinutes int(10);
+  dcl-s offsetSeconds float(8);
+  dcl-s uxts int(10);
+
+  sys_getUtcOffset(offsetHours : offsetMinutes : offsetSeconds : *omit);
+
+  uxts = %diff(ts : UNIX_EPOCH_START : *SECONDS) - %int(offsetSeconds);
+
+  return uxts;
+end-proc;
+

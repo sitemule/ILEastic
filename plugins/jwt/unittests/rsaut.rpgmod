@@ -1,0 +1,144 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include 'assert.rpginc'
+/include 'jwt.rpginc'
+/include 'rsa.rpginc'
+
+// payload: {"sub":"test","name":"Mihael"}
+
+dcl-c LF u'000A';
+
+dcl-proc test_verify_256 export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(valid : 'Token is invalid.');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidTokenFormat export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidToken export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAgXYZ');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidPublicKey export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN PUBLIC KEY-----' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END PUBLIC KEY-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+// Token generation doesn't work yet.
+dcl-proc test_sign_256; //  export;
+    dcl-s privateKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
+    dcl-s comparableToken like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s token like(jwt_token_t) ccsid(*utf8);
+    
+    privateKey = 
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIEogIBAAKCAQEA0CfTwHgz2CoNTxx8KYVmstdsVJrvgKqyiui7fO+VFga1pAAP' + LF +
+        'cUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrqJ/M63MByIFfnVLGdR7k6MKKFaiTP' + LF +
+        'NAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp9cnUNpAxNCTLJvhebaPB4zF/Qroe' + LF +
+        'tOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTksOg+SOjf0BuGvycIaIr3rLeK0WO4' + LF +
+        'o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ7FmpOu0UopvYevxgwwNb2FQ5XY3m' + LF +
+        'W4tiAMZLphJehjizXqcghYwu8sczb7QEz611KQIDAQABAoIBABayyR37XZfsWgAu' + LF +
+        '+IEkmWLWJ+t/668JrieEonFIxOaee68zDHwLtaZ4I12BHPXR4Dak4cGlXgAcurNs' + LF +
+        'ErMfTNpnZRtOZwOM4l5zcdWw5p4IEulUsz2XMvb8qlJlgp5k8Ly/1Gf6TUqAaJQM' + LF +
+        '91oemt4hEKGUjrEDdB2/RrjI+ysVd9MsBbKtJWPsbgPGRljWPzLOAV2ixu2oYlz4' + LF +
+        'hyWiaH8VisNhGyrF71mdOISq7cY9kSKppOX87IT7LR4gwHsnIpUlsnYBnwOVSh9m' + LF +
+        'Bkqhnj/eYOysc6bhsZUj2Iwq3ppVk/hZRBjy54EI/7huOHZ7VvDHXKndoGHazTy2' + LF +
+        'pqjZlLMCgYEA6xBJsnOTqsODqAjl5wr4TMRt9CXqcQh2w89HeFp71PLItJpcBuzR' + LF +
+        'ooCpdoHYoAaLUMExcO0olO+5ur3X+pqIqpdYv2P9DfRlXqdYNv36uDkCERRLyemt' + LF +
+        '90DjVrXX3yyISsHyPOhJN+5rxbl/vDRN86qBGgAH6paUpQ+HT4CP/I8CgYEA4rIB' + LF +
+        'fNVcwpc3wOzo4ys86bkMp+yaZLSQoAe2Nu5CmQMGYObQGdGtuOp8azxP/vLNFreH' + LF +
+        'EWctlB0rN6pcctl2QPNwEh6X4tDk+WcFvzyrXcK5FzDX+uG3wSL6OdG6B6bvsGyH' + LF +
+        'o7YHtHibTC6YJ4ikSk/IeqW+7yQTftQZB1vSvscCgYBHrV/LmpKcr6Gly5DPMvkj' + LF +
+        '74HXwPgMH5iXfM0+VdkMxjuNVsRZGD2UX8dM66syoMw6g66f0LFfOPpZhyoksJqb' + LF +
+        '6iqVsdeoOa3vfvfXTPr20etfaeDyYN87Vf38otaApwOoSBullu88rucOE9JvgUOD' + LF +
+        '2aokU34WenQ5INMR2xIM4QKBgHONhNCa+YN/DT5cBIH3Qj9owhi+tBxtJeNMywbJ' + LF +
+        'AE16iz/Np3nhtYmyjOUkgypTnVLdDg5C56q+C49+WU15p5uH+zJhQc6t6GlwqC9I' + LF +
+        'v5k1bp9xmEYb1EywhZf/XbIU18y4JZO/b8IAUDjO72QHdKckb+6EmgTQANf/SRrF' + LF +
+        'JXF1AoGAamPUIps2HhYVaZM++mdeYJTf1D51Td2PhdLpraZ7a7PLJif47qWb4Fdm' + LF +
+        '/11Cc/ho0twrsXv+qWXNbLPldoXkQa7AEvPY3ri6w2YUwTbwxTqKjGGbUd0iIea6' + LF +
+        'T0/XhUGr3r9rlfHuzb//uWWChafuRbbhX0pB6bYb9scW5XuDjJI=' + LF +
+        '-----END CERTIFICATE-----' + LF;
+    
+    token = jwt_rsa_sign(JWT_RS256 : headerPayload : privateKey);
+    assert(token = comparableToken : 'No token generated.');
+end-proc;
+
+
+
+
+

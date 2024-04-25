@@ -52,13 +52,13 @@ dcl-ds keyd0200_t qualified template;
   key char(512) ccsid(*utf8);
 end-ds;
 
-dcl-s UTF8_PERIOD char(1) inz('.') CCSID(*UTF8);
+dcl-s UTF8_PERIOD char(1) inz('.') ccsid(*utf8);
 
 
 dcl-proc jwt_hmac_encode export;
   dcl-pi *n like(jwt_token_t) ccsid(*utf8);
     algorithm varchar(100) const;
-    pData like(jwt_token_t) const ccsid(*utf8);
+    p_data like(jwt_token_t) const ccsid(*utf8);
     signKey like(jwt_signKey_t) const ccsid(*utf8);
   end-pi;
 
@@ -71,13 +71,14 @@ dcl-proc jwt_hmac_encode export;
   dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
   dcl-s data like(jwt_token_t) ccsid(*utf8);
   
-  data = pData;
+  data = p_data;
 
   keyparam.length = %len(signKey);
-  // add padding for the case where if sign key is too short
+  keyparam.format = '0';
+  
+  // add padding for the case if sign key is too short
   keyparam.key = *all'0';
   keyparam.key = signKey + keyparam.key;
-  keyparam.format = '0';
   
   select;
     when (algorithm = JWT_HS256);
@@ -96,7 +97,7 @@ dcl-proc jwt_hmac_encode export;
       message_escape('Unsupported algorithm + sign key combination');
   endsl;
 
-  // minimum 32 bytes for SHA-256
+  // minimum 32 bytes for sign key for SHA-256
   
   if (algorithm = JWT_HS256 and keyparam.length < 32);
     keyparam.length = 32;
@@ -107,6 +108,7 @@ dcl-proc jwt_hmac_encode export;
   endif;
 
   clear QUSEC;
+  // TODO don't throw escape message on invalid token
   sys_calculateHmac(
       %addr(data : *data) :
       %len(data) :
@@ -115,7 +117,7 @@ dcl-proc jwt_hmac_encode export;
       'ALGD0500' :
       keyparam :
       'KEYD0200' :
-      '0' : // crypto
+      '0' :    // crypto
       *blank : // crypto dev
       hash :
       QUSEC);
@@ -124,5 +126,5 @@ dcl-proc jwt_hmac_encode export;
   encoded = jwt_encodeBase64Url(%subst(tmpHash : 1 : hashSize));
   encoded = %trimr(encoded : paddingChar);
 
-  return pData + UTF8_PERIOD + encoded;
+  return p_data + UTF8_PERIOD + encoded;
 end-proc;
