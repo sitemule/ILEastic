@@ -40,7 +40,7 @@ dcl-s jwt_token_t varchar(65530) template;
 ///
 // Template for the signing key used to create the token signature
 ///
-dcl-s jwt_signKey_t varchar(1000) template;
+dcl-s jwt_signkey_t varchar(2040) template;
 
 ///
 // Template for registered claims. The data structure needs to be created with
@@ -67,7 +67,7 @@ dcl-ds jwt_options_t qualified template;
     // encryption to get access. https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
     // This is not an implementation requirement, but we are placing this restriction for safety.
     alg char(100);
-    key varchar(8192) ccsid(*hex);
+    key like(jwt_signkey_t) ccsid(*utf8);
     // Call back proc for token validation. The caller will have to implement
     validate pointer(*proc);
 end-ds;
@@ -123,11 +123,9 @@ end-pr;
 // @param Algorithm (f. e. JWT_HS256)
 // @param Payload
 // @param Signing key (it has to be of a valid length corresponding to the
-//        selected algorithm (HS256 => 256 key = char(32))
+//        selected algorithm (HS256: key >= char(32))
 // @param Registered claims
 // @return Signed token
-//
-// @info At the moment only HS256 is supported for signature creation.
 ///
 dcl-pr jwt_sign like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
   algorithm char(100) const;
@@ -140,11 +138,11 @@ end-pr;
 // Check token expiration
 //
 // Checks if the token is expired. If the token contains no "exp" claim the
-// token is has not expired.
+// token has not expired.
 //
-// @param Payload
-// @return *on = token has expired else *off
+// @param JWT token or payload
+// @return <code>*on</code> = token has expired else <code>*off</code>
 ///
 dcl-pr jwt_isExpired ind extproc(*dclcase);
-  payload like(jwt_token_t) const ccsid(*utf8);
+  payloadOrToken like(jwt_token_t) const ccsid(*utf8);
 end-pr;

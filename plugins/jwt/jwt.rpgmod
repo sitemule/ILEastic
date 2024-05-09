@@ -264,14 +264,18 @@ end-proc;
 
 dcl-proc jwt_isExpired export;
   dcl-pi *n ind;
-    pPayload like(jwt_token_t) const ccsid(*utf8);
+    data like(jwt_token_t) const ccsid(*utf8);
   end-pi;
 
   dcl-s payload like(jwt_token_t);
   dcl-s expired ind inz(*off);
   dcl-s json pointer;
 
-  payload = pPayload;
+  if (%scan(UTF8_PERIOD : data) = 0);
+      payload = data;
+  else;
+      payload = jwt_decodePayload(data);
+  endif;
 
   json = json_parseString(payload);
   expired = isExpired(json);

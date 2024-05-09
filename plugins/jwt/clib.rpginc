@@ -1,0 +1,111 @@
+**free
+/if not defined (CLIB_H)
+/define CLIB_H
+
+dcl-pr fopen pointer extproc('_C_IFS_fopen');
+  filename pointer value options(*string);
+  mode pointer value options(*string);
+end-pr;
+
+dcl-pr fclose int(10) extproc('_C_IFS_fclose');
+  stream pointer value;
+end-pr;
+
+dcl-pr unlink int(10) extproc(*dclcase);
+  path pointer value options(*string);
+end-pr;
+
+dcl-pr access int(10) extproc('access');
+  path pointer value options(*string);
+  mode int(10) value;
+end-pr;
+
+//
+// Access mode flags for access() and accessx()
+//
+// F_OK = File Exists
+// R_OK = Read Access
+// W_OK = Write Access
+// X_OK = Execute or Search
+//
+dcl-c F_OK 0;
+dcl-c R_OK 4;
+dcl-c W_OK 2;
+dcl-c X_OK 1;
+
+dcl-c O_RDONLY 1;
+dcl-c O_WRONLY 2;
+dcl-c O_CREATE 8;
+dcl-c O_APPEND 256;
+
+dcl-c S_IRUSR 256;
+dcl-c S_IWUSR 128;
+
+dcl-pr open int(10) extproc('open');
+  path pointer value options(*string);
+  openflags int(10) value;
+  mode uns(10) value options(*nopass);
+  ccsid uns(10) value options(*nopass);
+end-pr;
+
+dcl-pr read int(10) extproc('read');
+  fildes int(10) value;
+  buf pointer value;
+  bytes uns(10) value;
+end-pr;
+
+dcl-pr write int(10) extproc('write');
+  fileDesc int(10) value;
+  buffer pointer value;
+  length uns(10) value;
+end-pr;
+
+dcl-pr close int(10) extproc('close');
+  fildes int(10) value;
+end-pr;
+
+dcl-pr memcmp int(10) extproc('memcmp');
+  buffer1 pointer value;
+  buffer2 pointer value;
+  count uns(10) value;
+end-pr;
+
+dcl-pr memcpy pointer extproc('memcpy');
+  target pointer value;
+  source pointer value;
+  count uns(10) value;
+end-pr;
+
+dcl-pr getenv pointer extproc('getenv');
+  envvar pointer value options(*string : *trim);
+end-pr;
+
+dcl-pr cvthc extproc('cvthc');
+  hex pointer value;
+  chars pointer value;
+  hexLength int(10) value;
+end-pr;
+
+dcl-pr CEERAN0 extproc('CEERAN0');
+  seed int(10);
+  randomNumber float(8);
+  feedback char(12) options(*omit);
+end-pr;
+
+dcl-pr errno pointer extproc('__errno');
+end-pr;
+
+dcl-pr strerror pointer extproc('strerror');
+  errno  int(10) value;
+end-pr;
+
+dcl-pr strlen uns(10) extproc('strlen');
+  string pointer value;
+end-pr;
+
+dcl-pr tmpnamIFS pointer extproc('_C_IFS_tmpnam');
+  buffer char(39) options(*omit);
+end-pr;
+
+
+/endif

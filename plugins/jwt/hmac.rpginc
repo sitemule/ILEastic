@@ -11,5 +11,5 @@
 dcl-pr jwt_hmac_encode like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
   algorithm varchar(100) const;
   data like(jwt_token_t) const ccsid(*utf8);
-  signKey like(jwt_signKey_t) const ccsid(*utf8);
+  signKey like(jwt_signkey_t) const ccsid(*utf8);
 end-pr;
