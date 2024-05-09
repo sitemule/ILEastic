@@ -94,8 +94,8 @@ dcl-proc jwt_rsa_sign export;
     dcl-ds key likeds(keyd0600_t) inz(*likeds);
     dcl-ds errorCode likeds(qusec_t) inz;
     
-    // TODO key format needs to be KEYD0200
-    // TODO private key needs to be in DER/BER format
+    // key format needs to be KEYD0200 ?
+    // private key needs to be in DER/BER format ?
     
     errorCode.bytesProvided = %size(qusec_t);
    
@@ -113,35 +113,34 @@ dcl-proc jwt_rsa_sign export;
           return *off;
     endsl;
     
-    monitor;
-        %len(signature) = 8192;
-        
-        headerPayload = data;
+    %len(signature) = 8192;
     
-        sys_calculateSignature(
-            %addr(headerPayload : *data) :
-            %len(headerPayload) :
-            'DATA0100' :
-            %addr(algorithm) :
-            'ALGD0400' :
-            %addr(key) :
-            'KEYD0600' :
-            '0' :
-            '          ' :
-            %addr(signature : *data) : 
-            %len(signature) :
-            signatureLength :
-            errorCode
-        );
-      
-        %len(signature) = signatureLength;
-        encodedSignature = jwt_encodeBase64Url(signature);
-        token = headerPayload + '.' + jwt_encodeBase64Url(signature);
-       
-        return token;
-    on-error *all;
-        return *blank;
-    endmon;
+    headerPayload = data;
+
+    sys_calculateSignature(
+        %addr(headerPayload : *data) :
+        %len(headerPayload) :
+        'DATA0100' :
+        %addr(algorithm) :
+        'ALGD0400' :
+        %addr(key) :
+        'KEYD0600' :
+        '0' :
+        '          ' :
+        %addr(signature : *data) : 
+        %len(signature) :
+        signatureLength :
+        errorCode
+    );
+  
+    if (errorCode.bytesAvailable = 0);
+      %len(signature) = signatureLength;
+      encodedSignature = jwt_encodeBase64Url(signature);
+      token = headerPayload + '.' + jwt_encodeBase64Url(signature);
+      return token;
+    else;
+      return *blank;       
+    endif;
 end-proc;
 
 
@@ -208,7 +207,7 @@ dcl-proc jwt_rsa_verify export;
             errorCode
         );
       
-       return errorCode.exceptionId = *blank;
+       return errorCode.bytesAvailable = 0;
     on-error *all;
         return *off;
     endmon;

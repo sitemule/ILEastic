@@ -163,33 +163,44 @@ end-proc;
 dcl-proc jwt_sign export;
   dcl-pi *n like(jwt_token_t) ccsid(*utf8);
     algorithm char(100) const;
-    p_payload like(jwt_token_t) const ccsid(*utf8);
+    header like(jwt_token_t) ccsid(*utf8) const;
+    p_payload like(jwt_token_t) ccsid(*utf8) const;
     options likeds(jwt_options_t) const;
     claims likeds(jwt_claims_t) const options(*nopass);
   end-pi;
 
-  dcl-s headerPayload char(65535) ccsid(*utf8);
-  dcl-s header like(jwt_token_t) ccsid(*utf8);
+  dcl-s headerPayload like(jwt_token_t) ccsid(*utf8);
   dcl-s encoded like(jwt_token_t) ccsid(*utf8);
   dcl-s base64Encoded like(jwt_token_t) ccsid(*utf8);
   dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
   dcl-s payload like(jwt_token_t) ccsid(*utf8);
-
-  // TODO add kid if set in options
-  header = '{"alg":"' + algorithm + '","typ":"JWT"}'; 
-
+  dcl-s signedToken like(jwt_token_t) ccsid(*utf8);
+  
   payload = p_payload;
-  if (%parms() >= 4);
+  if (%parms() >= 5);
     payload = addClaims(payload : claims);
   endif;
 
   base64Encoded = jwt_encodeBase64Url(payload);
   base64Encoded = %trimr(base64Encoded : paddingChar);
-  headerPayload = jwt_encodeBase64Url(header) + '.' + base64Encoded;
+  headerPayload = jwt_encodeBase64Url(header);
+  headerPayload = %trimr(headerPayload : paddingChar);
+  headerPayload += '.' + base64Encoded;
 
-  // TODO
+  monitor;
+    select;
+      when (%subst(algorithm : 1 : 2) = 'HS');
+        signedToken = jwt_hmac_encode(algorithm : headerPayload : options.key);
 
-  return 'TODO';
+      when %subst(algorithm : 1 : 2) = 'RS';
+        signedToken = jwt_rsa_sign(algorithm : headerPayload : options.key);
+      
+    endsl;
+  on-error;
+    // nothing , see job log
+  endmon;
+  
+  return signedToken;
 end-proc;
 
 

@@ -7,6 +7,8 @@ ctl-opt nomain;
 /include 'jwt.rpginc'
 
 dcl-c LF u'000A';
+dcl-c UNICODE_LEFT_CURLY_BRACE u'007B';
+dcl-c UNICODE_RIGHT_CURLY_BRACE u'007D';
 
 dcl-s tokenHs256 like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.enc3UilS4swTRKV5J8R_TK8Z-208tZFJjduNQQc-hEE');
 dcl-s signKeyHs256 like(jwt_signKey_t) ccsid(*utf8) inz('123456789012345678901234567890AB');
@@ -132,5 +134,17 @@ dcl-proc test_inactive export;
     options.key = signKeyHs256;
     
     assert(not jwt_verify(token : options) : 'Token should not be active yet.');
+end-proc;
+
+
+dcl-proc test_signHs256 export;
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-s signedToken like(jwt_token_t) ccsid(*utf8);
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyAiYWxnIiA6ICJIUzI1NiIsICJ0eXAiIDogIkpXVCIgfQ.eyAic3ViIiA6ICJtaWhhZWwiLCAibmFtZSIgOiAiTWloYWVsIiB9.a9ojVOdx5TnhgnL4jmjtKY4KhO6fiLtIWVECcDqH394');
+
+    options.key = signKeyHs256;
+    
+    signedToken = jwt_sign(JWT_HS256 : UNICODE_LEFT_CURLY_BRACE + ' "alg" : "HS256", "typ" : "JWT" ' + UNICODE_RIGHT_CURLY_BRACE : UNICODE_LEFT_CURLY_BRACE + ' "sub" : "mihael", "name" : "Mihael" ' + UNICODE_RIGHT_CURLY_BRACE : options);
+    assert(token = signedToken : 'Token is not valid.');
 end-proc;
 

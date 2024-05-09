@@ -3,15 +3,18 @@
 ctl-opt nomain thread(*concurrent);
 
 
-/if not defined(QUSEC)
-/define QUSEC
-/copy QSYSINC/QRPGLESRC,QUSEC
-/endif
-
 /include 'base64url.rpginc'
 /include 'jwt.rpginc'
 /include 'hmac.rpginc'
 /include 'message.rpginc'
+
+dcl-ds qusec_t qualified template;
+  bytesProvided int(10);
+  bytesAvailable int(10);
+  exceptionId char(7);
+  reserved char(1);
+  data char(48);
+end-ds;
 
 dcl-pr memcpy pointer extproc('memcpy');
   dest pointer value;
@@ -30,7 +33,7 @@ dcl-pr sys_calculateHmac extproc('Qc3CalculateHMAC');
   cryptoServiceProvier char(1) const;
   cryptoDeviceName char(10) const;
   hash char(32);
-  errorCode likeds(QUSEC);
+  errorCode likeds(qusec_t);
 end-pr;
 
 dcl-ds algd0500_t qualified template;
@@ -70,6 +73,9 @@ dcl-proc jwt_hmac_encode export;
   dcl-ds keyparam likeds(keyd0200_t) inz;
   dcl-s paddingChar char(1) inz('=') ccsid(*utf8);
   dcl-s data like(jwt_token_t) ccsid(*utf8);
+  dcl-ds errorCode likeds(qusec_t) inz;
+  
+  errorCode.bytesProvided = %size(qusec_t);
   
   data = p_data;
 
@@ -107,8 +113,6 @@ dcl-proc jwt_hmac_encode export;
     keyparam.length = 64;
   endif;
 
-  clear QUSEC;
-  // TODO don't throw escape message on invalid token
   sys_calculateHmac(
       %addr(data : *data) :
       %len(data) :
@@ -120,11 +124,14 @@ dcl-proc jwt_hmac_encode export;
       '0' :    // crypto
       *blank : // crypto dev
       hash :
-      QUSEC);
+      errorCode);
 
-  memcpy(%addr(tmpHash) : %addr(hash) : hashSize);
-  encoded = jwt_encodeBase64Url(%subst(tmpHash : 1 : hashSize));
-  encoded = %trimr(encoded : paddingChar);
-
-  return p_data + UTF8_PERIOD + encoded;
+  if (errorCode.bytesAvailable = 0);
+    memcpy(%addr(tmpHash) : %addr(hash) : hashSize);
+    encoded = jwt_encodeBase64Url(%subst(tmpHash : 1 : hashSize));
+    encoded = %trimr(encoded : paddingChar);
+    return p_data + UTF8_PERIOD + encoded;
+  else;
+    return *blank;
+  endif;
 end-proc;
