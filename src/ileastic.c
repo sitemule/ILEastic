@@ -94,8 +94,15 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
 {
     int rc;
     LONG   lenleni;
-    PUCHAR tempBuf = memAlloc ( len + 16);
-    PUCHAR wrkBuf = tempBuf;
+    PUCHAR tempBuf;
+    PUCHAR wrkBuf;
+
+    if (len == 0) {
+        return;
+    }
+
+    tempBuf = memAlloc ( len + 16);
+    wrkBuf = tempBuf;
 
     prepareResponse  (pResponse);
 
@@ -131,6 +138,10 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     PUCHAR totBuf;
     PUCHAR input;
     size_t inbytesleft, outbytesleft, totalWriteLen ;
+
+    if (len == 0) {
+        return;
+    }
 
     prepareResponse  (pResponse);
 
