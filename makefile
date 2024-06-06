@@ -13,7 +13,7 @@ LIBLIST=$(BIN_LIB)
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
 
-BIND_LIB=*LIBL
+BIND_LIB=$(BIN_LIB)
 
 # The shell we use
 SHELL=/QOpenSys/usr/bin/qsh
