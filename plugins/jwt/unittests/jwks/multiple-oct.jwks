@@ -1,0 +1,18 @@
+{
+  "keys": [
+    {
+      "kid": "123-456-789",
+      "kty": "oct",
+      "alg": "HS256",
+      "use": "sig",
+      "k": "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwQUI="
+    },
+    {
+      "kid": "456-789-abc",
+      "kty": "oct",
+      "alg": "HS512",
+      "use": "sig",
+      "k": "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwQUIxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTBBQg=="
+    }
+  ]
+}

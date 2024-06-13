@@ -41,7 +41,7 @@ dcl-c JWT_VERIFY_OPTIONS_LOOKUP_KID 3;
 ///
 // Add verify options
 //
-// Add a verify options set which can be used on JWT token verification in the
+// Add a verify options set which can be used on JWT token validation in the
 // <code>il_jwt_filter</code> procedure.
 //
 // @param Verifcation options
@@ -53,6 +53,25 @@ dcl-pr il_jwt_addVerifyOptions extproc(*dclcase);
     id char(256) const options(*nopass);
 end-pr;
 
+
+///
+// Add verify options from JWKS
+//
+// Add alls JWKs from the passed stream file as a verify options set which can be used on JWT token 
+// validation in the <code>il_jwt_filter</code> procedure.
+//
+// @param Path to JWKS stream file
+//
+// @info This procedure always set the verify lookup method to "Key Id". The only other possible
+//       lookup method would be NONE and can be set after calling this procedure. This would 
+//       mean that <em>always</em> the <em>first</em> JWK would be used for token validation
+//       regardless of kid or issuer claim.
+///
+dcl-pr il_jwt_addVerifyOptionsFromJwks extproc(*dclcase);
+    filePath varchar(1024) const;
+end-pr;
+    
+    
 ///
 // Remove all verify options
 //

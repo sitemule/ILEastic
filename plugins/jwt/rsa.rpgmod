@@ -148,7 +148,7 @@ dcl-proc jwt_rsa_verify export;
     dcl-pi *n ind;
         jwtAlgorithm varchar(100) const;
         data like(jwt_token_t) const ccsid(*hex);
-        publicKey like(jwt_signKey_t) const ccsid(*utf8);
+        publicKey like(jwt_signKey_t) const ccsid(*hex);
     end-pi;
     
     dcl-s payload like(jwt_token_t) ccsid(*utf8);
@@ -163,7 +163,11 @@ dcl-proc jwt_rsa_verify export;
     dcl-s signaturePos int(10);
     
     errorCode.bytesProvided = %size(qusec_t);
-   
+    
+    // TODO
+    // when publicKey start with ----- then PEM format => keyd0600
+    //                                 else BER format => keyd0200
+    
     key.key = publicKey;
     key.length = %len(publicKey);
    

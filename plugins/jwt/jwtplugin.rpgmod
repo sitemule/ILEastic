@@ -22,6 +22,7 @@ ctl-opt nomain thread(*concurrent);
 /include 'clib.rpginc'
 /include 'headers/ileastic.rpgle'
 /include 'noxdb/headers/jsonparser.rpgle'
+/include 'jwk.rpginc'
 /include 'jwt.rpginc'
 /include 'jwtplugin.rpginc'
 
@@ -69,6 +70,37 @@ dcl-proc il_jwt_addVerifyOptions export;
 end-proc;
 
 
+dcl-proc il_jwt_addVerifyOptionsFromJwks export;
+    dcl-pi *n;
+        filePath varchar(1024) const;
+    end-pi;
+    
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-ds jwks likeds(jwk_t) dim(255) inz;
+    dcl-s numberJwks uns(3);
+    dcl-s i uns(3);
+    
+    numberJwks = jwk_load(filePath : jwks);
+    
+    for i = 1 to numberJwks;
+        if (verifyOptionsCount >= 15);
+            leave;
+        endif;
+        
+        verifyOptionsCount += 1;
+        
+        clear options;
+        options.kid = jwks(i).kid;
+        options.alg = jwks(i).alg;
+        options.key = jwks(i).key;
+        verifyOptions(verifyOptionsCount).id = options.kid;
+        verifyOptions(verifyOptionsCount).options = options;
+    endfor;
+    
+    verifyOptionsLookupMethod = JWT_VERIFY_OPTIONS_LOOKUP_KID;
+end-proc;
+
+
 dcl-proc il_jwt_filter export;
   dcl-pi *n ind;
     request  likeds(IL_REQUEST);
@@ -81,8 +113,8 @@ dcl-proc il_jwt_filter export;
   dcl-s json pointer;
   dcl-s threadLocal pointer;
   dcl-s jwtNode pointer;
-  dcl-ds verifyOptions likeds(jwt_options_t) inz;
-  
+  dcl-ds options likeds(jwt_options_t) inz;
+
   monitor;
     token = getToken(request);
     if (token = *blank);
@@ -91,14 +123,14 @@ dcl-proc il_jwt_filter export;
       return *off;
     endif;
 
-    verifyOptions = getVerifyOptions(token : header : payload : json);
-    if (%len(verifyOptions.key) = 0);
+    options = getVerifyOptions(token : header : payload : json);
+    if (%len(options.key) = 0);
       response.status = 401;
       il_responseWrite(response : 'Invalid JWT token provided.');
       return *off;
     endif;
 
-    if (jwt_verify(token : verifyOptions));
+    if (jwt_verify(token : options));
       if (%len(payload) = 0);
         payload = jwt_decodePayload(token);
         json = json_parseString(payload);

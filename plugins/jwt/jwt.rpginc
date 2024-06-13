@@ -56,7 +56,7 @@ dcl-ds jwt_claims_t qualified template;
 end-ds;
 
 ///
-// Templfate for JWT options/configuration for token verification and generation
+// Template for JWT options/configuration for token verification and generation
 ///
 dcl-ds jwt_options_t qualified template;
     kid char(100);
