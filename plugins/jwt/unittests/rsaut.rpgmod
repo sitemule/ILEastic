@@ -7,9 +7,29 @@ ctl-opt nomain;
 /include 'jwt.rpginc'
 /include 'rsa.rpginc'
 
+dcl-c O_RDONLY 1;
+
+dcl-pr open int(10) extproc('open');
+  path pointer value options(*string);
+  openflags int(10) value;
+  mode uns(10) value options(*nopass);
+  ccsid uns(10) value options(*nopass);
+end-pr;
+
+dcl-pr read int(10) extproc('read');
+  fildes int(10) value;
+  buf pointer value;
+  bytes uns(10) value;
+end-pr;
+
+dcl-pr close int(10) extproc('close');
+  fildes int(10) value;
+end-pr;
+
 // payload: {"sub":"test","name":"Mihael"}
 
 dcl-c LF u'000A';
+
 
 dcl-proc test_verify_256 export;
     dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
@@ -98,47 +118,45 @@ dcl-proc test_verify_256_invalidPublicKey export;
 end-proc;
 
 
-// Token generation doesn't work yet.
-dcl-proc test_sign_256; //  export;
+dcl-proc test_sign_256 export;
     dcl-s privateKey like(jwt_signKey_t) ccsid(*utf8); 
     dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
     dcl-s comparableToken like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
     dcl-s token like(jwt_token_t) ccsid(*utf8);
     
-    privateKey = 
-        '-----BEGIN CERTIFICATE-----' + LF +
-        'MIIEogIBAAKCAQEA0CfTwHgz2CoNTxx8KYVmstdsVJrvgKqyiui7fO+VFga1pAAP' + LF +
-        'cUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrqJ/M63MByIFfnVLGdR7k6MKKFaiTP' + LF +
-        'NAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp9cnUNpAxNCTLJvhebaPB4zF/Qroe' + LF +
-        'tOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTksOg+SOjf0BuGvycIaIr3rLeK0WO4' + LF +
-        'o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ7FmpOu0UopvYevxgwwNb2FQ5XY3m' + LF +
-        'W4tiAMZLphJehjizXqcghYwu8sczb7QEz611KQIDAQABAoIBABayyR37XZfsWgAu' + LF +
-        '+IEkmWLWJ+t/668JrieEonFIxOaee68zDHwLtaZ4I12BHPXR4Dak4cGlXgAcurNs' + LF +
-        'ErMfTNpnZRtOZwOM4l5zcdWw5p4IEulUsz2XMvb8qlJlgp5k8Ly/1Gf6TUqAaJQM' + LF +
-        '91oemt4hEKGUjrEDdB2/RrjI+ysVd9MsBbKtJWPsbgPGRljWPzLOAV2ixu2oYlz4' + LF +
-        'hyWiaH8VisNhGyrF71mdOISq7cY9kSKppOX87IT7LR4gwHsnIpUlsnYBnwOVSh9m' + LF +
-        'Bkqhnj/eYOysc6bhsZUj2Iwq3ppVk/hZRBjy54EI/7huOHZ7VvDHXKndoGHazTy2' + LF +
-        'pqjZlLMCgYEA6xBJsnOTqsODqAjl5wr4TMRt9CXqcQh2w89HeFp71PLItJpcBuzR' + LF +
-        'ooCpdoHYoAaLUMExcO0olO+5ur3X+pqIqpdYv2P9DfRlXqdYNv36uDkCERRLyemt' + LF +
-        '90DjVrXX3yyISsHyPOhJN+5rxbl/vDRN86qBGgAH6paUpQ+HT4CP/I8CgYEA4rIB' + LF +
-        'fNVcwpc3wOzo4ys86bkMp+yaZLSQoAe2Nu5CmQMGYObQGdGtuOp8azxP/vLNFreH' + LF +
-        'EWctlB0rN6pcctl2QPNwEh6X4tDk+WcFvzyrXcK5FzDX+uG3wSL6OdG6B6bvsGyH' + LF +
-        'o7YHtHibTC6YJ4ikSk/IeqW+7yQTftQZB1vSvscCgYBHrV/LmpKcr6Gly5DPMvkj' + LF +
-        '74HXwPgMH5iXfM0+VdkMxjuNVsRZGD2UX8dM66syoMw6g66f0LFfOPpZhyoksJqb' + LF +
-        '6iqVsdeoOa3vfvfXTPr20etfaeDyYN87Vf38otaApwOoSBullu88rucOE9JvgUOD' + LF +
-        '2aokU34WenQ5INMR2xIM4QKBgHONhNCa+YN/DT5cBIH3Qj9owhi+tBxtJeNMywbJ' + LF +
-        'AE16iz/Np3nhtYmyjOUkgypTnVLdDg5C56q+C49+WU15p5uH+zJhQc6t6GlwqC9I' + LF +
-        'v5k1bp9xmEYb1EywhZf/XbIU18y4JZO/b8IAUDjO72QHdKckb+6EmgTQANf/SRrF' + LF +
-        'JXF1AoGAamPUIps2HhYVaZM++mdeYJTf1D51Td2PhdLpraZ7a7PLJif47qWb4Fdm' + LF +
-        '/11Cc/ho0twrsXv+qWXNbLPldoXkQa7AEvPY3ri6w2YUwTbwxTqKjGGbUd0iIea6' + LF +
-        'T0/XhUGr3r9rlfHuzb//uWWChafuRbbhX0pB6bYb9scW5XuDjJI=' + LF +
-        '-----END CERTIFICATE-----' + LF;
+    // RSA private key PEM TO BER/DER : openssl rsa -in rsa-key -outform der  -out rsa-key.der
+    
+    privateKey = loadFile('plugins/jwt/unittests/rsa-key.der');
     
     token = jwt_rsa_sign(JWT_RS256 : headerPayload : privateKey);
-    assert(token = comparableToken : 'No token generated.');
+    assert(%len(token) > 0 : 'No token generated.');
+    assert(token = comparableToken : 'Generated token does not equals expected token.');
 end-proc;
 
 
+dcl-proc loadFile;
+  dcl-pi *n varchar(1000000) ccsid(*hex);
+    p_path varchar(1000) const;
+  end-pi;
 
+  dcl-s path varchar(1000);
+  dcl-s content char(1000000) ccsid(*hex);
+  dcl-s returnValue varchar(1000000) ccsid(*hex);
+  dcl-s len int(10);
+  dcl-s fd int(10);
+
+  fd = open(p_path : O_RDONLY);
+  if (fd >= 0);
+    len = read(fd : %addr(content) : 1000000);
+    returnValue = %subst(content : 1 : len);
+  endif;
+
+  return returnValue;
+  
+  on-exit;
+    if (fd >= 0);
+      callp close(fd);
+    endif;
+end-proc;
 
 

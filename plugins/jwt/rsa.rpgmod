@@ -99,16 +99,16 @@ dcl-proc jwt_rsa_sign export;
     dcl-s signatureLength int(10);
     dcl-s encodedSignature varchar(10000) ccsid(*hex);
     dcl-ds algorithm likeds(algd0400_t) inz(*likeds);
-    dcl-ds key likeds(keyd0600_t) inz(*likeds);
+    dcl-ds key likeds(keyd0200_t) inz(*likeds);
     dcl-ds errorCode likeds(qusec_t) inz;
     
-    // key format needs to be KEYD0200 ?
-    // private key needs to be in DER/BER format ?
     
     errorCode.bytesProvided = %size(qusec_t);
    
-    key.key = privateKey;
+    key.type = 51;     // RSA private key
     key.length = %len(privateKey);
+    key.format = '1';  // BER/DER format
+    key.key = privateKey;
    
     select;
       when (jwtAlgorithm = JWT_RS256);
@@ -132,7 +132,7 @@ dcl-proc jwt_rsa_sign export;
         %addr(algorithm) :
         'ALGD0400' :
         %addr(key) :
-        'KEYD0600' :
+        'KEYD0200' :
         '0' :
         '          ' :
         %addr(signature : *data) : 
@@ -144,7 +144,9 @@ dcl-proc jwt_rsa_sign export;
     if (errorCode.bytesAvailable = 0);
       %len(signature) = signatureLength;
       encodedSignature = jwt_encodeBase64Url(signature);
-      token = headerPayload + '.' + jwt_encodeBase64Url(signature);
+      // token signature should not have trailing "=" char (hex 3D)
+      encodedSignature = %trimr(encodedSignature : x'3D');
+      token = headerPayload + '.' + encodedSignature;
       return token;
     else;
       return *blank;       
