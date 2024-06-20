@@ -25,6 +25,14 @@ dcl-c ALGORITHM_SHA256 3;
 dcl-c ALGORITHM_SHA384 4;
 dcl-c ALGORITHM_SHA512 5;
 
+dcl-ds keyd0200_t qualified template;
+    type int(10);
+    length int(10);
+    format char(1);
+    reserved char(3) inz(x'000000');
+    key char(10000) ccsid(*hex);
+end-ds;
+
 dcl-ds keyd0400_t qualified template;
     fqn char(20);
     label char(32);
@@ -148,7 +156,26 @@ dcl-proc jwt_rsa_verify export;
     dcl-pi *n ind;
         jwtAlgorithm varchar(100) const;
         data like(jwt_token_t) const ccsid(*hex);
-        publicKey like(jwt_signKey_t) const ccsid(*hex);
+        publicKey like(jwt_signKey_t) const ccsid(*utf8);
+    end-pi;
+    
+    dcl-s publicKeyStart char(5) ccsid(*hex);
+    
+    publicKeyStart = publicKey;
+    
+    if (%len(publicKey) > 5 and publicKeyStart = x'2d2d2d2d2d');
+        return jwt_rsa_verify_pem(jwtAlgorithm : data : publicKey);
+    else;
+        return jwt_rsa_verify_binary(jwtAlgorithm : data : publicKey);
+    endif;
+end-proc;
+
+
+dcl-proc jwt_rsa_verify_pem;
+    dcl-pi *n ind;
+        jwtAlgorithm varchar(100) const;
+        data like(jwt_token_t) const ccsid(*hex);
+        publicKey like(jwt_signKey_t) const ccsid(*utf8);
     end-pi;
     
     dcl-s payload like(jwt_token_t) ccsid(*utf8);
@@ -163,10 +190,6 @@ dcl-proc jwt_rsa_verify export;
     dcl-s signaturePos int(10);
     
     errorCode.bytesProvided = %size(qusec_t);
-    
-    // TODO
-    // when publicKey start with ----- then PEM format => keyd0600
-    //                                 else BER format => keyd0200
     
     key.key = publicKey;
     key.length = %len(publicKey);
@@ -216,3 +239,78 @@ dcl-proc jwt_rsa_verify export;
         return *off;
     endmon;
 end-proc;
+
+
+dcl-proc jwt_rsa_verify_binary;
+    dcl-pi *n ind;
+        jwtAlgorithm varchar(100) const;
+        data like(jwt_token_t) const ccsid(*hex);
+        publicKey like(jwt_signKey_t) const ccsid(*utf8);
+    end-pi;
+    
+    dcl-s payload like(jwt_token_t) ccsid(*utf8);
+    dcl-s payloadLength int(10);
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8);
+    dcl-s signature varchar(8192) ccsid(*utf8);
+    dcl-s signatureLength int(10);
+    dcl-s decodedSig varchar(8192) ccsid(*hex);
+    dcl-s signaturePos int(10);
+    dcl-ds algorithm likeds(algd0400_t) inz(*likeds);
+    dcl-ds key likeds(keyd0200_t) inz(*likeds);
+    dcl-ds errorCode likeds(qusec_t) inz;
+    
+    errorCode.bytesProvided = %size(qusec_t);
+    
+    select;
+      when (jwtAlgorithm = JWT_RS256);
+        algorithm.hash = ALGORITHM_SHA256;
+      when (jwtAlgorithm = JWT_RS384);
+        algorithm.hash = ALGORITHM_SHA384;
+      when (jwtAlgorithm = JWT_RS512);
+        algorithm.hash = ALGORITHM_SHA512;
+      other;
+          return *off;
+    endsl;
+    
+    key.type = 50;
+    key.length = %len(publicKey);
+    key.format = '1';
+    key.key = publicKey;
+    
+    monitor;
+        signaturePos = %scanr(UTF8_PERIOD : data);
+        if (signaturePos = 0);
+            return *off;
+        endif;
+        
+        headerPayload = %subst(data : 1 : signaturePos - 1);
+    
+        decodedSig = jwt_decodeBase64Url(%subst(data : signaturePos + 1));
+        
+        signatureLength = %len(decodedSig);
+        payload = headerPayload;
+        payloadLength = %len(headerPayload);
+        
+        sys_verifySignature(
+            %addr(decodedSig : *data) :
+            signatureLength :
+            %addr(payload : *data) :
+            payloadLength :
+            'DATA0100' :
+            %addr(algorithm) :
+            'ALGD0400' :
+            %addr(key) :
+            'KEYD0200' :
+            '0' :
+            '          ' :
+            errorCode
+        );
+      
+       return errorCode.bytesAvailable = 0;
+    on-error *all;
+        return *off;
+    endmon;
+end-proc;
+
+
+

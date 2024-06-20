@@ -111,6 +111,7 @@ dcl-proc il_jwt_filter export;
   dcl-s header like(jwt_token_t);
   dcl-s payload like(jwt_token_t);
   dcl-s json pointer;
+  dcl-s jsonNodeMoved ind;
   dcl-s threadLocal pointer;
   dcl-s jwtNode pointer;
   dcl-ds options likeds(jwt_options_t) inz;
@@ -140,7 +141,8 @@ dcl-proc il_jwt_filter export;
       jwtNode = json_locateOrCreate(threadLocal : '/ileastic/jwt');
       json_moveObjectInto(jwtNode : 'payload' : json);
       json_setStr(jwtNode : 'token' : token);
-
+      jsonNodeMoved = *on;
+      
       return *on;
     else;
       response.status = 401;
@@ -156,7 +158,9 @@ dcl-proc il_jwt_filter export;
   endmon;
 
   on-exit;
-      json_close(json);
+      if (not jsonNodeMoved);
+          json_close(json);
+      endif;
 end-proc;
 
 
