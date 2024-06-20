@@ -156,7 +156,6 @@ dcl-proc il_jwt_filter export;
   endmon;
 
   on-exit;
-      json_close(json);
 end-proc;
 
 
