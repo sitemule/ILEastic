@@ -437,6 +437,9 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     // No end-of-headers in this buffer, the just continue
     if (eoh == NULL)      return false;
 
+    // Skip all CRLF from the begining of buffer
+    for (;*buf == 0x0d || *buf == 0x0a; buf ++, bufLen --);
+
     // got the end of header; Now parse the HTTP header
     pRequest->completeHeader.String = buf;
     pRequest->completeHeader.Length = eoh - buf;
