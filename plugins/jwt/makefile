@@ -9,7 +9,7 @@
 BIN_LIB=ILEASTIC
 
 BIND_LIB=*LIBL
-
+DBGVIEW=*ALL
 TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
@@ -24,7 +24,7 @@ RU_LIB=*LIBL
 TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
 
 # RCFLAGS = RPG compiler parameter
-RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' '../..') DBGVIEW(*ALL) TGTRLS($(TARGET_RLS)) DEFINE($(DEFINE)) $(TGTCCSID)
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' '../..') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) DEFINE($(DEFINE)) $(TGTCCSID)
 
 # Do not touch below
 INCLUDE='/QIBM/include' '.' '../../headers/'  
@@ -33,8 +33,6 @@ INCLUDE='/QIBM/include' '.' '../../headers/'
 CCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOSHOWINC) OPTIMIZE(10) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL) DEFINE($(DEFINE)) TGTCCSID($(TARGET_CCSID)) TGTRLS($(TARGET_RLS))
 
 MODULES = base64url.rpgmod hmac.rpgmod jwk.rpgmod jwt.rpgmod jwtplugin.rpgmod message.c rsa.rpgmod
-
-all: env compile bind
 
 # remove all default suffix rules
 .SUFFIXES:
@@ -46,6 +44,8 @@ all: env compile bind
 %.c: .PHONY
 	system -q "CHGATR OBJ('$*.c') ATR(*CCSID) VALUE(1252)"
 	system "CRTCMOD MODULE($(BIN_LIB)/$(notdir $*)) SRCSTMF('$*.c') $(CCFLAGS)"
+
+all: env compile bind
 
 env:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTSRC) OBJTYPE(*FILE)"
@@ -68,8 +68,15 @@ bind:
 clean:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTSRC) OBJTYPE(*FILE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/BASE64URL) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/MESSAGE) OBJTYPE(*MODULE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/HMAC) OBJTYPE(*MODULE)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/RSA) OBJTYPE(*MODULE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWT) OBJTYPE(*MODULE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWTPLUGIN) OBJTYPE(*MODULE)"
+
+purge: clean
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/JWT) OBJTYPE(*SRVPGM)"
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/ILJWTPLUG) OBJTYPE(*SRVPGM)"
 
 .PHONY:

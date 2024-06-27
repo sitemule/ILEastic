@@ -6,12 +6,12 @@
 # The rpg modules and the binder source file are also created in BIN_LIB.
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
-BIN_LIB=ILEASTIC
+export BIN_LIB=ILEASTIC
 
-DBGVIEW=*ALL
-TARGET_CCSID=*JOB
-TARGET_RLS=*CURRENT
-OUTPUT=*NONE
+export DBGVIEW=*ALL
+export TARGET_CCSID=*JOB
+export TARGET_RLS=*CURRENT
+export OUTPUT=*NONE
 
 #
 # User-defined part end
@@ -46,7 +46,7 @@ all: env compile bind commands
 env:
 
 compile: $(MODULES)
-	$(MAKE) -C ext/llist/ compile $*
+	$(MAKE) -C ext/llist/ compile
 
 bind: $(PROGRAMS)
 

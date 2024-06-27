@@ -34,3 +34,20 @@ It defaults to the libray `ILEASTIC`.
 The target OS version can be passed with the parameter `TARGET_RLS` and defaults
 to `*CURRENT`.
 
+
+### Plugins
+
+The plugins can be build with specifying the build target `plugins`. This will 
+build the following plugins:
+
+- Auth System
+- Basic Auth
+- CORS
+
+For building the plugins JWT and OpenAPI static go to the corresponding plugin 
+folder and execute the `make` command there.
+
+```
+cd plugins/jwt
+gmake BIN_LIB=MY_LIB
+```

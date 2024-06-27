@@ -84,10 +84,9 @@ test: .PHONY
 	cd unittests && make
 
 plugins: .PHONY
-	cd plugins/cors && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/authsystem && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/basicauth && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/jwt && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
+	cd plugins/cors && make all
+	cd plugins/authsystem && make all
+	cd plugins/basicauth && make all
 
 # For vsCode 
 current: env
