@@ -15,6 +15,7 @@ DBGVIEW=*ALL
 TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
+SHELL=/QOpenSys/usr/bin/qsh
 
 #
 # User-defined part end
@@ -46,6 +47,7 @@ bind:
 	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
 	system "CPYFRMSTMF FROMSTMF('cors.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/cors.mbr') MBROPT(*replace)"
 	-system -q "DLTOBJ OBJ($(BIN_LIB)/cors) OBJTYPE(*SRVPGM)"
+	liblist -a $(BIN_LIB); \
 	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/cors) MODULE($(BIN_LIB)/cors) BNDSRVPGM(($(BIND_LIB)/ILEASTIC)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TGTRLS($(TARGET_RLS)) TEXT('ILEastic - CORS Plugin')"
 
 clean:

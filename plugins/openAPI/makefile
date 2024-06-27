@@ -13,6 +13,7 @@ OUTPUT=*NONE
 
 TARGET_RLS=*CURRENT
 INCLUDE='/QIBM/include' './headers/' '../../headers/' '../' '../../ILEfastCGI/include' '../../noxDB/headers' '../../noxDB/headers/ext'
+SHELL=/QOpenSys/usr/bin/qsh
 
 #
 # User-defined part end
@@ -56,6 +57,7 @@ srvpgm:
 	system -i "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
 	system -i "CPYFRMSTMF FROMSTMF('openapi.bnd') TOMBR('/QSYS.LIB/$(BIN_LIB).LIB/QSRVSRC.FILE/OPENAPI.MBR') MBROPT(*ADD)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OPENAPI) OBJTYPE(*SRVPGM)"
+	liblist -a $(BIN_LIB); \
 	system -pieb "CRTSRVPGM SRVPGM($(BIN_LIB)/OPENAPI) MODULE($(modules)) BNDSRVPGM(($(BIND_LIB)/ILEASTIC) ($(BIND_LIB)/JSONXML)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TGTRLS($(TARGET_RLS)) TEXT('ILEastic - openAPI')"
 
 bnddir:
