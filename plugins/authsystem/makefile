@@ -54,3 +54,6 @@ clean:
 
 purge: clean
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/ILAUTHSYS) OBJTYPE(*SRVPGM)"
+
+install:
+	cp authsystem_h.rpgle $(USRINCDIR)/ILEastic/
