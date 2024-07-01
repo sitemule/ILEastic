@@ -62,6 +62,7 @@ dcl-c BRACKET_OPEN u'005B';
 dcl-c BRACKET_CLOSE u'005D';
 dcl-c CURLY_OPEN u'007B';
 dcl-c CURLY_CLOSE u'007D';
+dcl-c DOLLAR u'0024';
 
 dcl-s firstHttpMessage varchar(1000) ccsid(819);
 dcl-ds firstRequest likeds(il_request);
@@ -70,7 +71,10 @@ dcl-ds secondRequest likeds(il_request);
 dcl-s thirdHttpMessage varchar(1000) ccsid(819);
 dcl-ds thirdRequest likeds(il_request);
 
-     
+dcl-pr sList_free extproc(*dclcase);
+  list pointer value;
+end-pr;
+
 //
 // Test Procedures
 //
@@ -78,9 +82,9 @@ dcl-proc test_noRouteIdOnFirstResource export;
   dcl-ds routing likeds(routing_t) based(pRouting);
   dcl-ds config likeds(il_config) inz;
   
-  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first$');
-  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second$');
-  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third$');
+  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first' + DOLLAR);
+  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second' + DOLLAR);
+  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third' + DOLLAR);
   
   pRouting = findRoute(%addr(config) : %addr(firstRequest));
   assert(pRouting <> *null : 'No route found.');
@@ -103,9 +107,9 @@ dcl-proc test_routeIdOnFirstResource export;
   dcl-ds routing likeds(routing_t) based(pRouting);
   dcl-ds config likeds(il_config) inz;
   
-  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first$' : *omit : 'first');
-  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second$');
-  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third$');
+  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first' + DOLLAR : *omit : 'first');
+  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second' + DOLLAR);
+  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third' + DOLLAR);
   
   pRouting = findRoute(%addr(config) : %addr(firstRequest));
   assert(pRouting <> *null : 'No route found.');
@@ -128,9 +132,9 @@ dcl-proc test_routeIdOnSecondResource export;
   dcl-ds routing likeds(routing_t) based(pRouting);
   dcl-ds config likeds(il_config) inz;
   
-  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first$');
-  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second$' : *omit : 'second');
-  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third$');
+  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first' + DOLLAR);
+  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second' + DOLLAR : *omit : 'second');
+  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third' + DOLLAR);
   
   pRouting = findRoute(%addr(config) : %addr(firstRequest));
   assert(pRouting <> *null : 'No route found.');
@@ -153,9 +157,9 @@ dcl-proc test_routeIdOnThirdResource export;
   dcl-ds routing likeds(routing_t) based(pRouting);
   dcl-ds config likeds(il_config) inz;
   
-  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first$');
-  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second$');
-  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third$' : *omit : 'third');
+  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first' + DOLLAR);
+  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second' + DOLLAR);
+  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third' + DOLLAR : *omit : 'third');
   
   pRouting = findRoute(%addr(config) : %addr(firstRequest));
   assert(pRouting <> *null : 'No route found.');
@@ -178,9 +182,9 @@ dcl-proc test_routeIdOnOuterResource export;
   dcl-ds routing likeds(routing_t) based(pRouting);
   dcl-ds config likeds(il_config) inz;
   
-  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first$' : *omit : 'first');
-  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second$');
-  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third$' : *omit : 'third');
+  il_addRoute(config : %paddr(routeFirst) : IL_ANY : REGEX_START + '/first' + DOLLAR : *omit : 'first');
+  il_addRoute(config : %paddr(routeSecond) : IL_ANY : REGEX_START + '/second' + DOLLAR);
+  il_addRoute(config : %paddr(routeThird) : IL_ANY : REGEX_START + '/third' + DOLLAR : *omit : 'third');
   
   pRouting = findRoute(%addr(config) : %addr(firstRequest));
   assert(pRouting <> *null : 'No route found.');
@@ -257,11 +261,7 @@ dcl-proc createRequest;
   dcl-ds headerList likeds(il_varchar) based(headerListPtr);
   
   request.config = %alloc(%size(il_config));
-  
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
-  
+    
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   return request;
@@ -274,5 +274,5 @@ dcl-proc disposeRequest;
   end-pi;
   
   dealloc request.config;
-  dealloc request.headerList;
+  sList_free(request.headerList);
 end-proc;

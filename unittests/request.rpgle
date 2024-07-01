@@ -55,6 +55,16 @@ dcl-s CRLF char(2) inz(x'0d0a') ccsid(819);
 
 dcl-ds request likeds(il_request);
 
+dcl-ds SLIST qualified based(request.headerList);
+   pHead pointer;
+   pTail pointer;
+   length int(10);
+end-ds;
+
+dcl-pr sList_free extproc('sList_free');
+   hSlist likeds(SLIST) const;
+end-pr;
+
 
 //
 // Procedures
@@ -248,7 +258,7 @@ dcl-proc test_rootResourceWithEmptyQueryParameterDefaultValue export;
   httpMessage = 'GET /?client HTTP/1.1' + CRLF + 'Host: localhost' + CRLF + CRLF;
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
-  aEqual(utf8('') : il_getParmStr(request : 'client' : '1234'));
+  aEqual(utf8('1234') : il_getParmStr(request : 'client' : '1234'));
 end-proc;
 
 
@@ -269,10 +279,6 @@ dcl-proc createRequest;
   
   request.config = %alloc(%size(il_config));
   
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
-  
   return request;
 end-proc;
 
@@ -283,7 +289,7 @@ dcl-proc disposeRequest;
   end-pi;
   
   dealloc request.config;
-  dealloc request.headerList;
+  sList_free(SLIST);
 end-proc;
 
 

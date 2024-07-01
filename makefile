@@ -72,11 +72,11 @@ bind:
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
 	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) TGTRLS($(TARGET_RLS)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";
-	
+ifndef KEEP_MODULES
 	@for module in $(MODULES); do\
 		system -q "dltmod $$module" ; \
 	done
-
+endif
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
