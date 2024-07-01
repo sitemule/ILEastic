@@ -55,6 +55,10 @@ dcl-ds routing_t qualified template;
   routeId varchar(256);
 end-ds;
 
+dcl-pr sList_free extproc(*dclcase);
+  list pointer value;
+end-pr;
+
 dcl-s CRLF char(2) inz(x'0d0a') ccsid(819); 
 
 dcl-ds config likeds(il_config) inz;
@@ -64,7 +68,7 @@ dcl-c BRACKET_OPEN u'005B';
 dcl-c BRACKET_CLOSE u'005D';
 dcl-c CURLY_OPEN u'007B';
 dcl-c CURLY_CLOSE u'007D';
-
+dcl-c DOLLAR u'0024';
      
 //
 // Test Procedures
@@ -163,10 +167,10 @@ end-proc;
 
 
 dcl-proc setup export;
-  il_addRoute(config : %paddr(routeRoot) : IL_ANY : REGEX_START + '/$');
-  il_addRoute(config : %paddr(routeTime) : IL_GET : REGEX_START + '/time$');
+  il_addRoute(config : %paddr(routeRoot) : IL_ANY : REGEX_START + '/' + DOLLAR);
+  il_addRoute(config : %paddr(routeTime) : IL_GET : REGEX_START + '/time' + DOLLAR);
   il_addRoute(config : %paddr(routeConfig) : IL_GET : REGEX_START + '/config/' + 
-      BRACKET_OPEN + 'a-zA-Z0-9_' + BRACKET_CLOSE + CURLY_OPEN + '1,10' + CURLY_CLOSE +'$');
+      BRACKET_OPEN + 'a-zA-Z0-9_' + BRACKET_CLOSE + CURLY_OPEN + '1,10' + CURLY_CLOSE + DOLLAR);
 end-proc;
 
 
@@ -224,11 +228,7 @@ dcl-proc createRequest;
   dcl-ds headerList likeds(il_varchar) based(headerListPtr);
   
   request.config = %alloc(%size(il_config));
-  
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
-  
+    
   lookForHeaders(%addr(request) : %addr(httpMessage : *data) : %len(httpMessage));
   
   return request;
@@ -241,5 +241,5 @@ dcl-proc disposeRequest;
   end-pi;
   
   dealloc request.config;
-  dealloc request.headerList;
+  sList_free(request.headerList);
 end-proc;

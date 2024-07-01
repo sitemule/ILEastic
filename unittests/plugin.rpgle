@@ -225,10 +225,6 @@ dcl-proc createRequest;
  
   request.config = %alloc(%size(il_config));
  
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
- 
   return request;
 end-proc;
 
@@ -239,7 +235,7 @@ dcl-proc disposeRequest;
   end-pi;
  
   dealloc request.config;
-  dealloc request.headerList;
+  sList_free(request.headerList);
 end-proc;
 
 
