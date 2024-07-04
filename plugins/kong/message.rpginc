@@ -1,0 +1,58 @@
+**FREE
+
+/if not defined (MESSAGE_H)
+/define MESSAGE_H
+
+dcl-pr message_send extproc(*CWIDEN : *dclcase);
+    messageId pointer value options(*string);
+    messageFile pointer value options(*string);
+    type pointer value options(*string);
+    message pointer value options(*string);
+    replaceValue1 pointer value options(*string : *nopass);
+    replaceValue2 pointer value options(*string : *nopass);
+    replaceValue3 pointer value options(*string : *nopass);
+    replaceValue4 pointer value options(*string : *nopass);
+    replaceValue5 pointer value options(*string : *nopass);
+    replaceValue6 pointer value options(*string : *nopass);
+    replaceValue7 pointer value options(*string : *nopass);
+end-pr;
+
+
+dcl-pr message_sendPastControlBoundary extproc(*CWIDEN : *dclcase);
+    messageId pointer value options(*string);
+    messageFile pointer value options(*string);
+    type pointer value options(*string);
+    message pointer value options(*string);
+    replaceValue1 pointer value options(*string : *nopass);
+    replaceValue2 pointer value options(*string : *nopass);
+    replaceValue3 pointer value options(*string : *nopass);
+    replaceValue4 pointer value options(*string : *nopass);
+    replaceValue5 pointer value options(*string : *nopass);
+    replaceValue6 pointer value options(*string : *nopass);
+    replaceValue7 pointer value options(*string : *nopass);
+end-pr;
+
+
+dcl-pr message_info extproc(*CWIDEN : *dclcase);
+    message pointer value options(*string);
+    replaceValue1 pointer value options(*string : *nopass);
+    replaceValue2 pointer value options(*string : *nopass);
+    replaceValue3 pointer value options(*string : *nopass);
+    replaceValue4 pointer value options(*string : *nopass);
+    replaceValue5 pointer value options(*string : *nopass);
+    replaceValue6 pointer value options(*string : *nopass);
+    replaceValue7 pointer value options(*string : *nopass);
+end-pr;
+
+dcl-pr message_escape extproc(*CWIDEN : *dclcase);
+    message pointer value options(*string);
+    replaceValue1 pointer value options(*string : *nopass);
+    replaceValue2 pointer value options(*string : *nopass);
+    replaceValue3 pointer value options(*string : *nopass);
+    replaceValue4 pointer value options(*string : *nopass);
+    replaceValue5 pointer value options(*string : *nopass);
+    replaceValue6 pointer value options(*string : *nopass);
+    replaceValue7 pointer value options(*string : *nopass);
+end-pr;
+
+/endif

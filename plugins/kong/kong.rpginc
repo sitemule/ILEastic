@@ -1,0 +1,82 @@
+**FREE
+
+/if defined (ILKONG)
+/eof
+/endif
+
+/define ILKONG
+
+///
+// ILEastic : Kong Plugin
+//
+// This module provides procedure for registering and deregistering a web 
+// service as a target to an upstream at a Kong API Gateway instance.
+//
+// @author Mihael Schmidt
+// @date 27.06.2024
+// @project ILEastic
+///
+
+///
+//OAuth2 Authentication Provider for ILEvator
+///
+dcl-ds il_kong_oauth2AuthProvider_t qualified template;
+    processRequest pointer(*proc);
+    ilevator pointer;
+    url varchar(32766);
+    clientId varchar(100);
+    clientSecret varchar(100);
+end-ds;
+
+///
+// Register service
+//
+// Registers the web service as a target for an upstream at a Kong API Gateway 
+// instance.
+//
+// @param ILEvator instance
+// @param Kong base url 
+// @param Kong upstream name or id
+// @param Kong target name for this service
+///
+dcl-pr il_kong_register extproc(*dclcase);
+    ilevator pointer const;
+    url varchar(32766) const;
+    upstream varchar(100) const;
+    target varchar(1000) const;
+end-pr;
+
+///
+// Deregister service
+//
+// Deregisters the web service from an upstream at a Kong API Gateway instance.
+//
+// @param ILEvator instance
+// @param Kong base url 
+// @param Kong upstream name or id
+// @param Kong target name for this service
+///
+dcl-pr il_kong_deregister extproc(*dclcase);
+    ilevator pointer const;
+    url varchar(32766) const;
+    upstream varchar(100) const;
+    targetId varchar(100) const;
+end-pr;
+
+///
+// Build OAuth2 ILEvator authentication provider
+//
+// Builds an auth provider for ILEvator which will make a HTTP request to the
+// passed url with the grant type "client credentials".
+// 
+// @param ILEvator instance
+// @param OAuth2 provider url
+// @param Client id
+// @param Client secret
+///
+dcl-pr il_kong_getOauth2AuthProvider likeds(il_kong_oauth2AuthProvider_t) extproc(*dclcase);
+    ilevator pointer const;
+    url varchar(32766) const;
+    clientId varchar(100) const;
+    clientSecret varchar(100) const;
+end-pr;

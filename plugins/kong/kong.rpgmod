@@ -1,0 +1,218 @@
+**FREE
+
+ctl-opt nomain;
+
+/define RPG_HAS_OVERLOAD
+/include 'ilevator.rpgle'
+/include 'kong.rpginc'
+/include 'message.rpginc'
+/include 'noxdb/headers/JSONXML.rpgle'
+
+
+dcl-proc il_kong_register export;
+    dcl-pi *n;
+        ilevator pointer const;
+        baseUrl varchar(32766) const;
+        upstream varchar(100) const;
+        target varchar(1000) const;
+    end-pi;
+
+    dcl-s headers pointer;
+    dcl-s responseBuffer varchar(32766) ccsid(1208);
+    dcl-s string varchar(32766);
+    dcl-s requestBuffer varchar(32766) ccsid(1208);
+    dcl-s url varchar(32766);
+    
+    headers = iv_buildList('Accept' : 'application/json' : 'Content-Type' : 'application/json');
+    iv_addHeaders(ilevator : headers);
+    iv_setResponseDataBuffer(ilevator : %addr(responseBuffer) : %size(responseBuffer) : IV_VARCHAR2 : IV_CCSID_UTF8);
+    
+    url = baseUrl + '/upstreams/' + upstream + '/targets/' + target;
+    iv_execute(ilevator : 'GET' : url);
+    if (iv_getStatus(ilevator) = IV_HTTP_NOT_FOUND);
+        addTarget(ilevator : responseBuffer : requestBuffer : baseUrl : upstream : target);
+    elseif (iv_getStatus(ilevator) = IV_HTTP_OK);
+        // target exists -> do nothing
+    else;
+        message_escape('Could not register target at upstream. HTTP Status: ' + %char(iv_getStatus(ilevator)));
+    endif;
+    
+    on-exit;
+        iv_freeList(headers);
+end-proc;
+
+
+dcl-proc addTarget;
+    dcl-pi *n varchar(100);
+        ilevator pointer const;
+        responseBuffer varchar(32766) ccsid(1208);
+        requestBuffer varchar(32766) ccsid(1208);
+        baseUrl varchar(32766) const;
+        upstream varchar(100) const;
+        target varchar(1000) const;
+    end-pi;
+
+    dcl-s string varchar(32766);
+    dcl-s json pointer;
+    dcl-s jsonPayload pointer;
+    dcl-s targetId varchar(100);
+    dcl-s url varchar(32766);
+    dcl-s upstreamUrl varchar(32766);
+    dcl-s upstreamId varchar(100);
+    
+    upstreamUrl = baseUrl + '/upstreams/' + upstream;
+    
+    iv_setResponseDataBuffer(ilevator : %addr(responseBuffer) : %size(responseBuffer) : IV_VARCHAR2 : IV_CCSID_UTF8);
+    iv_execute(ilevator : 'GET' : upstreamUrl);
+    if (iv_getStatus(ilevator) <> IV_HTTP_OK);
+        message_escape('Could not get upstream id. HTTP Status: ' + %char(iv_getStatus(ilevator)));
+    endif;
+
+    string = responseBuffer;
+    json = jx_parseString(string);
+    upstreamId = jx_getStr(json : 'id' : '');
+    if (upstreamId = *blank);
+        message_escape('No upstream id');
+    endif;
+    
+    // insert new target
+    jsonPayload = jx_newObject();
+    jx_locateOrCreate(jsonPayload : 'upstream');
+    jx_setStr(jsonPayload : 'upstream/id' : upstreamId);
+    jx_setInt(jsonPayload : 'weight' : 100);
+    jx_setStr(jsonPayload : 'target' : target);
+    
+    requestBuffer = jx_asJsonText(jsonPayload);
+    
+    url = baseUrl + '/upstreams/' + upstream + '/targets';
+    iv_setRequestDataBuffer(ilevator : %addr(requestBuffer) : %size(requestBuffer) : IV_VARCHAR2 : IV_CCSID_UTF8);
+    iv_setResponseDataBuffer(ilevator : %addr(responseBuffer) : %size(responseBuffer) : IV_VARCHAR2 : IV_CCSID_UTF8);
+    iv_execute(ilevator : 'POST' : url);
+    if (iv_getStatus(ilevator) <> IV_HTTP_OK and iv_getStatus(ilevator) <> IV_HTTP_CREATED);
+        string = responseBuffer;
+        message_escape('Could not add upstream target. HTTP Status: ' + 
+            %char(iv_getStatus(ilevator)) + ' - ' + string);
+    endif;
+    
+    string = responseBuffer;
+    json = jx_parseString(string);
+    targetId = jx_getStr(json : 'id');
+    
+    return targetId;
+    
+    on-exit;
+        jx_close(json);
+end-proc;
+
+
+dcl-proc il_kong_deregister export;
+    dcl-pi *n;
+        ilevator pointer const;
+        baseUrl varchar(32766) const;
+        upstream varchar(100) const;
+        target varchar(100) const;      
+    end-pi;
+
+    dcl-s url varchar(32766);
+    dcl-s httpStatus int(10);
+    
+    url = baseUrl + '/upstreams/' + upstream + '/targets/' + target;
+    iv_execute(ilevator : 'DELETE' : url);
+    httpStatus = iv_getStatus(ilevator);
+    if (httpStatus = IV_HTTP_OK or httpStatus = IV_HTTP_NO_CONTENT or httpStatus = IV_HTTP_NOT_FOUND);
+        // ok
+    else;
+        message_escape('Could not delete upstream target. HTTP Status: ' + 
+            %char(iv_getStatus(ilevator)));
+    endif;
+end-proc;
+
+
+dcl-proc il_kong_getOauth2AuthProvider export;
+    dcl-pi *n likeds(il_kong_oauth2AuthProvider_t);
+        ilevator pointer const;
+        url varchar(32766) const;
+        clientId varchar(100) const;
+        clientSecret varchar(100) const;
+    end-pi;
+    
+    dcl-ds authProvider likeds(il_kong_oauth2AuthProvider_t) inz;
+    
+    authProvider.processRequest = %paddr(addBearerToken);
+    authProvider.ilevator = ilevator;
+    authProvider.url = url;
+    authProvider.clientId = clientId;
+    authProvider.clientSecret = clientSecret;
+    
+    return authProvider;
+end-proc;
+
+
+dcl-proc addBearerToken;
+    dcl-pi *n;
+        authProvider pointer value;
+        request pointer value;      
+    end-pi;
+
+    dcl-ds oauthProvider likeds(il_kong_oauth2AuthProvider_t) based(authProvider);
+    dcl-s token varchar(10000);
+    
+    token = getAccessToken(
+        oauthProvider.ilevator :
+        oauthProvider.url :
+        oauthProvider.clientId :
+        oauthProvider.clientSecret :
+        'openid'
+    );
+    
+    iv_request_addHeader(request : 'Authorization' : 'Bearer ' + token);
+end-proc;
+
+
+dcl-proc getAccessToken;
+    dcl-pi *n varchar(10000);
+        ilevator pointer const;
+        url varchar(10000) const;
+        clientId varchar(100) const;
+        clientSecret varchar(100) const;
+        scope varchar(1000) const options(*nopass);
+    end-pi;
+
+    dcl-s token varchar(10000);
+    dcl-s headers pointer;
+    dcl-ds formData likeds(iv_lvarpuchar_t);
+    dcl-s l_scope varchar(1000);
+    dcl-s responseBuffer varchar(32766) ccsid(1208);
+    dcl-s string varchar(32766);
+    dcl-s json pointer;
+    
+    if (%parms() >= 5);
+        l_scope = scope;
+    endif;
+    
+    headers = iv_buildList(
+        'Accept' : 'application/json' : 
+        'Content-Type' : 'application/x-www-form-urlencoded'
+    );
+    
+    formData = iv_form_of(
+        'grant_type' : 'client_credentials' :
+        'client_id' : clientId :
+        'client_secret' : clientSecret :
+        'scope' : l_scope
+    );
+
+    iv_setRequestDataBuffer (ilevator : formData.string : formData.length : IV_BYTES : IV_CCSID_BINARY);
+    iv_setResponseDataBuffer(ilevator : %addr(responseBuffer) : %size(responseBuffer) : IV_VARCHAR2 : IV_CCSID_UTF8);
+    iv_execute(ilevator : 'POST' : url : headers);
+
+    string = responseBuffer;
+    json = jx_parseString(string);
+    token = jx_getStr(json : 'access_token');
+
+    return token;
+    
+    on-exit;
+        iv_form_free(formData);
+        iv_freeList(headers);
+end-proc;
