@@ -55,13 +55,13 @@ compile: .PHONY
 	-setccsid 1252 src/githash.c
 	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > src/githash.c 
 
-	cd src && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd src && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 noxDB: .PHONY
-	cd noxDB && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd noxDB && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd ILEfastCGI && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 		
 bind:
@@ -81,12 +81,12 @@ clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
 test: .PHONY
-	cd unittests && make
+	cd unittests && $(MAKE)
 
 plugins: .PHONY
-	cd plugins/cors && make all
-	cd plugins/authsystem && make all
-	cd plugins/basicauth && make all
+	cd plugins/cors && $(MAKE) all SHELL=$(SHELL)
+	cd plugins/authsystem && $(MAKE) all SHELL=$(SHELL)
+	cd plugins/basicauth && $(MAKE) all SHELL=$(SHELL)
 
 # For vsCode 
 current: env
