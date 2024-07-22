@@ -86,6 +86,7 @@ dcl-s CRLF char(2) inz(x'0d0a') ccsid(819);
 
 dcl-ds request likeds(il_request);
 
+dcl-ds SLIST likeds(SLIST_t) based(request.headerList);
 
 dcl-s g_path1 varchar(1024) ccsid(*utf8) inz('/');
 dcl-s g_result1 char(10) dim(1) ctdata;
@@ -268,11 +269,7 @@ dcl-proc createRequest;
   dcl-ds headerList likeds(il_varchar) based(headerListPtr);
   
   request.config = %alloc(%size(il_config));
-  
-  headerListPtr = %alloc(%size(il_varchar));
-  clear headerList;
-  request.headerList = headerListPtr;
-  
+
   return request;
 end-proc;
 
@@ -283,7 +280,7 @@ dcl-proc disposeRequest;
   end-pi;
   
   dealloc request.config;
-  dealloc request.headerList;
+  sList_free(SLIST);
 end-proc;
 
 
