@@ -1,0 +1,124 @@
+**FREE
+
+/if defined (ILJWTPLUG)
+/eof
+/endif
+
+/define ILJWTPLUG
+
+///
+// ILEastic : JWT Token Filter
+//
+// The filter looks for a HTTP header with the key "Authorization" with an
+// authorization type "Bearer" for a JWT token string.
+//
+// The JWT token payload is stored in the thread local memory under
+// /ileastic/jwt/payload. The whole token is available under
+// /ileastic/jwt/token.
+//
+// @author Mihael Schmidt
+// @date 04.05.2019
+// @project ILEastic
+///
+
+
+///
+// Verification options lookup method : None
+///
+dcl-c JWT_VERIFY_OPTIONS_LOOKUP_NONE 1;
+
+///
+// Verification options lookup method : Issuer
+///
+dcl-c JWT_VERIFY_OPTIONS_LOOKUP_ISSUER 2;
+
+///
+// Verification options lookup method : Key Id
+///
+dcl-c JWT_VERIFY_OPTIONS_LOOKUP_KID 3;
+
+
+///
+// Add verify options
+//
+// Add a verify options set which can be used on JWT token validation in the
+// <code>il_jwt_filter</code> procedure.
+//
+// @param Verifcation options
+// @param Lookup id (if multi tenant is used)
+//
+///
+dcl-pr il_jwt_addVerifyOptions extproc(*dclcase);
+    options likeds(jwt_options_t);
+    id char(256) const options(*nopass);
+end-pr;
+
+
+///
+// Add verify options from JWKS
+//
+// Add alls JWKs from the passed stream file as a verify options set which can be used on JWT token 
+// validation in the <code>il_jwt_filter</code> procedure.
+//
+// @param Path to JWKS stream file
+//
+// @info This procedure always set the verify lookup method to "Key Id". The only other possible
+//       lookup method would be NONE and can be set after calling this procedure. This would 
+//       mean that <em>always</em> the <em>first</em> JWK would be used for token validation
+//       regardless of kid or issuer claim.
+///
+dcl-pr il_jwt_addVerifyOptionsFromJwks extproc(*dclcase);
+    filePath varchar(1024) const;
+end-pr;
+    
+    
+///
+// Remove all verify options
+//
+// Removes all the added verify options.
+///
+dcl-pr il_jwt_clearVerifyOptions extproc(*dclcase) end-pr;
+
+///
+// Set verify options lookup method
+//
+// Determines how the options for JWT token verification will be looked up in
+// case of a multi tenant setup.
+//
+// @param Lookup method (see constants JWT_VERIFY_OPTIONS_LOOKUP_...)
+///
+dcl-pr il_jwt_setVerifyOptionsLookupMethod extproc(*dclcase);
+    lookupMethod int(3) const;
+end-pr;
+
+///
+// JWT Filter
+//
+// This plugin filters the JWT token from the response and adds the token and
+// the payload to the thread local memory.
+//
+// @param Request
+// @param Response
+// @return *on = the request is valid and can be passed to the next plugin/servlet
+//         else *off
+///
+dcl-pr il_jwt_filter ind extproc(*dclcase);
+  request  likeds(IL_REQUEST);
+  response likeds(IL_RESPONSE);
+end-pr;
+
+
+///
+// Load sign key from stream file
+//
+// Loads the content of the file pointed to by the passed file path and returns
+// it as is. There won't be any character conversion. The content needs to be in 
+// an ASCII compatible character set, f. e. 1208 UTF-8 or 1252 Latin1.
+//
+// @param File path
+// @param Content of the file
+///
+dcl-pr il_jwt_loadKeyFromStreamFile like(jwt_signkey_t) ccsid(*utf8) extproc(*dclcase);
+    filePath varchar(1024) const;
+end-pr;
+

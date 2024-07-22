@@ -1,0 +1,113 @@
+**FREE
+
+ctl-opt nomain thread(*concurrent);
+
+/include 'base64.rpginc'
+/include 'base64url.rpginc'
+/include 'jwk.rpginc'
+/include 'jwt.rpginc'
+/include 'noxDB/headers/JSONXML.rpgle'
+
+
+dcl-proc jwk_load export;
+    dcl-pi *n uns(3);
+        filePath varchar(1024) const;
+        jwks likeds(jwk_t) dim(255);
+    end-pi;
+    
+    dcl-s i int(3);
+    dcl-s json pointer;
+    dcl-s keys pointer;
+    dcl-ds iterator likeds(jx_iterator);
+    
+    json = jx_parseFile(filePath);
+    
+    keys = jx_locate(json : 'keys');
+    if (keys = *null);
+        jwks(1) = loadJwk(json);
+        if (jwks(1).alg <> *blank);
+            i = 1;
+        endif;
+    else;
+        iterator = jx_setIterator(keys);
+        dow (jx_forEach(iterator));
+            jwks(i+1) = loadJwk(iterator.this);
+            if (jwks(i+1).alg <> *blank);
+                i += 1;
+            endif;
+            
+            if (i = *hival);
+                leave;
+            endif;
+        enddo;
+    endif;
+    
+    return i;
+    
+    on-exit;
+        jx_close(json);
+end-proc;
+
+
+//
+// support HS and RS
+//
+// kid is optional : no kid => no multi tenant but take first jwk
+// kid exist => verify options lookup is by kid and multi-tenant = true
+// use = sig or (key_ops is array and contains verify), ignore all else
+//
+// alg hsxxx : kty = oct
+//             k   = secret base64url encoded
+//
+// alg rsxxx : kty = RSA
+//             x5c = array . first element contains public key , is DER/BER format , base64 encoded
+//
+dcl-proc loadJwk;
+    dcl-pi *n likeds(jwk_t);
+        json pointer;
+    end-pi;
+
+    dcl-ds jwk likeds(jwk_t) inz;
+    dcl-s keyType char(10);
+    dcl-s keyOps char(20);
+    dcl-s use char(10);
+    
+    use = jx_getStr(json : 'use');
+    keyOps = jx_getStr(json : 'key_ops');
+    
+    if (use = 'sig' or keyOps = 'verify');
+        jwk.usage = JWK_USAGE_VERIFY;
+    elseif (use = 'enc' or keyOps = 'encrypt');
+        jwk.usage = JWK_USAGE_SIGN;
+    else;
+        clear jwk;
+        return jwk;
+    endif;
+
+    keyType = jx_getStr(json : 'kty');
+    if (keyType <> 'oct' and keyType <> 'RSA');
+        clear jwk;
+        return jwk;
+    endif;
+    
+    jwk.kid = jx_getStr(json : 'kid');
+    jwk.alg = jx_getStr(json : 'alg');
+        
+    if (keyType = 'oct');
+        jwk.key = jx_getStr(json : 'k');
+        jwk.key = jwt_decodeBase64Url(jwk.key);
+    elseif (keyType = 'RSA');
+        jwk.key = jx_getStr(json : 'x5c[0]');
+        if (jwk.key = *blank);
+            clear jwk;
+        else;
+            jwk.key = il_decodeBase64(jwk.key);
+        endif;
+    endif;
+    
+    if (jwk.key = *blank);
+        clear jwk;
+    endif;
+    
+    return jwk;
+end-proc;

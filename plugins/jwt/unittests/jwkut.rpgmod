@@ -1,0 +1,105 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include 'assert.rpginc'
+/include 'jwk.rpginc'
+
+
+dcl-pr test_singleJwkOct extproc(*dclcase) end-pr;
+dcl-pr test_singleJwkOctWithKeyOps extproc(*dclcase) end-pr;
+dcl-pr test_singleJwkOctInvalidKeyOps extproc(*dclcase) end-pr;
+dcl-pr test_jwkNotFound extproc(*dclcase) end-pr;
+dcl-pr test_multipleJwkOct extproc(*dclcase) end-pr;
+dcl-pr test_multipleJwkRsa extproc(*dclcase) end-pr;
+
+
+dcl-proc test_singleJwkOct export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('plugins/jwt/unittests/jwks/single-oct.jwk' : jwks);
+  
+    iEqual(1 : numberJwks);
+    aEqual('123-456-789' : jwks(1).kid);
+    aEqual('HS256' : jwks(1).alg);
+    assert(jwks(1).usage = JWK_USAGE_VERIFY : 'Member use with value sig should result in JWK_USAGE_VERIFY');
+    aEqual('123456789012345678901234567890AB' : jwks(1).key);
+end-proc;
+
+
+dcl-proc test_singleJwkOctWithKeyOps export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('plugins/jwt/unittests/jwks/single-oct-key_ops.jwk' : jwks);
+  
+    iEqual(1 : numberJwks);
+    aEqual('123-456-789' : jwks(1).kid);
+    aEqual('HS256' : jwks(1).alg);
+    assert(jwks(1).usage = JWK_USAGE_SIGN : 'Member use with value sig should result in JWK_USAGE_SIGN');
+    aEqual('123456789012345678901234567890AB' : jwks(1).key);
+end-proc;
+
+
+dcl-proc test_singleJwkOctInvalidKeyOps export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('plugins/jwt/unittests/jwks/single-oct-invalid-key_ops.jwk' : jwks);
+  
+    iEqual(0 : numberJwks);
+    aEqual(*blank : jwks(1).key);
+end-proc;
+
+
+dcl-proc test_multipleJwkOct export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('plugins/jwt/unittests/jwks/multiple-oct.jwks' : jwks);
+  
+    iEqual(2 : numberJwks);
+    
+    aEqual('123-456-789' : jwks(1).kid);
+    aEqual('HS256' : jwks(1).alg);
+    assert(jwks(1).usage = JWK_USAGE_VERIFY : 'Member use with value sig should result in JWK_USAGE_VERIFY');
+    aEqual('123456789012345678901234567890AB' : jwks(1).key);
+    
+    aEqual('456-789-abc' : jwks(2).kid);
+    aEqual('HS512' : jwks(2).alg);
+    assert(jwks(2).usage = JWK_USAGE_VERIFY : 'Member use with value sig should result in JWK_USAGE_VERIFY');
+    aEqual('123456789012345678901234567890AB123456789012345678901234567890AB' : jwks(2).key);
+end-proc;
+
+
+dcl-proc test_multipleJwkRsa export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('plugins/jwt/unittests/jwks/multiple-rsa.jwks' : jwks);
+  
+    iEqual(2 : numberJwks);
+    
+    aEqual('123-456-789' : jwks(1).kid);
+    aEqual('RS256' : jwks(1).alg);
+    assert(jwks(1).usage = JWK_USAGE_VERIFY : 'Member use with value sig should result in JWK_USAGE_VERIFY');
+    iEqual(294 : %len(jwks(1).key) : 'Length of binary RSA public key is not correct.');
+    
+    aEqual('456-789-abc' : jwks(2).kid);
+    aEqual('RS256' : jwks(2).alg);
+    assert(jwks(2).usage = JWK_USAGE_VERIFY : 'Member use with value sig should result in JWK_USAGE_VERIFY');
+    iEqual(294 : %len(jwks(2).key) : 'Length of binary RSA public key is not correct.');
+end-proc;
+
+
+dcl-proc test_jwkNotFound export;
+    dcl-ds jwks likeds(jwk_t) dim(255);
+    dcl-s numberJwks uns(3);
+  
+    numberJwks = jwk_load('this/jwk/is/not/here' : jwks);
+  
+    iEqual(0 : numberJwks);
+    aEqual(*blank : jwks(1).key);
+end-proc;

@@ -1,0 +1,47 @@
+**FREE
+
+/if defined (JWK)
+/eof
+/endif
+
+/define JWK
+
+/include 'jwt.rpginc'
+
+
+///
+// Specifies that the JWK is intended for verifying a signature
+///
+dcl-c JWK_USAGE_VERIFY 'verify';
+///
+// Specifies that the JWK is intended for creating a signature
+///
+dcl-c JWK_USAGE_SIGN 'sign';
+
+///
+// Template for JWK
+///
+dcl-ds jwk_t qualified template;
+    kid char(100);
+    alg char(100);
+    key like(jwt_signkey_t) ccsid(*utf8);
+    usage char(20);
+end-ds;
+
+
+///
+// Load JWK/JWKS from stream file
+//
+// Loads all JWKs from the stream file. The stream file contant can either be
+// a single JWK or multiple JWKs (JWKS).
+// <br/><br/>
+// Only key types "oct" and "RSA" will be retrieved.
+//
+// @param Path to stream file
+// @param Loaded JWKs
+// @return Number of retrieved JWKs
+///
+dcl-pr jwk_load uns(3) extproc(*dclcase);
+    filePath varchar(1024) const;
+    jwks likeds(jwk_t) dim(255);
+end-pr;

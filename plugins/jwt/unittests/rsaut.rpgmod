@@ -1,0 +1,162 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include 'assert.rpginc'
+/include 'jwt.rpginc'
+/include 'rsa.rpginc'
+
+dcl-c O_RDONLY 1;
+
+dcl-pr open int(10) extproc('open');
+  path pointer value options(*string);
+  openflags int(10) value;
+  mode uns(10) value options(*nopass);
+  ccsid uns(10) value options(*nopass);
+end-pr;
+
+dcl-pr read int(10) extproc('read');
+  fildes int(10) value;
+  buf pointer value;
+  bytes uns(10) value;
+end-pr;
+
+dcl-pr close int(10) extproc('close');
+  fildes int(10) value;
+end-pr;
+
+// payload: {"sub":"test","name":"Mihael"}
+
+dcl-c LF u'000A';
+
+
+dcl-proc test_verify_256 export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(valid : 'Token is invalid.');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidTokenFormat export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidToken export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAgXYZ');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN CERTIFICATE-----' + LF +
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0CfTwHgz2CoNTxx8KYVm' + LF +
+        'stdsVJrvgKqyiui7fO+VFga1pAAPcUsNtU3aRFRE9FWLId9z0AoEdYV7pOWxfFrq' + LF +
+        'J/M63MByIFfnVLGdR7k6MKKFaiTPNAv7/qAiWvIDHPIyCCbfRRuJ44LOUFTyn6fp' + LF +
+        '9cnUNpAxNCTLJvhebaPB4zF/QroetOHizGfoRybBJyFZ2Rmuog/KKmdgBQSaPqTk' + LF +
+        'sOg+SOjf0BuGvycIaIr3rLeK0WO4o9GRBQCtLK6sURwNNO4F7LBPHVC1rtX0GnEZ' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END CERTIFICATE-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+dcl-proc test_verify_256_invalidPublicKey export;
+    dcl-s token like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s publicKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s valid ind;        
+        
+    publicKey =
+        '-----BEGIN PUBLIC KEY-----' + LF +
+        '7FmpOu0UopvYevxgwwNb2FQ5XY3mW4tiAMZLphJehjizXqcghYwu8sczb7QEz611' + LF +
+        'KQIDAQAB'+ LF +
+        '-----END PUBLIC KEY-----' + LF ;
+    
+    
+    valid = jwt_rsa_verify(JWT_RS256 : token : publicKey);
+  
+    assert(not valid : 'Token validation should result in "invalid token".');
+end-proc;
+
+
+dcl-proc test_sign_256 export;
+    dcl-s privateKey like(jwt_signKey_t) ccsid(*utf8); 
+    dcl-s headerPayload like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9');
+    dcl-s comparableToken like(jwt_token_t) ccsid(*utf8) inz('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmFtZSI6Ik1paGFlbCJ9.zUSi8lW7GFS_8xIczLL9H7suBNfSWFpH1WI8aevO9zprdwLrCSsVJFzH7UAJ3GwsVP_0lun0AHCWBnJY1522gjQxrZLgQ51aM6fIU3oYroeP1ZyYNuY7Aioda5N6jUoZg2MQvjNY2Z3Ru0D9TEexMuB1jLzJx8rQ--igTgLFyaHskZE8bi-fWip2bMBAZ8idN2k6QABf9A92g1a6oLkM7KODiQV-cGjgeMhqxZdVExmPc24GBHi4PYm7UY1b9fWZ-unCKPN_YXyHuNSIQrsaadANnIUegfoxQ55pJCop6JJvpM8VO5Xe6VVUnPG_jfLJPPkyTXWayxTBa3sbmFoyAg');
+    dcl-s token like(jwt_token_t) ccsid(*utf8);
+    
+    // RSA private key PEM TO BER/DER : openssl rsa -in rsa-key -outform der  -out rsa-key.der
+    
+    privateKey = loadFile('plugins/jwt/unittests/rsa-key.der');
+    
+    token = jwt_rsa_sign(JWT_RS256 : headerPayload : privateKey);
+    assert(%len(token) > 0 : 'No token generated.');
+    assert(token = comparableToken : 'Generated token does not equals expected token.');
+end-proc;
+
+
+dcl-proc loadFile;
+  dcl-pi *n varchar(1000000) ccsid(*hex);
+    p_path varchar(1000) const;
+  end-pi;
+
+  dcl-s path varchar(1000);
+  dcl-s content char(1000000) ccsid(*hex);
+  dcl-s returnValue varchar(1000000) ccsid(*hex);
+  dcl-s len int(10);
+  dcl-s fd int(10);
+
+  fd = open(p_path : O_RDONLY);
+  if (fd >= 0);
+    len = read(fd : %addr(content) : 1000000);
+    returnValue = %subst(content : 1 : len);
+  endif;
+
+  return returnValue;
+  
+  on-exit;
+    if (fd >= 0);
+      callp close(fd);
+    endif;
+end-proc;
+
+

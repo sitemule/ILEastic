@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "*.sqlrpgle": "rpg",
+        "*.rpginc": "rpgle",
+        "*.rpgmod": "rpgle",
         "*.dmd": "json",
         "*.widget": "javascript",
         "strutil.h": "c",

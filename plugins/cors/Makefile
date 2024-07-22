@@ -11,16 +11,21 @@
 BIN_LIB=ILEASTIC
 
 BIND_LIB=*LIBL
-
+DBGVIEW=*ALL
+TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
+OUTPUT=*NONE
+SHELL=/QOpenSys/usr/bin/qsh
 
 #
 # User-defined part end
 #-------------------------------------------------------------------------------
 
 
+TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
+
 # CFLAGS = compiler parameter
-CFLAGS=OUTPUT(*PRINT) OPTION(*NOUNREF *SRCSTMT) DBGVIEW(*LIST) STGMDL(*INHERIT) INCDIR('../../' './') TGTRLS($(TARGET_RLS))
+CFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../' './') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
 
 MODULES = cors
 
@@ -38,8 +43,15 @@ env:
 compile: $(MODULES)
 
 bind:
-	system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)";\
-	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
-	system "CPYFRMSTMF FROMSTMF('cors.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/cors.mbr') MBROPT(*replace)";\
-	system -q "DLTOBJ OBJ($(BIN_LIB)/cors) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/cors) MODULE($(BIN_LIB)/cors) BNDSRVPGM(($(BIN_LIB)/ILEASTIC)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TGTRLS($(TARGET_RLS)) TEXT('ILEastic - CORS Plugin')";
+	-system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
+	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)"
+	system "CPYFRMSTMF FROMSTMF('cors.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/cors.mbr') MBROPT(*replace)"
+	-system -q "DLTOBJ OBJ($(BIN_LIB)/cors) OBJTYPE(*SRVPGM)"
+	liblist -a $(BIN_LIB); \
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/cors) MODULE($(BIN_LIB)/cors) BNDSRVPGM(($(BIND_LIB)/ILEASTIC)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TGTRLS($(TARGET_RLS)) TEXT('ILEastic - CORS Plugin')"
+
+clean:
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/CORS) OBJTYPE(*MODULE)"
+
+purge: clean
+	-system -qi "DLTOBJ OBJ($(BIN_LIB)/CORS) OBJTYPE(*SRVPGM)"

@@ -1,0 +1,7 @@
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILKONG 1.0')
+
+    EXPORT SYMBOL("il_kong_register")
+    EXPORT SYMBOL("il_kong_deregister")
+    EXPORT SYMBOL("il_kong_getOauth2AuthProvider")
+
+ENDPGMEXP

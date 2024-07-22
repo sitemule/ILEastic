@@ -1,0 +1,21 @@
+**FREE
+
+/if defined (JWT_RSA)
+/eof
+/endif
+
+/define JWT_RSA
+
+/include 'jwt.rpginc'
+
+dcl-pr jwt_rsa_verify ind extproc(*dclcase);
+  algorithm varchar(100) const;
+  data like(jwt_token_t) const ccsid(*hex);
+  publicKey like(jwt_signKey_t) const ccsid(*utf8);
+end-pr;
+
+dcl-pr jwt_rsa_sign like(jwt_token_t) ccsid(*utf8) extproc(*dclcase);
+  algorithm varchar(100) const;
+  data like(jwt_token_t) const ccsid(*hex);
+  privateKey like(jwt_signKey_t) const ccsid(*hex);
+end-pr;

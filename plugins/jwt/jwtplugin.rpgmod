@@ -1,0 +1,265 @@
+**FREE
+
+///
+// ILEastic : JWT Token Filter
+//
+// The filter looks for a HTTP header with the key "Authorization" with an
+// authorization type "Bearer" for a JWT token string.
+//
+// The JWT token payload is stored in the thread local memory under
+// /ileastic/jwt/payload. The whole token is available under
+// /ileastic/jwt/token.
+//
+// @author Mihael Schmidt
+// @date 04.05.2019
+// @project ILEastic
+///
+
+
+ctl-opt nomain thread(*concurrent);
+
+
+/include 'clib.rpginc'
+/include 'headers/ileastic.rpgle'
+/include 'noxdb/headers/jsonparser.rpgle'
+/include 'jwk.rpginc'
+/include 'jwt.rpginc'
+/include 'jwtplugin.rpginc'
+
+
+dcl-s verifyOptionsLookupMethod int(3) inz(JWT_VERIFY_OPTIONS_LOOKUP_NONE) static(*allthread);
+dcl-s verifyOptionsCount int(3) static(*allthread);
+dcl-ds verifyOptions qualified dim(15) static(*allthread) inz;
+    id char(256);
+    options likeds(jwt_options_t);
+end-ds;
+
+
+dcl-proc il_jwt_setVerifyOptionsLookupMethod export;
+    dcl-pi *n;
+        lookupMethod int(3) const;
+    end-pi;
+
+    verifyOptionsLookupMethod = lookupMethod;
+end-proc;
+
+
+dcl-proc il_jwt_clearVerifyOptions export;
+    clear verifyOptions;
+    verifyOptionsCount = 0;
+end-proc;
+
+
+dcl-proc il_jwt_addVerifyOptions export;
+    dcl-pi *n;
+        options likeds(jwt_options_t);
+        p_id char(256) const options(*nopass);
+    end-pi;
+    
+    dcl-s id char(256);
+    
+    if (%parms() = 2);
+        id = p_id;
+    endif;
+    
+    if (verifyOptionsCount < 15);
+        verifyOptionsCount += 1;
+        verifyOptions(verifyOptionsCount).id = id;
+        verifyOptions(verifyOptionsCount).options = options;
+    endif;
+end-proc;
+
+
+dcl-proc il_jwt_addVerifyOptionsFromJwks export;
+    dcl-pi *n;
+        filePath varchar(1024) const;
+    end-pi;
+    
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-ds jwks likeds(jwk_t) dim(255) inz;
+    dcl-s numberJwks uns(3);
+    dcl-s i uns(3);
+    
+    numberJwks = jwk_load(filePath : jwks);
+    
+    for i = 1 to numberJwks;
+        if (verifyOptionsCount >= 15);
+            leave;
+        endif;
+        
+        verifyOptionsCount += 1;
+        
+        clear options;
+        options.kid = jwks(i).kid;
+        options.alg = jwks(i).alg;
+        options.key = jwks(i).key;
+        verifyOptions(verifyOptionsCount).id = options.kid;
+        verifyOptions(verifyOptionsCount).options = options;
+    endfor;
+    
+    verifyOptionsLookupMethod = JWT_VERIFY_OPTIONS_LOOKUP_KID;
+end-proc;
+
+
+dcl-proc il_jwt_filter export;
+  dcl-pi *n ind;
+    request  likeds(IL_REQUEST);
+    response likeds(IL_RESPONSE);
+  end-pi;
+
+  dcl-s token like(jwt_token_t);
+  dcl-s header like(jwt_token_t);
+  dcl-s payload like(jwt_token_t);
+  dcl-s json pointer;
+  dcl-s jsonNodeMoved ind;
+  dcl-s threadLocal pointer;
+  dcl-s jwtNode pointer;
+  dcl-ds options likeds(jwt_options_t) inz;
+
+  monitor;
+    token = getToken(request);
+    if (token = *blank);
+      response.status = 401;
+      il_responseWrite(response : 'No JWT token provided.');
+      return *off;
+    endif;
+
+    options = getVerifyOptions(token : header : payload : json);
+    if (%len(options.key) = 0);
+      response.status = 401;
+      il_responseWrite(response : 'Invalid JWT token provided.');
+      return *off;
+    endif;
+
+    if (jwt_verify(token : options));
+      if (%len(payload) = 0);
+        payload = jwt_decodePayload(token);
+        json = json_parseString(payload);
+      endif;
+      
+      threadLocal = il_getThreadMem(request);
+      jwtNode = json_locateOrCreate(threadLocal : '/ileastic/jwt');
+      json_moveObjectInto(jwtNode : 'payload' : json);
+      json_setStr(jwtNode : 'token' : token);
+      jsonNodeMoved = *on;
+      
+      return *on;
+    else;
+      response.status = 401;
+      il_responseWrite(response : 'Invalid JWT token provided');
+      return *off;
+    endif;
+
+  on-error *all;
+    response.status = 500;
+    response.statusText = 'Internal Server Error';
+    il_responseWrite(response : 'Could not process request for JWT token.');
+    return *off;
+  endmon;
+
+  on-exit;
+      if (not jsonNodeMoved);
+          json_close(json);
+      endif;
+end-proc;
+
+
+dcl-proc il_jwt_loadKeyFromStreamFile export;
+  dcl-pi *n like(jwt_signkey_t) ccsid(*utf8);
+    filePath varchar(1024) const;
+  end-pi;
+  
+  dcl-s path like(filePath);
+  dcl-s signkey like(jwt_signkey_t) ccsid(*utf8);
+  dcl-s fd int(10);
+  dcl-s len int(10);
+  
+  path = filePath;
+  
+  %len(signkey) = %size(jwt_signkey_t) - 2;
+  
+  fd = open(path : O_RDONLY);
+  if (fd >= 0);
+    len = read(fd : %addr(signkey : *data) : %len(signkey));
+    %len(signkey) = len;
+  else;
+    %len(signkey) = 0;
+  endif;
+
+  return signkey;
+    
+  on-exit;
+    if (fd >= 0);
+      callp close(fd);
+    endif;
+end-proc;
+
+
+dcl-proc getVerifyOptions export;
+    dcl-pi *n likeds(jwt_options_t);
+        token like(jwt_token_t);
+        header like(jwt_token_t);
+        payload like(jwt_token_t);       
+        json pointer;
+    end-pi;
+
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-s kid char(256);
+    dcl-s issuer char(256);
+    dcl-s x int(3);
+    
+    if (verifyOptionsLookupMethod = JWT_VERIFY_OPTIONS_LOOKUP_NONE);
+        if (verifyOptionsCount = 0);
+            return options;
+        else;
+            return verifyOptions(1).options;
+        endif;
+            
+    elseif (verifyOptionsLookupMethod = JWT_VERIFY_OPTIONS_LOOKUP_ISSUER);
+        payload = jwt_decodePayload(token);
+        json = json_parseString(payload);
+        issuer = json_getStr(json : 'iss' : '');
+        x = %lookup(issuer : verifyOptions(*).id : 1 : verifyOptionsCount);
+        if (issuer <> *blank and x > 0);
+          return verifyOptions(x).options;
+        endif;
+        
+    elseif (verifyOptionsLookupMethod = JWT_VERIFY_OPTIONS_LOOKUP_KID);
+        header = jwt_decodeHeader(token);
+        json = json_parseString(header);
+        kid = json_getStr(json : 'kid' : '');
+        json_close(json);
+        
+        x = %lookup(kid : verifyOptions(*).id : 1 : verifyOptionsCount);
+        if (kid <> *blank and x > 0);
+          return verifyOptions(x).options;
+        endif;
+    endif;
+    
+    return options;
+end-proc;
+
+
+
+dcl-proc getToken;
+  dcl-pi *n like(jwt_token_t);
+    request likeds(il_request);
+  end-pi;
+
+  dcl-c UPPER 'ABER';
+  dcl-c LOWER 'aber';
+
+  dcl-s header like(jwt_token_t);
+  dcl-s type char(10);
+
+  header = il_getRequestHeader(request : 'Authorization');
+  if (header <> *blank and %len(header) > 7);
+    type = %subst(header : 1 : 7);
+    type = %xlate(UPPER : LOWER : type);
+    if (type = 'bearer ');
+      return %subst(header : 8);
+    endif;
+  endif;
+
+  return *blank;
+end-proc;

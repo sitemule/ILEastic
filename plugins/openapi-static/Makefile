@@ -6,12 +6,12 @@
 # The rpg modules and the binder source file are also created in BIN_LIB.
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
-BIN_LIB=ILEASTIC
+export BIN_LIB=ILEASTIC
 
-DBGVIEW=*ALL
-TARGET_CCSID=*JOB
-TARGET_RLS=*CURRENT
-OUTPUT=*NONE
+export DBGVIEW=*ALL
+export TARGET_CCSID=*JOB
+export TARGET_RLS=*CURRENT
+export OUTPUT=*NONE
 
 #
 # User-defined part end
@@ -24,7 +24,7 @@ TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
 RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' 'ext/llist') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
 
 # CCFLAGS = C/C++ compiler parameter
-CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TGT_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*LIST)
+CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*LIST)
 
 MODULES = message openapi openapiini oapimodgen oapisrcgen
 COMMANDS = oapimodgen.cmd oapisrcgen.cmd 
@@ -46,15 +46,15 @@ all: env compile bind commands
 env:
 
 compile: $(MODULES)
-	$(MAKE) -C ext/llist/ compile $*
+	$(MAKE) -C ext/llist/ compile
 
 bind: $(PROGRAMS)
 
 oapisrcgen.pgm: .PHONY
-	system -k "CRTPGM PGM($(BIN_LIB)/OAPISRCGEN) MODULE($(BIN_LIB)/OAPISRCGEN $(BIN_LIB)/MESSAGE $(BIN_LIB)/LLIST $(BIN_LIB)/LLIST_SORT)"
+	system -k "CRTPGM PGM($(BIN_LIB)/OAPISRCGEN) MODULE($(BIN_LIB)/OAPISRCGEN $(BIN_LIB)/MESSAGE $(BIN_LIB)/LLIST $(BIN_LIB)/LLIST_SORT) TGTRLS($(TARGET_RLS))"
 
 oapimodgen.pgm: .PHONY
-	system -k "CRTPGM PGM($(BIN_LIB)/OAPIMODGEN) MODULE($(BIN_LIB)/OAPIMODGEN $(BIN_LIB)/MESSAGE)"
+	system -k "CRTPGM PGM($(BIN_LIB)/OAPIMODGEN) MODULE($(BIN_LIB)/OAPIMODGEN $(BIN_LIB)/MESSAGE) TGTRLS($(TARGET_RLS))"
 	
 commands: $(COMMANDS)
 

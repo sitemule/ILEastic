@@ -55,13 +55,13 @@ compile: .PHONY
 	-setccsid 1252 src/githash.c
 	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > src/githash.c 
 
-	cd src && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd src && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 noxDB: .PHONY
-	cd noxDB && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd noxDB && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 ILEfastCGI: .PHONY
-	cd ILEfastCGI && /QOpenSys/pkgs/bin/gmake BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+	cd ILEfastCGI && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 		
 bind:
@@ -72,22 +72,21 @@ bind:
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
 	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
 	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) TGTRLS($(TARGET_RLS)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";
-	
+ifndef KEEP_MODULES
 	@for module in $(MODULES); do\
 		system -q "dltmod $$module" ; \
 	done
-
+endif
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
 test: .PHONY
-	cd unittests && make
+	cd unittests && $(MAKE)
 
 plugins: .PHONY
-	cd plugins/cors && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/authsystem && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/basicauth && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
-	cd plugins/jwt && make BIN_LIB=$(BIN_LIB) BIND_LIB=$(BIND_LIB)
+	cd plugins/cors && $(MAKE) all SHELL=$(SHELL)
+	cd plugins/authsystem && $(MAKE) all SHELL=$(SHELL)
+	cd plugins/basicauth && $(MAKE) all SHELL=$(SHELL)
 
 # For vsCode 
 current: env

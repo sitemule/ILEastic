@@ -1,9 +1,10 @@
-STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('JWTPLUGIN 2.0.0')
+STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('JWTPLUGIN 3.0.0')
 
    EXPORT     SYMBOL("il_jwt_filter")
-   EXPORT     SYMBOL("il_jwt_addKey")
-   EXPORT     SYMBOL("il_jwt_addAuthorization_endpoint")
-   EXPORT     SYMBOL("il_jwt_addVerifyStructFromPEMFile")
-   EXPORT     SYMBOL("il_jwt_addVerifyStructFromJWKS")
+   EXPORT     SYMBOL("il_jwt_addVerifyOptions")
+   EXPORT     SYMBOL("il_jwt_clearVerifyOptions")
+   EXPORT     SYMBOL("il_jwt_setVerifyOptionsLookupMethod")
+   EXPORT     SYMBOL("il_jwt_loadKeyFromStreamFile")
+   EXPORT     SYMBOL("il_jwt_addVerifyOptionsFromJwks")
 
 ENDPGMEXP

@@ -1,0 +1,109 @@
+      /if not defined (IRPGUNIT_ASSERT)
+      /define IRPGUNIT_ASSERT
+
+      /include 'templates.rpginc'
+       
+
+       //----------------------------------------------------------------------
+       //   Procedure Prototypes
+       //----------------------------------------------------------------------
+
+       // Assertion procedure prototypes.
+
+       // aEqual -- Aphanumeric Equality Assertion
+       // Assert that two alphanumeric variables are equal.
+       //
+       // Example:
+       //   aEqual( 'John Smith' : name );
+
+     D aEqual          pr                  extproc('aEqual')
+     D  expected                  32565a   const
+     D  actual                    32565a   const
+     D  fieldName                    64a   const varying options(*nopass: *omit)
+
+
+       // assert -- General Purpose Assertion
+       // Assert that a condition is true. If not, a failure message percolates.
+       //
+       // Examples:
+       //   assert( newTime > oldTime : 'newTime is not larger than oldTime' );
+       //   assert( %not eof : 'Missing record in file XXX' );
+
+     D assert          pr                  extproc('assert')
+     D  condition                      n   const
+      /if defined(RPGUNIT_INTERNAL)
+     D  msgIfFalse                  256a   const
+      /else
+     D  msgIfFalse                16384a   const varying options(*Varsize)
+      /endif
+
+
+       // fail -- Fail Primitive
+       // Percolate an RPGUnit failure message.
+       //
+       // Example:
+       //   monitor;
+       //     call PGM();
+       //     fail( 'PGM should have thrown an exception' );
+       //   on-error;
+       //     // Exception seen. Success.
+       //   endmon;
+
+     D fail            pr                  extproc('fail')
+      /if defined(RPGUNIT_INTERNAL)
+     D  msg                         256a   const
+      /else
+     D  msg                       16384a   const varying options(*Varsize)
+      /endif
+
+
+       // iEqual -- Integer Equality Assertion
+       //
+       // Assert that two integer variables are equal.
+       // Example:
+       //   iEqual( 1000 : balance );
+
+     D iEqual          pr                  extproc('iEqual')
+     D  expected                     31s 0 const
+     D  actual                       31s 0 const
+     D  fieldName                    64a   const varying options(*nopass: *omit)
+
+
+       // nEqual -- Boolean Equality Assertion
+       //
+       // Assert that two boolean variables are equal.
+       // Example:
+       //   iEqual( *ON : isFound );
+
+     D nEqual          pr                  extproc('nEqual')
+     D  expected                       n   const
+     D  actual                         n   const
+     D  fieldName                    64a   const varying options(*nopass: *omit)
+     
+     
+     D assertJobLogContains...
+     D                 pr                  extproc('assertJobLogContains')
+     D  msgId                         7a   const
+     D  timeLimit                      z   const
+     
+     
+     
+     D clrAssertFailEvt...
+     D                 pr                  extproc('clrAssertFailEvt')
+
+     D getAssertCalled...
+     D                 pr            10i 0 extproc('getAssertCalled')
+
+     D getAssertFailEvt...
+     D                 pr                  extproc('getAssertFailEvt')
+     D                                     likeds(AssertFailEvt_t)
+
+     D getAssertFailEvtLong...
+     D                 pr                  extproc('getAssertFailEvtLong')
+     D                                     likeds(AssertFailEvtLong_t)
+
+     D clearAssertCounter...
+     D                 pr                  extproc('clearAssertCounter')
+
+      /endif
+      

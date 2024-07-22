@@ -1,0 +1,98 @@
+**FREE
+
+ctl-opt nomain;
+
+
+/include 'assert.rpginc'
+/include 'headers/ileastic.rpgle'
+/include 'jwt.rpginc'
+/include 'jwtplugin.rpginc'
+/include 'noxdb/headers/jsonparser.rpgle'
+
+
+dcl-s token like(jwt_token_t) inz('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZiJ9.eyJzdWIiOiJtaWhhZWwiLCJuYW1lIjoiTWloYWVsIiwiaXNzIjoicnBnbmV4dGdlbi5jb20ifQ.ekMwzP9QEpnpswkTpmKPAmRD9FHJogfidwKYxrZbVGI');
+dcl-s signKeyHs256 like(jwt_signKey_t) ccsid(*utf8) inz('123456789012345678901234567890AB');
+
+dcl-pr getVerifyOptions likeds(jwt_options_t);
+    token like(jwt_token_t);
+    header like(jwt_token_t);
+    payload like(jwt_token_t);       
+    json pointer;
+end-pr;
+
+
+dcl-proc setup export;
+    il_jwt_clearVerifyOptions();
+end-proc;
+
+
+dcl-proc test_verifyOptionsNothingSet export;
+    dcl-s header like(jwt_token_t);
+    dcl-s payload like(jwt_token_t);
+    dcl-s json pointer;
+    dcl-ds result likeds(jwt_options_t) inz;
+    
+    result = getVerifyOptions(token : header : payload : json);
+    assert(%len(result.key) = 0 : 'No sign key should be available.');
+end-proc;
+
+
+dcl-proc test_verifyOptionsLookupNoneSingleOptions export;
+    dcl-s header like(jwt_token_t);
+    dcl-s payload like(jwt_token_t);
+    dcl-s json pointer;
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-ds result likeds(jwt_options_t);
+    
+    options.key = '123456789012345678901234567890AB';
+    il_jwt_addVerifyOptions(options);
+    
+    result = getVerifyOptions(token : header : payload : json);
+    assert(result.key = options.key : 'Verify options doesn''t correspond to set options.');
+end-proc;
+
+
+dcl-proc test_verifyOptionsLookupNoneSingleOptionsWithId export;
+    dcl-s header like(jwt_token_t);
+    dcl-s payload like(jwt_token_t);
+    dcl-s json pointer;
+    dcl-ds options likeds(jwt_options_t) inz;
+    dcl-ds result likeds(jwt_options_t);
+    
+    options.key = '123456789012345678901234567890AB';
+    il_jwt_addVerifyOptions(options : 'irrelevant_id');
+    
+    result = getVerifyOptions(token : header : payload : json);
+    assert(result.key = options.key : 'Verify options doesn''t correspond to set options.');
+end-proc;
+
+
+//
+// dummy implementations
+//
+
+dcl-proc il_responseWrite export;
+    dcl-pi *n;
+        response    likeds(il_response);
+        buffer      varchar(524284:4) ccsid(*utf8) options(*varsize) const ;
+    end-pi;
+    
+    // nothing
+end-proc;
+
+dcl-proc il_getThreadMem export;
+    dcl-pi *n pointer;
+        request likeds(il_request);
+    end-pi;
+
+    return *null;
+end-proc;
+
+dcl-proc il_getRequestHeader export;
+    dcl-pi *n varchar(524284:4)  ccsid(*utf8) rtnparm;
+        request  likeds(il_request);
+        header   pointer value options(*string);
+    end-pi;
+    
+    return *blank;    
+end-proc;

@@ -1,10 +1,5 @@
 **FREE
 
-// 
-// TODO support stream files and source members
-//
-
-
 dcl-c O_RDONLY   1;
 dcl-c O_WRONLY   2;
 dcl-c O_CREAT    8;
@@ -62,6 +57,68 @@ end-pr;
 dcl-ds inputFilePaths_t qualified template;
     count int(5);
     filePath char(1000) dim(100);
+end-ds;
+
+dcl-ds qualMemberPath_t qualified template;
+    library char(10);
+    file char(10);
+    member char(10);
+end-ds;
+
+dcl-ds RIOFB_T qualified template;
+    key pointer;
+    sysparm pointer;
+    rrn uns(10);
+    num_bytes int(10);
+    blk_count int(5);
+    blk_filled_by char(1);
+    booleanFlags char(1);
+    reserved2 char(20);
+end-ds;
+
+
+dcl-pr ropen pointer extproc('_Ropen');
+    filename pointer value options(*string);
+    filemode pointer value options(*string);
+end-pr;
+
+dcl-pr rclose extproc('_Rclose');
+    file pointer value;
+end-pr;
+
+dcl-pr rreadn pointer extproc('_Rreadn');
+    file pointer value;
+    buffer pointer value;
+    size uns(10) value;
+    options int(10) value;
+end-pr;
+
+dcl-c RIO_NO_LOCK x'00000001';
+
+dcl-ds qusec_t qualified template;
+  bytesProvided int(10);
+  bytesAvailable int(10);
+  exceptionId char(7);
+  reserved char(1);
+end-ds;
+
+dcl-pr sys_retrieveFileDescription extpgm('QDBRTVFD');
+  FileDesc char(32767) options(*varsize);
+  FileDscL int(10)   const;
+  FileQNam char(20);
+  FileDFmt char(8)   const;
+  FileName char(20)  const;
+  FileRFmt char(10)  const;
+  FileOvrP char(1)   const;
+  FileSysN char(10)  const;
+  FileFmtT char(10)  const;
+  FileErrC likeds(qusec_t) options(*varsize);
+end-pr;
+
+dcl-ds db_format_header_t qualified template;
+    data char(256);
+    recordLength int(10) pos(67);
+    recordFormatName char(10) pos(71);
 end-ds;
 
 
@@ -187,9 +244,9 @@ dcl-proc parseLines;
         p_openapi_comp pointer value;
     end-pi;
 
-    dcl-s OPENAPI_MAIN char(20) ccsid(1252) inz('@openApi');
-    dcl-s OPENAPI_PATH char(20) ccsid(1252) inz('@openApiPath');
-    dcl-s OPENAPI_COMP char(20) ccsid(1252) inz('@openApiComponent');
+    dcl-s OPENAPI_MAIN char(20) ccsid(1252);
+    dcl-s OPENAPI_PATH char(20) ccsid(1252);
+    dcl-s OPENAPI_COMP char(20) ccsid(1252);
     dcl-s sectionType char(20) ccsid(1252);
     dcl-s line varchar(4096) ccsid(1252) based(ptr);
     dcl-s temp varchar(4096) ccsid(1252);
@@ -199,6 +256,10 @@ dcl-proc parseLines;
     dcl-s commentChars char(2) ccsid(1252) inz('//');
     dcl-s message char(52);
     dcl-s i int(10);
+
+    OPENAPI_MAIN = u'0040' + 'openApi';
+    OPENAPI_PATH = u'0040' + 'openApiPath';
+    OPENAPI_COMP = u'0040' + 'openApiComponent';
 
     tempStartPtr = %addr(temp : *data);
 
@@ -246,6 +307,71 @@ end-proc;
 
 
 dcl-proc readLines;
+    dcl-pi *n pointer;
+        p_inputFilePath varchar(1000) const;
+    end-pi;
+
+    if (%len(p_inputFilePath) <= 10);
+        return readLinesFromStreamFile(p_inputFilePath);
+    elseif (%subst(p_inputFilePath : 1 : 10) = '/QSYS.LIB/');
+        return readLinesFromMember(p_inputFilePath);
+    else;
+        return readLinesFromStreamFile(p_inputFilePath);
+    endif;
+end-proc;
+
+
+dcl-proc readLinesFromMember;
+    dcl-pi *n pointer;
+        p_inputFilePath varchar(1000) const;
+    end-pi;
+
+    dcl-s inputPath varchar(34);
+    dcl-ds path likeds(qualMemberPath_t);
+    dcl-s file pointer;
+    dcl-ds buffer qualified;
+      raw char(1000);
+      line char(988) pos(13);
+    end-ds;
+    dcl-ds iofb likeds(RIOFB_T) based(iofbPtr);
+    dcl-s recordLength uns(10);
+    
+    dcl-s lines pointer;
+    dcl-s line varchar(1000) ccsid(1252);
+    
+    lines = list_create();
+    
+    path = parseQsysPath(p_inputFilePath);
+    if (path = *blank);
+        message_info('Could not parse input file path. Skipping ' + p_inputFilePath);
+        return lines;
+    endif;
+    
+    inputPath = %trimr(path.library) + '/' + %trimr(path.file) + '(' + %trimr(path.member) + ')';
+    recordLength = getRecordLength(path.library : path.file);
+    
+    file = ropen(inputPath : 'rr,blkrcd=Y,lrecl=' + %char(recordLength));
+    if (file = *null);
+        message_info('Could not open input file. Skipping ' + p_inputFilePath);
+        return lines;
+    endif;
+
+    iofbPtr = rreadn(file : %addr(buffer) : recordLength : RIO_NO_LOCK);
+    dow (iofb.num_bytes > 0);
+        line = %trimr(%subst(buffer.line : 1 : iofb.num_bytes));
+        list_add(lines : %addr(line) : %size(line));
+
+        iofbPtr = rreadn(file : %addr(buffer) : recordLength : RIO_NO_LOCK);
+    enddo;
+
+    return lines;
+    
+    on-exit;
+        rclose(file);
+end-proc;
+
+
+dcl-proc readLinesFromStreamFile;
     dcl-pi *n pointer;
         p_inputFilePath varchar(1000) const;
     end-pi;
@@ -313,4 +439,68 @@ dcl-proc nextLine export;
     endif;
     
     return moreLines;
+end-proc;
+
+
+dcl-proc parseQsysPath;
+    dcl-pi *n likeds(qualMemberPath_t);
+        p_inputFilePath varchar(1000) const;
+    end-pi;
+
+    dcl-ds path likeds(qualMemberPath_t) inz;
+    dcl-s x int(10);
+    dcl-s x2 int(10);
+    
+    // /QSYS.LIB/LIBRARY.LIB/FILE.FILE/MEMBER.MBR
+    
+    // /QSYS.LIB/ = length 10
+    x = %scan('/' : p_inputFilePath : 11);
+    if (x = 0);
+        return *blank;
+    endif;
+    
+    path.library = %subst(p_inputFilePath : 11 : x - 11 - 4);
+    
+    x2 = %scan('/' : p_inputFilePath : x + 1);
+    if (x2 = 0);
+        return *blank;
+    endif;
+    
+    path.file = %subst(p_inputFilePath : x + 1 : x2 - x - 6);
+    
+    x = %scan('.' : p_inputFilePath : x2 + 1);
+    if (x = 0);
+        return *blank;
+    else;
+        path.member = %subst(p_inputFilePath : x2 + 1 : x - x2 - 1);
+    endif;
+    
+    return path;
+end-proc;
+
+
+dcl-proc getRecordLength;
+    dcl-pi *n uns(10);
+        library char(10) value;
+        filename char(10) value;
+    end-pi;
+
+    dcl-ds receiver likeds(db_format_header_t) inz;
+    dcl-s returnedFileName char(20);
+    dcl-ds qusec likeds(qusec_t) inz;
+
+    sys_retrieveFileDescription(
+        receiver :
+        %len(receiver.data) :
+        returnedFileName :
+        'FILD0200' :
+        filename + library :
+        '*FIRST' :
+        '1' :
+        '*LCL' :
+        '*EXT' :
+        qusec
+    );
+
+    return receiver.recordLength;
 end-proc;
