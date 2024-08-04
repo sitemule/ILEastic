@@ -55,3 +55,6 @@ clean:
 
 purge: clean
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/ILBASICAUT) OBJTYPE(*SRVPGM)"
+
+install:
+	cp basicauth_h.rpgle $(USRINCDIR)/ILEastic/

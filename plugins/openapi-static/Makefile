@@ -75,5 +75,7 @@ clean:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OAPISRCGEN) OBJTYPE(*CMD)"
 	$(MAKE) -C ext/llist/ clean $*
 
+install:
+
 .PHONY:
 
