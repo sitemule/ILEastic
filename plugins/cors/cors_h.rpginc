@@ -6,23 +6,17 @@
 
 /define ILCORS
 
-
 dcl-c IL_HEADERS_CORS_ALLOW_HEADERS 'Access-Control-Allow-Headers';
+dcl-c IL_HEADERS_CORS_REQUEST_HEADERS 'Access-Control-Request-Headers';
 dcl-c IL_HEADERS_CORS_ALLOW_METHODS 'Access-Control-Allow-Methods';
+dcl-c IL_HEADERS_CORS_REQUEST_METHOD 'Access-Control-Request-Method';
 dcl-c IL_HEADERS_CORS_ALLOW_ORIGIN 'Access-Control-Allow-Origin';  
 dcl-c IL_HEADERS_CORS_EXPOSE_HEADERS 'Access-Control-Expose-Headers';
-
 
 ///
 // CORS support
 //
-// In the current Version this procedure adds the following Headers:
-//     - Access-Control-Allow-Origin
-//     - Access-Control-Allow-Headers
-//     - Access-Control-Allow-Methods
-// 
-// All of these Headers are set to * at the Moment.
-//
+// Procedure adding CORS headers to reponses
 //
 // @param Request
 // @param Response
@@ -30,4 +24,72 @@ dcl-c IL_HEADERS_CORS_EXPOSE_HEADERS 'Access-Control-Expose-Headers';
 dcl-pr il_addCorsHeaders ind extProc(*dclCase);
     request likeds(il_request);
     response likeds(il_response);
+end-pr;
+
+///
+//
+// Add CORS configuration
+//
+// Add CORS configuration for origin. Origin should be a regex.
+// It is possible to add multiple configurations. They will be parsed in order they
+// were added. The first match will be used.
+//
+// @param    Pointer to or CCSID 37 encoded string containing
+//           regular expression to match with request's origin header.
+//           If passing pointer, make sure to terminate string with X'00'
+// @param    Comma separated list of allowed methods
+// @param    Comma separated list of headers that can be exposed
+// @param    Comma separated list of headers that can be sent in requests
+// @return   0 - OK, 1 - ERROR. Additional error information will be provided in a joblog
+///
+dcl-pr il_cors_addCorsConfigurationValues int(10) extProc(*dclCase);
+    origin pointer value options(*string);
+    methods pointer value options(*string);
+    exposeHeaders pointer value options(*string);
+    allowHeaders pointer value options(*string);
+end-pr;
+
+///
+//
+// Add CORS custom handler
+//
+// Add CORS configuration for origin. Origin should be a regex.
+// It is possible to add multiple configurations. They will be parsed in order they
+// were added. The first match will be used. 
+// When used with JWT plugin it should return
+// *off for preflight requests to avoid 401 error (those requests do not include any credentials)
+//
+// @param   Pointer to or CCSID 37 encoded string containing
+//          regular expression to match with request's origin header.
+//          If passing pointer, make sure to terminate string with X'00'
+// @param   Pointer to a custom handler procedure with the following interface:
+//          dcl-pr customHandler ind;
+//            request likeds(il_request);
+//            response likeds(il_response);
+//          end-pr; 
+//
+// @return  0 - OK, 1 - ERROR. Additional error information will be provided in a joblog
+///
+dcl-pr il_cors_addCorsConfigurationCustomHandler int(10) extProc(*dclCase);
+    origin pointer value options(*string);
+    handler pointer(*proc) value;
+end-pr;
+
+/IF DEFINED(*V7R4M0)
+/DEFINE RPG_HAS_OVERLOAD
+/ENDIF
+/IF DEFINED(RPG_HAS_OVERLOAD)
+dcl-pr il_cors_addCorsConfiguration int(10) 
+    overload(il_cors_addCorsConfigurationValues : il_cors_addCorsConfigurationCustomHandler);
+/ENDIF
+///
+//
+// Check if request is preflight
+//
+// @param   Request data
+//
+// @return  *on,*off
+///
+dcl-pr il_cors_isPreflight ind extProc(*dclCase);
+    request likeds(il_request);
 end-pr;
