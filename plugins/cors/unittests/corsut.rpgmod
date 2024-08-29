@@ -1,0 +1,419 @@
+**FREE
+
+ctl-opt nomain;
+
+/include 'assert'
+/include 'headers/ileastic.rpgle'
+/include 'cors_h.rpginc'
+
+// CCSID 37 constants that can be helpful in preparing a correct regex
+dcl-c IL_CORS_SQUARE_OPENING_BRACKET X'BA';
+dcl-c IL_CORS_SQUARE_CLOSING_BRACKET X'BB';
+dcl-c IL_CORS_CURLY_OPENING_BRACKET X'C0';
+dcl-c IL_CORS_CURLY_CLOSING_BRACKET X'D0';
+dcl-c IL_CORS_PIPE X'4F';
+dcl-c IL_CORS_CARET X'B0';
+dcl-c IL_CORS_DOLLAR X'5B';
+
+dcl-pr il_cors_resetCorsConfiguration extproc(*dclcase) end-pr;
+
+dcl-pr sList_push pointer extproc(*CWIDEN: 'sList_push');
+   hSlist likeds(SLIST_t) const;
+   len uns(10) value;
+   data pointer options(*string) value;
+   head ind value;
+end-pr;
+
+dcl-ds SLIST_t qualified template;
+   pHead pointer;
+   pTail pointer;
+   length int(10);
+end-ds;
+
+dcl-ds SLISTNODE_t qualified template;
+   pNext pointer;
+   payLoadLength int(10);
+   payloadData pointer;
+end-ds;
+
+dcl-ds LVARPUCHAR_t qualified template;
+   length uns(10);
+   string pointer;
+end-ds;
+
+dcl-ds SLISTITERATOR_t qualified align(*full) template;
+   pThis pointer;
+   pNext pointer;
+   hasNext ind;
+end-ds;
+
+dcl-pr sList_new pointer extproc('sList_new') end-pr;
+
+dcl-pr sList_free extproc('sList_free');
+   hSlist likeds(SLIST_t) const;
+end-pr;
+
+dcl-pr sList_setIterator likeds(SLISTITERATOR_t) extproc('sList_setIterator');
+   hSlist likeds(SLIST_t) const;
+end-pr;
+dcl-pr sList_lookupLVPC varchar(1024:4) rtnparm extproc('sList_lookupLVPC');
+   hSlist likeds(SLIST_t) const;
+   key varchar(1024:4) const;
+end-pr;
+
+dcl-pr sList_foreach ind extproc('sList_foreach');
+   iterator likeds(SLISTITERATOR_t) const;
+end-pr;
+
+dcl-pr sList_pushLVPC pointer extproc('sList_pushLVPC');
+   hSlist likeds(SLIST_t) const;
+   key likeds(LVARPUCHAR_t) const;
+   value likeds(LVARPUCHAR_t) const;
+end-pr;
+
+dcl-ds response_extended qualified;
+    dcl-ds response likeds(il_response);
+    headerList pointer;
+end-ds;
+
+dcl-ds request likeds(il_request);
+dcl-ds responseWithHeaders likeds(response_extended);
+dcl-s optionsMethod varchar(8) inz('OPTIONS') ccsid(*utf8);
+dcl-s getMethod varchar(3) inz('GET') ccsid(*utf8);
+dcl-s marker char(8);
+
+dcl-proc test_should_allow_everything_by_default export;
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+end-proc;
+
+dcl-proc test_should_fail_regex_compilation export;
+    dcl-s rc int(10);
+    dcl-s tstmp timestamp(6);
+
+    tstmp = getFullTimestamp();
+    rc = il_cors_addCorsConfiguration('https://wp\.cnn\.com(' : '*' : '*' : '*');
+    assert( 1 = rc : 'Expected 1, but got ' + %char(rc));
+    assertJobLogContains('CPF9898' : tstmp);
+end-proc;
+
+dcl-proc test_should_pass_regex_compilation export;
+    dcl-s rc int(10);
+    dcl-s tstmp timestamp(6);
+
+    tstmp = getFullTimestamp();
+    rc = il_cors_addCorsConfiguration('https://wp\.cnn\.com' 
+        + IL_CORS_SQUARE_OPENING_BRACKET + 'm' + IL_CORS_SQUARE_CLOSING_BRACKET + '+' + IL_CORS_DOLLAR : '*': '*' : '*');
+    assert( 0 = rc : 'Expected 0, but got ' + %char(rc));
+end-proc;
+
+dcl-proc test_should_allow_all_headers_and_methods_for_matching_origin export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.cnn.com');
+    il_cors_addCorsConfiguration('https://.*\.cnn\.com' : '*' : '*' : '*');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_allow_selected_headers_and_methods_for_matching_origin export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.cnn.com');
+
+    il_cors_addCorsConfiguration('https://.*\.cnn\.com' : 'GET,POST': 'Exposed-Header' : 'Allowed-Header');
+
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('GET,POST' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('Exposed-Header': getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('Allowed-Header': getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_handle_multiple_origins export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.cnn.com');
+    il_cors_addCorsConfiguration('https://.*\.cnn\.com' : 'GET,POST': 'Exposed-Header' : 'Allowed-Header');
+    il_cors_addCorsConfiguration('https://.*\.nbc\.com' : 'GET': 'Foo-Bar' : 'Allowed-Header2');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('GET,POST' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('Exposed-Header': getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('Allowed-Header': getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+
+    tearDown(*off);
+    setUp(*off);
+
+    headerValue  = 'https://dummy.nbc.com';
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('GET' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('Foo-Bar': getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('Allowed-Header2': getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_overwrite_cors_configuration_for_same_regex export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.cnn.com');
+
+    il_cors_addCorsConfiguration('https://.*\.cnn\.com' : 'GET,POST': 'Exposed-Header' : 'Allowed-Header');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('GET,POST' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('Exposed-Header': getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('Allowed-Header': getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+
+    tearDown(*off);
+    setUp(*off);
+
+    il_cors_addCorsConfiguration('https://.*\.cnn\.com' : 'GET': 'Foo-Bar' : 'Allowed-Header2');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+    
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('GET' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('Foo-Bar': getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('Allowed-Header2': getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_allow_all_headers_and_methods_for_matching_fixed_origin export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*': '*' : '*');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual(headerValue : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_not_allow_anything_for_non_matching_origin export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.coms');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' + IL_CORS_DOLLAR: '*' : '*' : '*');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_not_return_cors_headers_when_origin_header_is_missing export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy.abc.com' : '*' : '*' : '*');
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_break_chain_for_preflight_request export;
+    dcl-s result ind;
+    dcl-s headerName varchar(1024) inz(IL_HEADERS_CORS_REQUEST_METHOD);
+    dcl-s headerValue varchar(1024) inz('GET');
+    setRequestMethod(optionsMethod);
+    addRequestHeader(headerName : headerValue);
+    il_cors_addCorsConfiguration('https://dummy.abc.com' : '*' : '*' : '*');
+    
+    result = il_addCorsHeaders(request:responseWithHeaders);
+    
+    assert(result = *off : 'Expected *off, but got *on');
+    iEqual(IL_HTTP_OK : responseWithHeaders.response.status);
+end-proc;
+
+dcl-proc test_should_return_on_for_preflight export;
+    dcl-s headerName varchar(1024) inz(IL_HEADERS_CORS_REQUEST_METHOD);
+    dcl-s headerValue varchar(1024) inz('GET');
+
+    setRequestMethod(optionsMethod);
+    addRequestHeader(headerName : headerValue);
+
+    nEqual(*on : il_cors_isPreflight(request));
+end-proc;
+
+dcl-proc test_should_return_off_for_non_options export;
+    dcl-s headerName varchar(1024) inz(IL_HEADERS_CORS_REQUEST_METHOD);
+    dcl-s headerValue varchar(1024) inz('GET');
+    setRequestMethod(getMethod);
+    addRequestHeader(headerName : headerValue);
+
+    nEqual(*off : il_cors_isPreflight(request));
+end-proc;
+
+dcl-proc test_should_return_off_for_options_with_no_required_header export;
+    setRequestMethod(optionsMethod);
+
+    nEqual(*off : il_cors_isPreflight(request));
+end-proc;
+
+dcl-proc customHandler;
+    dcl-pi *n ind;
+        request likeds(il_request);
+        response likeds(il_response);
+    end-pi;
+
+    marker = 'EXECUTED';
+    return *off;
+end-proc;
+
+dcl-proc test_should_execute_custom_handler export;
+    dcl-s result ind;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    addRequestHeader(headerName : headerValue);
+    il_cors_addCorsConfiguration('https://dummy.abc.com' : %paddr(customHandler));
+    result = il_addCorsHeaders(request:responseWithHeaders);
+    aEqual('EXECUTED' : marker);
+    nEqual(*off : result);
+end-proc;
+
+dcl-proc getResponseHeader;
+    dcl-pi *n char(100);
+        headerName varchar(100) value;
+    end-pi;
+
+    dcl-s header varchar(100) dim(2);
+    dcl-ds hSimpleList likeds(SLIST_t) based(responseWithHeaders.headerList);
+    dcl-ds hListIterator likeds(SLISTITERATOR_t);
+    dcl-ds listOfNodeIterator likeds(SLISTNODE_t) based(hListIterator.pThis);
+    dcl-s dataOfIterator char(512) based(listOfNodeIterator.payloadData);
+    dcl-s pos int(10);
+
+    hListIterator = sList_setIterator(hSimpleList);
+
+    dow (sList_foreach(hListIterator));
+        pos = %scan(':' : dataOfIterator : 1 : listOfNodeIterator.payLoadLength);
+        if headerName = %subst(dataOfIterator: 1 : pos - 1);
+            header(1) = %triml(%subst(dataOfIterator: pos + 1: listOfNodeIterator.payLoadLength - 1 - pos));
+            return %triml(%subst(dataOfIterator: pos + 1: listOfNodeIterator.payLoadLength - 1 - pos));
+        endif;
+    enddo;
+
+    return *blanks;
+end-proc;
+
+dcl-proc createRequest;
+  dcl-pi *n likeds(il_request) end-pi;
+
+  dcl-ds request likeds(il_request) inz;
+  dcl-ds methodvc likeds(il_varchar);
+
+  setRequestMethod(getMethod);
+
+  request.config = %alloc(%size(il_config));
+  request.headerList = sList_new();
+  
+  return request;
+end-proc;
+
+dcl-proc setRequestMethod;
+    dcl-pi *n;
+        requestMethod varchar(8) options(*varsize) ccsid(*utf8);
+    end-pi;
+
+    dcl-ds methodvc likeds(il_varchar);
+    methodvc.length = %len(requestMethod);
+    methodvc.string = %addr(requestMethod:*data);
+
+    request.method = methodvc;
+end-proc;
+
+dcl-proc addRequestHeader;
+    dcl-pi *n;
+        headerName varchar(1024) value;
+        headerValue varchar(1024) value;
+    end-pi;
+
+    dcl-s aHeaderName varchar(1024) static;
+    dcl-s aHeaderValue varchar(1024) static;
+
+    dcl-pr meme2a extproc(*dclcase);
+        pout pointer value;
+        pin pointer value options(*string);
+        length uns(10) value;
+    end-pr;
+
+    dcl-s ptr pointer;
+    dcl-s res VARCHAR(1024:4);
+    dcl-ds hSimpleList likeds(SLIST_t) based(ptr);
+
+    ptr = request.headerList;
+    %len(aHeaderName) = %len(headerName);
+    %len(aHeaderValue) = %len(headerValue);
+    meme2a(%addr(aHeaderName:*data) : headerName : %len(aHeaderName));
+    meme2a(%addr(aHeaderValue:*data) : headerValue : %len(aHeaderValue));
+    sList_pushLVPC(hSimpleList : lvpc(aHeaderName) : lvpc(aHeaderValue));
+end-proc;
+
+dcl-proc setUp export;
+    dcl-pi *n;
+        resetConfig ind value options(*nopass);
+    end-pi;
+    request = createRequest();
+    reset responseWithHeaders;
+    responseWithHeaders.headerList = sList_new();
+    if not %passed(resetConfig) or resetConfig;
+        il_cors_resetCorsConfiguration();
+    endif;
+end-proc;
+
+dcl-proc tearDown export;
+    dcl-pi *n;
+        resetConfig ind value options(*nopass);
+    end-pi;
+    dcl-s ptr pointer;
+    dcl-ds hSimpleList likeds(SLIST_t) based(ptr);
+    ptr = responseWithHeaders.headerList;
+    sList_free(hSimpleList);
+    ptr = request.headerList;
+    sList_free(hSimpleList);
+    if not %passed(resetConfig) or resetConfig;
+        il_cors_resetCorsConfiguration();
+    endif;
+    clear marker;
+end-proc;
+
+dcl-proc lvpc;
+   dcl-pi *n likeds(LVARPUCHAR_t);
+      string varchar(1024) options(*varsize);
+   end-pi;
+
+   dcl-ds lVarChar likeds(LVARPUCHAR_t) inz;
+
+   lVarChar.length = %len(string);
+   lVarChar.string = %addr(string: *data);
+
+   return lVarChar;
+
+end-proc;
