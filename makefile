@@ -22,7 +22,7 @@ SHELL=/QOpenSys/usr/bin/qsh
 # The folder where the copy books for ILEastic will be copied to with the 
 # install step (make install).
 #
-USRINCDIR='/usr/local/include'
+export USRINCDIR=/usr/local/include
 
 #
 # User-defined part end
