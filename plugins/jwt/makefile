@@ -83,3 +83,6 @@ purge: clean
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/ILJWTPLUG) OBJTYPE(*SRVPGM)"
 
 .PHONY:
+
+install:
+	cp jwtplugin.rpginc $(USRINCDIR)/ILEastic/

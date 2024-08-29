@@ -55,3 +55,6 @@ clean:
 
 purge: clean
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/CORS) OBJTYPE(*SRVPGM)"
+
+install:
+	cp cors_h.rpginc $(USRINCDIR)/ILEastic/

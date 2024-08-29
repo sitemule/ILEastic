@@ -70,3 +70,5 @@ clean:
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OPENAPISRC) OBJTYPE(*FILE)"
 	-system -qi "DLTOBJ OBJ($(BIN_LIB)/OPENAPI) OBJTYPE(*MODULE)"
+
+install:
