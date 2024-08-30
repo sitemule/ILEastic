@@ -41,7 +41,7 @@ ILEASTIC_MODULES=($(BIN_LIB)/XLATE) ($(BIN_LIB)/STRUTIL) ($(BIN_LIB)/TERAMEM) ($
 OBJECTS = CORSUT
 SRVPGMS = $(RU_LIB)/RUTESTCASE $(BIN_LIB)/ILEASTIC
 
-all: clean compile
+all: clean compile TAG
 
 main:
 	cd ../../../ && $(MAKE) KEEP_MODULES=true
@@ -54,6 +54,13 @@ compile: $(OBJECTS)
 CORSUT: corsut
 	system -ik "CRTRPGMOD MODULE($(BIN_LIB)/CORSUT) SRCSTMF('corsut.rpgmod') INCDIR('$(RUINCDIR)' $(INCLUDE)) define($(DEFINE)) dbgview(*source) output(*print) stgmdl(*SNGLVL) TGTRLS($(TARGET_RLS)) OPTION(*EVENTF)"
 	system -i "CRTSRVPGM $(BIN_LIB)/CORSUT MODULE(($(BIN_LIB)/CORSUT) ($(BIN_LIB)/CORS) $(ILEASTIC_MODULES)) STGMDL(*SNGLVL) BNDSRVPGM($(SRVPGMS)) EXPORT(*ALL) OPTION(*DUPPROC) TGTRLS($(TARGET_RLS)) TEXT('iRPGUnit - $@')"
+
+TAG:
+	system -i "CHGATR OBJ('../../../utils/userattr.rpgle') ATR(*CCSID) VALUE(1252)"
+	system -ik "CRTBNDRPG PGM($(BIN_LIB)/USERATTR) SRCSTMF('../../../utils/userattr.rpgle') OPTION(*EVENTF) DBGVIEW(*SOURCE) TGTRLS($(TARGET_RLS))"
+	@for module in $(OBJECTS); do \
+		system -iq "CALL PGM($(BIN_LIB)/USERATTR) PARM(($$module (*CHAR 10)) ($(BIN_LIB) (*CHAR 10)))" ; \
+	done
 
 clean:
 	-system -i "DLTMOD $(BIN_LIB)/CORSUT"
