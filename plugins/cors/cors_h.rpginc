@@ -12,6 +12,7 @@ dcl-c IL_HEADERS_CORS_ALLOW_METHODS 'Access-Control-Allow-Methods';
 dcl-c IL_HEADERS_CORS_REQUEST_METHOD 'Access-Control-Request-Method';
 dcl-c IL_HEADERS_CORS_ALLOW_ORIGIN 'Access-Control-Allow-Origin';  
 dcl-c IL_HEADERS_CORS_EXPOSE_HEADERS 'Access-Control-Expose-Headers';
+dcl-c IL_HEADERS_CORS_ALLOW_CREDENTIALS 'Access-Control-Allow-Credentials';
 
 ///
 // CORS support
@@ -40,6 +41,7 @@ end-pr;
 // @param    Comma separated list of allowed methods
 // @param    Comma separated list of headers that can be exposed
 // @param    Comma separated list of headers that can be sent in requests
+// @param    Whether a server allows cross-origin HTTP requests to include credentials
 // @return   0 - OK, 1 - ERROR. Additional error information will be provided in a joblog
 ///
 dcl-pr il_cors_addCorsConfigurationValues int(10) extProc(*dclCase);
@@ -47,6 +49,7 @@ dcl-pr il_cors_addCorsConfigurationValues int(10) extProc(*dclCase);
     methods pointer value options(*string);
     exposeHeaders pointer value options(*string);
     allowHeaders pointer value options(*string);
+    allowCredentials ind value options(*nopass);
 end-pr;
 
 ///

@@ -113,6 +113,7 @@ dcl-ds t_corsConfiguration qualified template;
   allowedMethods varchar(100);
   allowedExposeHeaders varchar(1000);
   allowedRequestHeaders varchar(1000);
+  allowCredentials ind;
   customHandler pointer(*proc);
 end-ds;
 
@@ -145,14 +146,16 @@ dcl-proc il_addCorsHeaders export;
   dcl-ds pmatch likeds(t_regmatch);
   dcl-s eflags int(10);
   dcl-s it int(10);
+  dcl-s allowedRequestHeaders like(corsMapping.allowedRequestHeaders);
 
   monitor;
 
     if corsConfigurationsSize = 0;
-      il_addHeader(response: IL_HEADERS_CORS_ALLOW_HEADERS: '*');
+      il_addHeader(response: IL_HEADERS_CORS_ALLOW_HEADERS: '*, Authorization');
       il_addHeader(response: IL_HEADERS_CORS_ALLOW_METHODS: '*');
       il_addHeader(response: IL_HEADERS_CORS_ALLOW_ORIGIN: '*');
       il_addHeader(response: IL_HEADERS_CORS_EXPOSE_HEADERS: '*');
+      il_addHeader(response: IL_HEADERS_CORS_ALLOW_CREDENTIALS : 'true');
     else;
       originHeader = il_getRequestHeader(request : 'Origin');
       if originHeader <> *blanks;
@@ -167,7 +170,12 @@ dcl-proc il_addCorsHeaders export;
               il_addHeader(response: IL_HEADERS_CORS_ALLOW_ORIGIN: %subst(originHeader : 1 : pmatch.rm_eo));
               il_addHeader(response: IL_HEADERS_CORS_EXPOSE_HEADERS: corsMapping.allowedExposeHeaders);
               il_addHeader(response: IL_HEADERS_CORS_ALLOW_METHODS: corsMapping.allowedMethods);
-              il_addHeader(response: IL_HEADERS_CORS_ALLOW_HEADERS: corsMapping.allowedRequestHeaders);
+              allowedRequestHeaders = corsMapping.allowedRequestHeaders;
+              if corsMapping.allowCredentials;
+                il_addHeader(response: IL_HEADERS_CORS_ALLOW_CREDENTIALS: 'true');
+                allowedRequestHeaders += ', Authorization';
+              endif;
+              il_addHeader(response: IL_HEADERS_CORS_ALLOW_HEADERS: allowedRequestHeaders);
             endif;
             leave;
           endif;
@@ -197,6 +205,7 @@ dcl-proc addCorsConfiguration;
     exposeHeaders pointer value options(*string);
     allowHeaders pointer value options(*string);
     customHandler pointer(*proc) value;
+    allowCredentials ind value;
   end-pi;
 
   dcl-ds corsMapping likeds(t_corsConfiguration);
@@ -224,6 +233,7 @@ dcl-proc addCorsConfiguration;
   if allowHeaders <> *null;
     corsMapping.allowedRequestHeaders = %str(allowHeaders);
   endif;
+  corsMapping.allowCredentials = allowCredentials;
   corsMapping.cregex = cregex;
   corsMapping.customHandler = customHandler;
 
@@ -251,7 +261,7 @@ dcl-proc il_cors_addCorsConfigurationCustomHandler export;
     handler pointer(*proc) value;
   end-pi;
 
-  return addCorsConfiguration(pattern:*null:*null:*null:handler);
+  return addCorsConfiguration(pattern:*null:*null:*null:handler:*off);
 end-proc;
 
 dcl-proc il_cors_addCorsConfigurationValues export;
@@ -260,9 +270,16 @@ dcl-proc il_cors_addCorsConfigurationValues export;
     methods pointer value options(*string);
     exposeHeaders pointer value options(*string);
     allowHeaders pointer value options(*string);
+    allowCredentials ind value options(*nopass);
   end-pi;
 
-  return addCorsConfiguration(pattern:methods:exposeHeaders:allowHeaders:*null);
+  dcl-s l_allowCredentials ind;
+
+  if %parms() >= %parmnum(allowCredentials);
+    l_allowCredentials = allowCredentials;
+  endif;
+
+  return addCorsConfiguration(pattern:methods:exposeHeaders:allowHeaders:*null:l_allowCredentials);
 end-proc;
 
 dcl-proc il_cors_isPreflight export;
