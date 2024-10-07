@@ -22,15 +22,24 @@ INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/he
 
 # CCFLAGS = C compiler parameter
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
+RPGFLAGS=OUTPUT($(OUTPUT)) TGTCCSID(37) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
-MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem
+MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem ileasticr
 
-.SUFFIXES: .c
+.SUFFIXES: .c .rpgmod .sqlrpgmod
 
 .c:
 	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1208)"
 	system -ik "CRTCMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(CCFLAGS)"
-	
+
+.rpgmod:
+	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1252)"
+	system -ik "CRTRPGMOD MODULE($(BIN_LIB)/$@) SRCSTMF('$<') $(RPGFLAGS)"
+
+.sqlrpgmod:
+	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1252)"
+	system -ik "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') OBJTYPE(*MODULE) RPGPPOPT(*LVL2) COMMIT(*NONE) DBGVIEW(*SOURCE) TGTRLS($(TARGET_RLS)) COMPILEOPT('INCDIR($(subst ','',$(INCLUDE)))')"
+
 all: compile
 
 compile: $(MODULES) 
