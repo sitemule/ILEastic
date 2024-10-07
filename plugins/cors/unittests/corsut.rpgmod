@@ -85,10 +85,11 @@ dcl-s marker char(8);
 dcl-proc test_should_allow_everything_by_default export;
     il_addCorsHeaders(request:responseWithHeaders);
 
-    aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+    aEqual('*, Authorization' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_ORIGIN));
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
+    aEqual('true' : getResponseHeader(IL_HEADERS_CORS_ALLOW_CREDENTIALS));
 end-proc;
 
 dcl-proc test_should_fail_regex_compilation export;
@@ -209,6 +210,61 @@ dcl-proc test_should_allow_all_headers_and_methods_for_matching_fixed_origin exp
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_METHODS));
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_EXPOSE_HEADERS));
     aEqual('*' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS));
+end-proc;
+
+dcl-proc test_should_set_allow_credentials_headers export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*' : '*' : '*' : *on);
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('true' : getResponseHeader(IL_HEADERS_CORS_ALLOW_CREDENTIALS));
+end-proc;
+
+dcl-proc test_should_append_authorization_header_when_credentials_allowed export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*' : '*' : '*' : *on);
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    assert(%scan(', Authorization' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS)) > 0 : 'Authorization header not appended');
+end-proc;
+
+dcl-proc test_should_not_append_authorization_header_when_credentials_disallowed export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*' : '*' : '*' : *off);
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    assert(%scan(', Authorization' : getResponseHeader(IL_HEADERS_CORS_ALLOW_HEADERS)) = 0 : 'Authorization header should not have been appended');
+end-proc;
+
+dcl-proc test_should_omit_credentials_headers export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*' : '*' : '*' : *off);
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_CREDENTIALS));
+end-proc;
+
+dcl-proc test_should_omit_credentials_headers_for_omitted_parameter export;
+    dcl-s headerName varchar(1024) inz('Origin');
+    dcl-s headerValue varchar(1024) inz('https://dummy.abc.com');
+    il_cors_addCorsConfiguration('https://dummy\.abc\.com' : '*' : '*' : '*');
+    addRequestHeader(headerName : headerValue);
+
+    il_addCorsHeaders(request:responseWithHeaders);
+
+    aEqual('' : getResponseHeader(IL_HEADERS_CORS_ALLOW_CREDENTIALS));
 end-proc;
 
 dcl-proc test_should_not_allow_anything_for_non_matching_origin export;
