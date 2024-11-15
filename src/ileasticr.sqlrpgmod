@@ -1,0 +1,43 @@
+**FREE
+
+///
+// Program . . . : ILEastic - RPG procedures                     */
+// Date  . . . . : 14.11.2023                                    */
+// Design  . . . : Rafal Gala                                    */
+// Function  . . : RPG procedures                                */
+//                                                               */
+// By     Date       PTF     Description                         */
+// RG     14.11.2024         New module                          */
+///
+
+ctl-opt nomain thread(*concurrent) ccsid(*exact);
+
+/include ileastic
+
+dcl-ds pgm_stat psds qualified;
+  programLibrary char(10) pos(81);
+  program char(10) pos(334);
+end-ds;
+
+///
+// il_getCallingProgramPath - retrieve path to a program that is using 
+//                            ILEastic service program
+//
+// @return Program path, for example /QSYS.LIB/PGMLIB.LIB/CALLER.PGM
+///
+dcl-proc il_getCallingProgramPath export;
+  dcl-pi *n varchar(256) extproc(*dclcase);
+  end-pi;
+
+  dcl-s program varchar(10);
+  dcl-s library varchar(10);
+
+  exec sql
+    values (select PROGRAM_NAME,PROGRAM_LIBRARY_NAME FROM TABLE(QSYS2.STACK_INFO('*'))
+      where ORDINAL_POSITION = (select min(ordinal_position) from 
+      TABLE(QSYS2.STACK_INFO('*')) where PROGRAM_NAME = :pgm_stat.program AND 
+      PROGRAM_LIBRARY_NAME = :pgm_stat.programLibrary) - 1 limit 1
+    ) into :program,:library;
+
+  return '/QSYS.LIB/' + library + '.LIB/' + program + '.PGM';
+end-proc;

@@ -66,6 +66,15 @@ dcl-c IL_FASTCGI    2;
 dcl-c IL_SECFASTCGI 3;
 
 ///
+// Pthread threading mode (the default) for executing threads within same job
+///
+dcl-c IL_THREADING_MODE_T 0;
+///
+// Job threading mode for executing threads in prestart jobs
+///
+dcl-c IL_THREADING_MODE_J 1;
+
+///
 // The request has succeeded. The meaning of the success depends on the HTTP method: 
 // <ul>
 //   <li>GET: The resource has been fetched and is transmitted in the message body.</li>
@@ -367,6 +376,9 @@ dcl-ds il_config qualified template;
     protocol            int(5);
     certificateFile     varchar(256);
     certificatePassword varchar(64);
+    workerProgram       varchar(256);
+    isWorker            ind;
+    threadingMode       int(5);
     filler              char(4096); // required - contains the private internal handlers
 end-ds;
 

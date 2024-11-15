@@ -37,6 +37,14 @@ typedef enum _PROTOCOL  {
 } PROTOCOL , *PPROTOCOL ;
 #pragma enum     (pop)
 
+#pragma enum     (2)
+typedef enum _THREADING_MODE  {
+    TM_THREAD   = 0,
+    TM_JOB      = 1,
+    TM_DEFAULT  = 0x4040
+} THREADING_MODE , *PTHREADING_MODE;
+#pragma enum     (pop)
+
 typedef _Packed struct  {
     FCGX_Stream * out;
     FCGX_Stream * in;
@@ -53,6 +61,9 @@ typedef _Packed struct _CONFIG  {
     PROTOCOL    protocol;
     VARCHAR256  certificateFile;
     VARCHAR64   certificatePassword;
+    VARCHAR256  workerProgram;
+    BOOL        isWorker;
+    THREADING_MODE threadingMode;
     UCHAR       filler[1024];
     // Private:
     int         mainSocket;
