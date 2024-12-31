@@ -12,7 +12,7 @@
 
 ctl-opt nomain thread(*concurrent) ccsid(*exact);
 
-/include ileastic
+/include ./headers/ileastic.rpgle
 
 dcl-ds pgm_stat psds qualified;
   programLibrary char(10) pos(81);
