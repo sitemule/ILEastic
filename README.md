@@ -102,6 +102,10 @@ What you need before you start:
 * ILE C
 * ILE RPG compiler
 
+Also ensure that the open source tools are available in your path, according to this:
+
+[set open source path](https://ibmi-oss-docs.readthedocs.io/en/latest/troubleshooting/SETTING_PATH.html)
+
 
 From a IBM i menu prompt start the SSH daemon: `===> STRTCPSVR *SSHD`
 and start SSH from Win/Mac/Linux.
