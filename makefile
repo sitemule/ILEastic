@@ -83,7 +83,7 @@ clean:
 test: .PHONY
 	cd unittests && $(MAKE)
 
-PLUGINS = cors authsystem basicauth
+PLUGINS = cors authsystem basicauth mediatype
 $(PLUGINS): .PHONY
 	cd plugins/$@ && $(MAKE) all SHELL=$(SHELL)
 
