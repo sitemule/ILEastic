@@ -12,7 +12,6 @@
 ctl-opt nomain thread(*concurrent) ccsid(*exact);
 
 /include 'headers/ileastic.rpgle'
-/include 'mediatype_h.rpginc'
 
 dcl-proc il_mediatype_getAcceptedMediaTypes export;
   dcl-pi *n int(10);

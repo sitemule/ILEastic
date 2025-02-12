@@ -30,5 +30,8 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_getRequestSegmentByIndex")
     EXPORT SYMBOL("il_getPathParameter")
     EXPORT SYMBOL("il_emptyEndpoint")
-    
+    EXPORT SYMBOL("il_mediatype_getAcceptedMediaTypes")
+    EXPORT SYMBOL("il_mediatype_getPreferredAcceptedMediaType")
+    EXPORT SYMBOL("il_mediatype_isMediaTypeAccepted")
+    EXPORT SYMBOL("il_mediatype_parseMediaType")
 ENDPGMEXP
