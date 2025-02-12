@@ -20,11 +20,18 @@ dcl-pr getVerifyOptions likeds(jwt_options_t);
     json pointer;
 end-pr;
 
+dcl-s lbuffer like(IL_LONGUTF8VARCHAR);
+dcl-s requestHeaders varchar(100) ccsid(*utf8) dim(*auto:100);
+
 
 dcl-proc setup export;
     il_jwt_clearVerifyOptions();
 end-proc;
 
+dcl-proc teardown export;
+    clear requestHeaders;
+    %elem(requestHeaders) = 0;
+end-proc;
 
 dcl-proc test_verifyOptionsNothingSet export;
     dcl-s header like(jwt_token_t);
@@ -66,18 +73,48 @@ dcl-proc test_verifyOptionsLookupNoneSingleOptionsWithId export;
     assert(result.key = options.key : 'Verify options doesn''t correspond to set options.');
 end-proc;
 
+dcl-proc test_verifyJSONResponseFormatting export;
+    dcl-ds response likeds(il_response);
+    dcl-ds request likeds(il_request);
+    
+    requestHeaders(*next) = 'Accept: application/json';
+
+    il_jwt_filter(request:response);
+
+    aEqual('{"status":401,"title":"No JWT token provided."}' : lbuffer);
+end-proc;
+
+dcl-proc test_verifyXMLResponseFormatting export;
+    dcl-ds response likeds(il_response);
+    dcl-ds request likeds(il_request);
+    
+    requestHeaders(*next) = 'Accept: application/xml';
+
+    il_jwt_filter(request:response);
+
+    aEqual('<problem><status>401</status><title>No JWT token provided.</title></problem>' : lbuffer);
+end-proc;
+
+dcl-proc test_verifyDefaultResponseFormatting export;
+    dcl-ds response likeds(il_response);
+    dcl-ds request likeds(il_request);
+    
+    il_jwt_filter(request:response);
+
+    aEqual('No JWT token provided.' : lbuffer);
+end-proc;
 
 //
 // dummy implementations
 //
 
-dcl-proc il_responseWrite export;
-    dcl-pi *n;
+dcl-proc il_responseWrite_mock export;
+    dcl-pi *n extproc('il_responseWrite');
         response    likeds(il_response);
         buffer      varchar(524284:4) ccsid(*utf8) options(*varsize) const ;
     end-pi;
     
-    // nothing
+    lbuffer = buffer;
 end-proc;
 
 dcl-proc il_getThreadMem export;
@@ -88,11 +125,28 @@ dcl-proc il_getThreadMem export;
     return *null;
 end-proc;
 
-dcl-proc il_getRequestHeader export;
-    dcl-pi *n varchar(524284:4)  ccsid(*utf8) rtnparm;
+dcl-proc il_getRequestHeader_mock export;
+    dcl-pi *n varchar(524284:4)  ccsid(*utf8) rtnparm extproc('il_getRequestHeader');
         request  likeds(il_request);
         header   pointer value options(*string);
     end-pi;
     
+    dcl-s requestHeader like(requestHeaders);
+
+    for-each requestHeader in requestHeaders;
+        if %lower(%trim(%subst(requestHeader : 1 : %scan(%char(':' : *utf8) : requestHeader) - 1))) = %lower(%str(header));
+            return %trim(%subst(requestHeader : %scan(%char(':' : *utf8) : requestHeader) + 1));
+        endif;
+    endfor;
+    
     return *blank;    
+end-proc;
+
+dcl-proc il_addHeader_mock export;
+    dcl-pi *n extproc(*CWIDEN:'il_addHeader');
+        response    likeds(il_response);
+        header      varchar(256:2) const ccsid(37);
+        value       varchar(3072:2) const ccsid(37);
+    end-pi;
+       
 end-proc;
