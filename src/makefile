@@ -24,7 +24,7 @@ INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/he
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 RPGFLAGS=OUTPUT($(OUTPUT)) TGTCCSID(37) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
-MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem ileasticr
+MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem ileasticr mediatype
 
 .SUFFIXES: .c .rpgmod .sqlrpgmod
 

@@ -3,9 +3,8 @@
 ctl-opt nomain;
 
 /include 'assert'
-/include 'headers/ileastic.rpgle'
-/include 'headers/simpleList.rpginc'
-/include 'mediatype_h.rpginc'
+/include '../headers/ileastic.rpgle'
+/include '../headers/simpleList.rpginc'
 
 dcl-ds response_extended qualified;
   dcl-ds response likeds(il_response);

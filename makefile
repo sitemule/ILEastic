@@ -35,7 +35,7 @@ INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include' 'noxDB/headers'
 # CCFLAGS = C compiler parameter
 CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
 
-MODULES = $(BIN_LIB)/githash $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/ileasticr $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI $(BIN_LIB)/teramem
+MODULES = $(BIN_LIB)/githash $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/ileasticr $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI $(BIN_LIB)/teramem $(BIN_LIB)/mediatype
 	
 all: env noxDB ILEfastCGI compile bind
  

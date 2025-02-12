@@ -963,3 +963,83 @@ dcl-pr il_emptyEndpoint  extproc(*CWIDEN:'il_emptyEndpoint');
     request     likeds(il_request);
     response    likeds(il_response);
 end-pr;
+
+///
+// Max output list length for il_getAcceptedMediaTypes
+///
+dcl-c IL_MAX_MEDIA_TYPE_LIST_LENGTH 100;
+
+dcl-ds mediaType_t qualified template;
+  type varchar(256) ccsid(*utf8);
+  subtype varchar(256) ccsid(*utf8);
+  q packed(2:1) inz(1);
+  genericity int(5) inz(4);
+  extensionsLen int(5);
+  dcl-ds extensions dim(100);
+    name varchar(256) ccsid(*utf8);
+    value varchar(256) ccsid(*utf8);
+  end-ds;
+end-ds;
+
+///
+//
+// Get accepted media types
+//
+// Get list of media types accepted by a client ordered by their preference
+//
+// @param    Request
+// @param    Output list of accepted mediatypes
+// @param    Output list length
+// @return   0 - OK, 1 - ERROR. Additional error information will be provided in a joblog
+///
+dcl-pr il_mediatype_getAcceptedMediaTypes int(10) extproc(*dclcase);
+  request  likeds(il_request);
+  o_typeList likeds(mediaType_t) dim(IL_MAX_MEDIA_TYPE_LIST_LENGTH) options(*exact);
+  o_typeListLen uns(10);
+end-pr;
+
+///
+//
+// Get preferred accepted media type
+//
+// Return preferred mediatype accepted by a client
+//
+// @param    Request
+// @return   Structure containing preferred media type information
+///
+dcl-pr il_mediatype_getPreferredAcceptedMediaType likeds(mediaType_t) extproc(*dclcase);
+  request likeds(il_request);
+end-pr;
+
+///
+//
+// Parse media type
+//
+// @param    Media type information string, e.g. application/json;q=0.5
+// @return   Structure containing parsed media type information
+///
+dcl-pr il_mediatype_parseMediaType likeds(mediaType_t) extproc(*dclcase);
+  value like(IL_LONGUTF8VARCHAR) const;
+end-pr;
+
+///
+//
+// Return most preferred accepted media type from provided list
+//
+// @param    Request
+// @param    Media type list
+// @return   Structure containing preferred media type information
+///
+dcl-pr il_mediatype_isMediaTypeAccepted likeds(mediaType_t) extproc(*dclcase);
+  request        likeds(il_request);
+  mediaType1     pointer value options(*string:*nopass);
+  mediaType2     pointer value options(*string:*nopass);
+  mediaType3     pointer value options(*string:*nopass);
+  mediaType4     pointer value options(*string:*nopass);
+  mediaType5     pointer value options(*string:*nopass);
+  mediaType6     pointer value options(*string:*nopass);
+  mediaType7     pointer value options(*string:*nopass);
+  mediaType8     pointer value options(*string:*nopass);
+  mediaType9     pointer value options(*string:*nopass);
+  mediaType10    pointer value options(*string:*nopass);
+end-pr;
