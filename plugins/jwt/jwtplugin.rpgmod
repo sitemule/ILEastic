@@ -22,6 +22,7 @@ ctl-opt nomain thread(*concurrent);
 /include 'clib.rpginc'
 /include 'headers/ileastic.rpgle'
 /include 'noxdb/headers/jsonparser.rpgle'
+/include 'noxdb/headers/xmlparser.rpgle'
 /include 'jwk.rpginc'
 /include 'jwt.rpginc'
 /include 'jwtplugin.rpginc'
@@ -120,14 +121,15 @@ dcl-proc il_jwt_filter export;
     token = getToken(request);
     if (token = *blank);
       response.status = 401;
-      il_responseWrite(response : 'No JWT token provided.');
+      writeFormattedResponsePayload(request:response:'No JWT token provided.');
       return *off;
     endif;
+
 
     options = getVerifyOptions(token : header : payload : json);
     if (%len(options.key) = 0);
       response.status = 401;
-      il_responseWrite(response : 'Invalid JWT token provided.');
+      writeFormattedResponsePayload(request:response:'Invalid JWT token provided.');
       return *off;
     endif;
 
@@ -146,14 +148,14 @@ dcl-proc il_jwt_filter export;
       return *on;
     else;
       response.status = 401;
-      il_responseWrite(response : 'Invalid JWT token provided');
+      writeFormattedResponsePayload(request:response:'Invalid JWT token provided');
       return *off;
     endif;
 
   on-error *all;
     response.status = 500;
     response.statusText = 'Internal Server Error';
-    il_responseWrite(response : 'Could not process request for JWT token.');
+    writeFormattedResponsePayload(request:response:'Could not process request for JWT token.');
     return *off;
   endmon;
 
@@ -262,4 +264,49 @@ dcl-proc getToken;
   endif;
 
   return *blank;
+end-proc;
+
+dcl-proc writeFormattedResponsePayload;
+  dcl-pi *n;
+    request likeds(il_request);
+    response likeds(il_response);
+    message pointer value options(*string:*trim);
+  end-pi;
+
+  dcl-ds preferredMediaType likeds(mediaType_t);
+  dcl-s body like(IL_LONGUTF8VARCHAR);
+  dcl-s handle	char(1) ccsid(*utf8);
+  dcl-s pJson   pointer;
+  dcl-s pXml   pointer;
+  dcl-ds problem qualified;
+    status int(5);
+    title like(IL_LONGUTF8VARCHAR);
+  end-ds;
+  dcl-s contentType like(IL_LONGUTF8VARCHAR);
+
+  preferredMediaType = il_mediatype_getPreferredAcceptedMediaType(request);
+
+  problem.status = response.status;
+  problem.title = %str(message);
+
+  select;
+    when %lower(preferredMediaType.type) = 'application' and %lower(preferredMediaType.subtype) = 'json';
+      data-gen problem %data(handle : 'doc=string') %gen(json_DataGen(pJson));
+      body = json_asJsonText(pJson);
+      json_delete(pJson);
+      contentType = 'application/problem+json';
+    when %lower(preferredMediaType.type) = 'application' and %lower(preferredMediaType.subtype) = 'xml';
+      data-gen problem %data(handle : 'doc=string') %gen(xml_DataGen(pXml));
+      body = xml_asXmlText(pXml);
+      xml_delete(pXml);
+      contentType = 'application/problem+xml';
+    other;
+      body = %str(message);
+      contentType = 'text/plain';
+  endsl;
+
+  response.contentType = contentType;
+  response.charset = 'UTF-8';
+  response.statusText = 'Unauthorized';
+  il_responseWrite(response : body);
 end-proc;
