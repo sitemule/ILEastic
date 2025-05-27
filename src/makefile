@@ -10,8 +10,8 @@
 # (make clean).
 BIN_LIB=ILEASTIC
 TARGET_RLS=*CURRENT
-OUTPUT=*NONE
-
+OUTPUT=*PRINT
+#TGTCCSID=TGTCCSID(37)
 #
 # User-defined part end
 #-------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/he
 
 # CCFLAGS = C compiler parameter
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
-RPGFLAGS=OUTPUT($(OUTPUT)) TGTCCSID(37) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
+RPGFLAGS=OUTPUT($(OUTPUT)) $(TGTCCSID) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
 MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem ileasticr mediatype
 

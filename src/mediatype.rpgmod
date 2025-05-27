@@ -112,6 +112,7 @@ dcl-proc il_mediatype_isMediaTypeAccepted export;
   dcl-s idx int(10) inz(0);
   dcl-s ptr pointer;
 
+  /IF DEFINED(*V7R4M0)
   il_mediatype_getAcceptedMediaTypes(request : typeList : typeListLen);
   if typeListLen = 0;
     result.type = '*';
@@ -160,8 +161,8 @@ dcl-proc il_mediatype_isMediaTypeAccepted export;
         leave;
       endif;
     endfor;
-  endfor;
-
+    endfor;
+/ENDIF
   return result;
 end-proc;
 
