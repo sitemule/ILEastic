@@ -24,8 +24,8 @@ ctl-opt debug(*yes) bndDir('ILEASTIC');
 ctl-opt thread(*CONCURRENT);
 
 /include ./headers/ileastic.rpgle
-/include ./plugins/jwt/jwt_h.rpgle
-/include ./plugins/jwt/jwtplugin_h.rpgle
+/include ./plugins/jwt/jwt.rpginc
+/include ./plugins/jwt/jwtplugin.rpginc
 
 
 // -----------------------------------------------------------------------------
@@ -33,6 +33,7 @@ ctl-opt thread(*CONCURRENT);
 // -----------------------------------------------------------------------------
 dcl-proc main;
   dcl-ds config likeds(il_config);
+  dcl-ds jwtOptions likeds(jwt_options_t) inz;
 
   // The server will listen on port 44000.
   config.port = 44000;
@@ -40,7 +41,9 @@ dcl-proc main;
 
   // Sets the key which will be used for verifying the JWT token.
   // This key should be kept secure (and not like this =) )!!!
-  il_jwt_setSignKey('eW91ci0yNTYtYml0LXNlY3JldA======');
+  jwtOptions.alg = JWT_HS256;
+  jwtOptions.key = 'eW91ci0yNTYtYml0LXNlY3JldA======';
+  il_jwt_addVerifyOptions(jwtOptions);
   
   // Adds the JWT plugin to the chain of plugins
   // This will only check if each request has a valid JWT token.
