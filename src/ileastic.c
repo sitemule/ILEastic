@@ -1068,12 +1068,6 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
     setCallbacks (pConfig);
 
-    rc = pipe(pipe_fdmap);
-    if (rc == -1) {
-        perror("error in pipe");
-        exit(3);
-    }
-
     // tInitSSL(pConfig);
 
     // Infinit loop
@@ -1129,6 +1123,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 il_joblog( "Read error: %d - %s" ,(int) errcde, strerror((int) errcde));
                 return;
             }
+            close(0);
         }
 
         // virker ikke:    sprintf(RemoteIp   , "%s" , inet_ntoa(client.sin_addr));
@@ -1158,6 +1153,11 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 }    
                 break;
             case TM_JOB:
+                rc = pipe(pipe_fdmap);
+                if (rc == -1) {
+                    perror("error in pipe");
+                    exit(3);
+                }            
                 rc = write(pipe_fdmap[1], &client, sizeof(client));
                 spawn_argv[0]  = NULL;
                 spawn_envp[0]  = "I_ISWORKER=true";
@@ -1172,6 +1172,8 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                     exit(0);
                 }   
                 close(clientSocket);
+                close(pipe_fdmap[0]);
+                close(pipe_fdmap[1]);
                 break;
             default:
                 il_joblog ("Invalid threading mode %d" , pConfig->threadingMode);
