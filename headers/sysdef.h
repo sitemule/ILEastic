@@ -2,6 +2,7 @@
 #define  SYSDEF_H
 
 #include <regex.h>
+#include <gskssl.h>
 #include "ostypes.h"
 #include "xlate.h"
 #include "simpleList.h"
@@ -79,6 +80,8 @@ typedef _Packed struct _CONFIG  {
     FCGI        fcgi;
     SCHEDULER   scheduler;
     ULONG       schedulerTimer;
+    gsk_handle  envHandle;
+    gsk_handle  sessionHandle;
 } CONFIG,  *PCONFIG;
 
 typedef _Packed struct _HEADERLIST  {

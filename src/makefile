@@ -10,7 +10,7 @@
 # (make clean).
 BIN_LIB=ILEASTIC
 TARGET_RLS=*CURRENT
-OUTPUT=*PRINT
+OUTPUT=*NONE
 OS_VERSION=$(shell echo "$(uname -v)$(uname -r)")
 HAS_TGTCCSID=$(shell if [ $(OS_VERSION) -ge 74 ]; then echo yes; else echo no; fi)
 ifeq ($(HAS_TGTCCSID),yes)
