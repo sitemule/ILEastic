@@ -8,7 +8,7 @@
 // Start it:
 //
 // ADDLIBLE ILEASTIC
-// SBMJOB CMD(CALL PGM(ILBASICS)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)
+// SBMJOB CMD(CALL PGM(ILBASICS)) JOB(ILEASTIC) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES) CPYENVVAR(*YES)
 // 
 // @info It requires your RPG code to be reentrant and compiled for 
 //       multithreading. Each client request is handled by a seperate thread.
@@ -69,7 +69,7 @@ end-proc;
 
 
 dcl-proc main;
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz;
     
     init();
 
