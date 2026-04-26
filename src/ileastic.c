@@ -1123,7 +1123,6 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     int pipe_fdmap[2];
     int spawn_fdmap[2];
     char *spawn_argv[1];
-    char *spawn_envp[2];
     struct inheritance inherit;
     VARCHAR256 pWorkerProgram;
 
@@ -1155,11 +1154,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
     setCallbacks (pConfig);
 
-    rc = pipe(pipe_fdmap);
-    if (rc == -1) {
-        perror("error in pipe");
-        exit(3);
-    }
+    // tInitSSL(pConfig);
 
     // Infinit loop
     for (;;) {
@@ -1214,6 +1209,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 il_joblog( "Read error: %d - %s" ,(int) errcde, strerror((int) errcde));
                 return;
             }
+            close(0);
         }
 
         if (isSecure(pConfig) && setupSecureSocket(pConfig, clientSocket) != 0) {
@@ -1248,20 +1244,27 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 }    
                 break;
             case TM_JOB:
+                rc = pipe(pipe_fdmap);
+                if (rc == -1) {
+                    perror("error in pipe");
+                    exit(3);
+                }            
                 rc = write(pipe_fdmap[1], &client, sizeof(client));
                 spawn_argv[0]  = NULL;
-                spawn_envp[0]  = "I_ISWORKER=true";
-                spawn_envp[1]  = NULL;
+                putenv("I_ISWORKER=true");
                 spawn_fdmap[0] = pipe_fdmap[0];
                 spawn_fdmap[1] = clientSocket;
                 memset(&inherit, 0, sizeof(inherit));
                 inherit.flags = SPAWN_SETPJ_NP + SPAWN_SETTHREAD_NP + SPAWN_SETLOGJOBMSGABN_NP;
-                rc = spawn(vc2str(&pConfig->workerProgram), 2, spawn_fdmap, &inherit, spawn_argv, spawn_envp);
+                rc = spawn(vc2str(&pConfig->workerProgram), 2, spawn_fdmap, &inherit, spawn_argv, FCGX_getEnv());
                 if (rc == -1) {
                     il_joblog( "Spawn error: %d - %s" , (int) errno, strerror((int) errno));
                     exit(0);
                 }   
                 close(clientSocket);
+                close(pipe_fdmap[0]);
+                close(pipe_fdmap[1]);
+                Qp0zDltEnv("I_ISWORKER");
                 break;
             default:
                 il_joblog ("Invalid threading mode %d" , pConfig->threadingMode);
