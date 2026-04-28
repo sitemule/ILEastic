@@ -1154,8 +1154,6 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
     setCallbacks (pConfig);
 
-    // tInitSSL(pConfig);
-
     // Infinit loop
     for (;;) {
         pthread_t  pServerThread;
@@ -1166,7 +1164,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
         int clientSize;
         int errcde;
 
-        if(pConfig->isWorker == 0x40) pConfig->isWorker = false;
+        if(pConfig->isWorker == 0x40 || (unsigned char)pConfig->isWorker == 0xF0) pConfig->isWorker = false;
 
         // Initialize connection
         if(!pConfig->isWorker) {
