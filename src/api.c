@@ -321,7 +321,7 @@ void il_addPlugin (PCONFIG pConfig, SERVLET servlet, PLUGINTYPE pluginType)
         }
         plugin.servlet = servlet;
         plugin.pluginType = IL_PREREQUEST;
-        sList_push (pConfig->pluginPreRequest   , sizeof(PLUGIN), &plugin, false);
+        sList_push (pConfig->pluginPreRequest, sizeof(PLUGIN), &plugin, false);
     }
     if (pluginType & IL_POSTRESPONSE) {
         if (pConfig->pluginPostResponse == NULL) {
@@ -329,7 +329,7 @@ void il_addPlugin (PCONFIG pConfig, SERVLET servlet, PLUGINTYPE pluginType)
         }
         plugin.servlet = servlet;
         plugin.pluginType = IL_POSTRESPONSE;
-        sList_push (pConfig->pluginPostResponse , sizeof(PLUGIN), &plugin, false);
+        sList_push (pConfig->pluginPostResponse, sizeof(PLUGIN), &plugin, false);
     }
 }
 /* --------------------------------------------------------------------------- *\
@@ -355,10 +355,11 @@ PVOID il_getThreadMem  (PREQUEST pRequest)
 {
     return pRequest->threadMem;
 }
+
 static parserRouting (PROUTING pRouting , PUCHAR finalExpr , PUCHAR routeReg) 
 {
     pRouting -> parmNumbers =0;
-    // pickup parameter and replace the paramter name with regex for capture groupe
+    // pickup parameter and replace the paramter name with regex for capture group
     while (*routeReg) {
         if (*routeReg == '{') {
             PUCHAR end = strchr(++routeReg , '}');
@@ -440,4 +441,14 @@ void il_addRoute (PCONFIG pConfig, SERVLET servlet, ROUTETYPE routeType , PVARCH
     }
 
     sList_push (pConfig->router , sizeof(ROUTING), &routing, false);
+}
+
+void il_setKeyfile(PCONFIG config, PVARCHAR256 keyfilePath , PVARCHAR64 keyfilePassword) {
+    PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
+
+    config->certificateFile = *keyfilePath;
+    
+    if (pParms->OpDescList->NbrOfParms >= 3) {
+        config->certificatePassword = *keyfilePassword;
+    }
 }

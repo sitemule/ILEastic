@@ -1043,3 +1043,22 @@ dcl-pr il_mediatype_isMediaTypeAccepted likeds(mediaType_t) extproc(*dclcase);
   mediaType9     pointer value options(*string:*nopass);
   mediaType10    pointer value options(*string:*nopass);
 end-pr;
+
+///
+// Set certificate
+//
+// Sets the certificate to be used which automatically triggers the activation
+// of HTTPS.
+//
+// @param Configuration
+// @param IFS path to the certificate store (kdb)
+// @param Password for the certificate store
+//
+// @info When setting the certificate store the service only accepts HTTPS requests.
+//       HTTP requests are ignored.
+///
+dcl-pr il_setKeyfile extproc(*dclcase);
+    config likeds(il_config);
+    keyfilePath varchar(256) const;
+    keyfilePassword varchar(64) const options(*nopass);
+end-pr;

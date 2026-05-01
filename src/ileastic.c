@@ -32,6 +32,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <gskssl.h>
 #include <ssl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -60,10 +61,15 @@
 BOOL (*receiveHeader)  (PREQUEST pRequest);
 BOOL shutdownFlag = false;
 
+BOOL isSecure(PCONFIG config);
+void log_gskit_error(const char * msg, int rc);
+int setupGskitEnvironment(PCONFIG pConfig);
+int setupSecureSocket(PCONFIG pConfig, int clientSocket);
+
 VARCHAR256 il_getCallingProgramPath();
 
 /* --------------------------------------------------------------------------- */
-void prepareResponse  (PRESPONSE pResponse)
+void prepareResponse (PRESPONSE pResponse)
 {
     // if not put yet
     if (pResponse->firstWrite) {
@@ -76,6 +82,7 @@ void prepareResponse  (PRESPONSE pResponse)
 void putChunkEnd (PRESPONSE pResponse)
 {
     int     rc;
+    int     bytesSent = 0;
     LONG    lenleni;
     UCHAR   lenbuf [32];
 
@@ -88,12 +95,22 @@ void putChunkEnd (PRESPONSE pResponse)
 
     lenleni = sprintf (lenbuf , "0\r\n\r\n" );  // end of chunks
     meme2a(lenbuf,lenbuf, lenleni);
-    rc = write(pResponse->pConfig->clientSocket,lenbuf, lenleni);
+
+    if (isSecure(pResponse->pConfig)) {
+        rc = gsk_secure_soc_write(pResponse->pConfig->sessionHandle, lenbuf, lenleni, &bytesSent);
+        if (rc != GSK_OK) {
+            il_joblog("Error on writing chunk end to socket. GSKit error code: %d", rc);
+        }
+    }
+    else {
+        rc = write(pResponse->pConfig->clientSocket, lenbuf, lenleni);
+    }
 }
 /* --------------------------------------------------------------------------- */
 void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
 {
     int rc;
+    int bytesSent = 0;
     LONG   lenleni;
     PUCHAR tempBuf;
     PUCHAR wrkBuf;
@@ -123,7 +140,17 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
 
     *(wrkBuf++) =  0x0d;
     *(wrkBuf++) =  0x0a;
-    rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
+
+    if (isSecure(pResponse->pConfig)) {
+        rc = gsk_secure_soc_write(pResponse->pConfig->sessionHandle, tempBuf, wrkBuf - tempBuf, &bytesSent);
+        if (rc != GSK_OK) {
+            il_joblog("Error on writing chunk to socket. GSKit error code: %d", rc);
+        }
+    }
+    else {
+        rc = write(pResponse->pConfig->clientSocket, tempBuf , wrkBuf - tempBuf);
+    }
+
     memFree (&tempBuf);
 
 }
@@ -131,7 +158,8 @@ void putChunk (PRESPONSE pResponse, PUCHAR buf, LONG len)
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 {
     int rc;
-    LONG   lenleni;
+    int bytesSent = 0;
+    LONG lenleni;
     int outlen = len * 4;
     UCHAR lenBuf [16];
     PUCHAR tempBuf;
@@ -156,8 +184,7 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
 
     totalWriteLen = wrkBuf - tempBuf;
 
-    if (pResponse->pConfig->protocol == PROT_FASTCGI
-    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+    if (pResponse->pConfig->protocol == PROT_FASTCGI || pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( tempBuf , totalWriteLen , pResponse->pConfig->fcgi.out);
         memFree (&totBuf);
         return;
@@ -171,9 +198,18 @@ void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len)
     *(wrkBuf++) =  0x0d;
     *(wrkBuf++) =  0x0a;
     totalWriteLen = wrkBuf - tempBuf;
-    rc = write(pResponse->pConfig->clientSocket, tempBuf , totalWriteLen);
-    memFree (&totBuf);
 
+    if (isSecure(pResponse->pConfig)) {
+        rc = gsk_secure_soc_write(pResponse->pConfig->sessionHandle, tempBuf, totalWriteLen, &bytesSent);
+        if (rc != GSK_OK) {
+            il_joblog("Error on writing chunk (xlate) to socket. GSKit error code: %d", rc);
+        }
+    }
+    else {
+        rc = write(pResponse->pConfig->clientSocket, tempBuf , totalWriteLen);
+    }
+
+    memFree (&totBuf);
 }
 /* --------------------------------------------------------------------------- */
 /*  Sun, 06 Nov 1994 08:49:37 GMT    ; IMF-fixdate */
@@ -206,6 +242,7 @@ void putHeader (PRESPONSE pResponse)
     const int HEADER_SIZE = 4096;
 
     size_t rc;
+    int bytesSent = 0;
     UCHAR  header [HEADER_SIZE];
     PUCHAR p = header;
     LONG len;
@@ -250,13 +287,19 @@ void putHeader (PRESPONSE pResponse)
     len = p - header;
     meme2a( header , header , len);
 
-    if (pResponse->pConfig->protocol == PROT_FASTCGI
-    ||  pResponse->pConfig->protocol == PROT_SECFASTCGI) {
+    if (pResponse->pConfig->protocol == PROT_FASTCGI || pResponse->pConfig->protocol == PROT_SECFASTCGI) {
         rc = FCGX_PutStr( header , len , pResponse->pConfig->fcgi.out);
     } else {
-        rc = write(pResponse->pConfig->clientSocket, header , len);
+        if (isSecure(pResponse->pConfig)) {
+            rc = gsk_secure_soc_write(pResponse->pConfig->sessionHandle, header, len, &bytesSent);
+            if (rc != GSK_OK) {
+                il_joblog("Error on writing chunk (xlate) to socket. GSKit error code: %d", rc);
+            }
+        }
+        else {
+            rc = write(pResponse->pConfig->clientSocket, header , len);
+        }
     }
-
 }
 /* ---------------------------------------------------------------------------
    Split the url at "?" into resource, and queryString
@@ -494,16 +537,17 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 /* --------------------------------------------------------------------------- */
 static BOOL receivePayload (PREQUEST pRequest)
 {
-    PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a zero terniation
+    PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a null termination character
     PUCHAR bufwin , end;
-    LONG   rc;
+    LONG rc;
+    int bytes_received;
 
     // What is already receved:
     memcpy ( buf , pRequest->content.String , pRequest->content.Length);
     bufwin = buf + pRequest->content.Length;
 
     // Build up the previous and the rest
-    buf [pRequest->contentLength] = '\0';  // Enshure It will always be a zeroterminted string if used that way
+    buf [pRequest->contentLength] = '\0';  // Ensure it will always be a null terminated string if used that way
     pRequest->content.String = buf;
     pRequest->content.Length = pRequest->contentLength;
 
@@ -514,11 +558,27 @@ static BOOL receivePayload (PREQUEST pRequest)
             return true;
         }
 
-        rc = read(pRequest->pConfig->clientSocket , bufwin , end - bufwin);
-        if (rc <= 0) {
-            return true;
+        if (isSecure(pRequest->pConfig)) {
+            rc = gsk_secure_soc_read(pRequest->pConfig->sessionHandle, bufwin, end - bufwin, &bytes_received);
+            if (rc != GSK_OK) {
+                il_joblog("Error on reading data from socket. GSKit error code: %d", rc);
+                return false;
+            }
+
+            if (bytes_received == 0) return true;
+
+            bufwin += bytes_received;
+        } else {
+            rc = read(pRequest->pConfig->clientSocket, bufwin, end - bufwin);
+            if (rc < 0) {
+                il_joblog("Error on reading data from socket: Error code: %d", errno);
+                return false;
+            } else if (rc == 0) {
+                return true;
+            } else {
+                bufwin += rc;
+            }
         }
-        bufwin += rc;
     }
 
     return false;
@@ -531,6 +591,7 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
     PUCHAR bufWin = buf;
     ULONG  bufLen = 0;
     LONG   rc;
+    int bytes_received;
     BOOL   isLookingForHeaders = true;
 
     // Load the complete request data
@@ -540,14 +601,25 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
             memFree(&buf);
             return true;
         }
-        rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
-        if (rc <= 0) {
-            memFree(&buf);
-            return true;
+
+        if (isSecure(pRequest->pConfig)) {
+            rc = gsk_secure_soc_read(pRequest->pConfig->sessionHandle, bufWin, SOCMAXREAD - bufLen, &bytes_received);
+            if (rc != GSK_OK) {
+                il_joblog("Error on reading data from socket. GSKit error code: %d", rc);
+                return false;
+            } else if (bytes_received == 0) return true;
+        } else {
+            rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
+            if (rc <= 0) {
+                memFree(&buf);
+                return true;
+            }
+
+            bytes_received = rc;
         }
 
-        bufLen += rc;
-        bufWin += rc;
+        bufLen += bytes_received;
+        bufWin += bytes_received;
         if (isLookingForHeaders) {
             if (lookForHeaders ( pRequest , buf, bufLen)) {
                 if (pRequest->contentLength) {
@@ -797,6 +869,11 @@ static void * serverThread (PINSTANCE pInstance)
         // Clean up this roundtrip 
         cleanupTransaction (&request , &response);
     }
+
+    if (isSecure(&(pInstance->config))) {
+        gsk_secure_soc_close(&(pInstance->config.sessionHandle));
+    }
+
     close(response.pConfig->clientSocket);
     if(! pInstance->config.isWorker) 
     {
@@ -862,6 +939,16 @@ static BOOL getSocket(PCONFIG pConfig)
 
     UCHAR interface  [32];
     vc2strcpy(interface , &pConfig->interface);
+
+    if (isSecure(pConfig)) {
+        rc = setupGskitEnvironment(pConfig);
+        if (rc == 0) {
+            il_joblog("Using HTTPS");
+        } else {
+            il_joblog("Error setting up GSKit environment. Error code: %d.", rc);
+            return false;
+        }
+    }
 
     // Get a socket descriptor
     if ((pConfig->mainSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)  {
@@ -937,7 +1024,7 @@ int socketWait (int sd , int sec)
     FD_SET(sd,&fd);
     rc = select(sd+1,&fd,NULL,NULL,&timeout);
     if (rc < 0) {
-        il_joblog ("select() failed :%s\r\n", strerror(errno));
+        il_joblog ("select() failed: %s", strerror(errno));
     }
     return rc;
 }
@@ -1067,8 +1154,6 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
 
     setCallbacks (pConfig);
 
-    // tInitSSL(pConfig);
-
     // Infinit loop
     for (;;) {
         pthread_t  pServerThread;
@@ -1123,6 +1208,11 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 return;
             }
             close(0);
+        }
+
+        if (isSecure(pConfig) && setupSecureSocket(pConfig, clientSocket) != 0) {
+            il_joblog("Error setting up secure socket");
+            continue;
         }
 
         // virker ikke:    sprintf(RemoteIp   , "%s" , inet_ntoa(client.sin_addr));
@@ -1181,3 +1271,91 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     }
 }
 
+BOOL isSecure(PCONFIG config) {
+    BOOL secured = config->certificateFile.Length > 0;
+    return secured;
+}
+
+void log_gskit_error(const char * msg, int rc) {
+    il_joblog("%s failed with rc=%d", msg, rc);
+}
+
+int setupGskitEnvironment(PCONFIG pConfig) {
+    int rc;
+
+    // Create GSKit environment
+    rc = gsk_environment_open(&(pConfig->envHandle));
+    if (rc != GSK_OK) {
+        il_joblog("GSKit open env failed. Error id: %d", rc);
+        return -1;
+    }
+
+    // Set key database file
+    rc = gsk_attribute_set_buffer(pConfig->envHandle, GSK_KEYRING_FILE, pConfig->certificateFile.String, pConfig->certificateFile.Length);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_buffer GSK_KEYRING_FILE", rc);
+        return -1;
+    }
+
+    // Set key database password
+    rc = gsk_attribute_set_buffer(pConfig->envHandle, GSK_KEYRING_PW, pConfig->certificatePassword.String, pConfig->certificatePassword.Length);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_buffer GSK_KEYRING_PW", rc);
+        return -1;
+    }
+
+    // TODO define which TLS versions should be used
+    gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV12, GSK_TRUE);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_enum TLS 1.2", rc);
+        return -1;
+    }
+    gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV13, GSK_TRUE);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_enum TLS 1.3", rc);
+        return -1;
+    }
+
+    // Initialize the environment
+    rc = gsk_environment_init(pConfig->envHandle);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_environment_init", rc);
+        return -1;
+    }
+
+    return 0;
+}
+
+int setupSecureSocket(PCONFIG pConfig, int clientSocket) {
+     int rc;
+
+     // Create secure socket handle
+     rc = gsk_secure_soc_open(pConfig->envHandle, &(pConfig->sessionHandle));
+     if (rc != GSK_OK) {
+         log_gskit_error("gsk_secure_soc_open", rc);
+         return -1;
+     }
+
+     // Associate socket with SSL handle
+     rc = gsk_attribute_set_numeric_value(pConfig->sessionHandle, GSK_FD, clientSocket);
+     if (rc != GSK_OK) {
+         log_gskit_error("gsk_attribute_set_numeric_value GSK_FD", rc);
+         return -1;
+     }
+
+     // Set as server socket
+     rc = gsk_attribute_set_enum(pConfig->sessionHandle, GSK_SESSION_TYPE, GSK_SERVER_SESSION);
+     if (rc != GSK_OK) {
+         log_gskit_error("gsk_attribute_set_enum GSK_SESSION_TYPE", rc);
+         return -1;
+     }
+
+     // Initialize secure session
+     rc = gsk_secure_soc_init(pConfig->sessionHandle);
+     if (rc != GSK_OK) {
+         log_gskit_error("gsk_secure_soc_init", rc);
+         return -1;
+     }
+
+     return 0;
+}
