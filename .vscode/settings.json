@@ -2,13 +2,10 @@
     "files.associations": {
         "*.rpginc": "rpgle",
         "*.rpgmod": "rpgle",
+        "*.rpgle": "rpgle",
         "*.dmd": "json",
         "*.widget": "javascript",
-        "strutil.h": "c",
-        "xlate.h": "c",
-        "sndpgmmsg.h": "c",
-        "ostypes.h": "c",
-        "sysdef.h": "c"
+        "*.h": "c"
     },
     "typescript.tsc.autoDetect": "off"
 }

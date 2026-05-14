@@ -366,20 +366,23 @@ dcl-c IL_MEDIA_TYPE_JSON 'application/json';
 ///
 dcl-c IL_MEDIA_TYPE_XML 'application/xml';
 
+dcl-c IL_TRUE 1;
+dcl-c IL_FALSE 0;
 
 ///
 // Configuration
 ///
 dcl-ds il_config qualified template;
-    host                varchar(64);
-    port                int(10);
-    protocol            int(5);
-    certificateFile     varchar(256);
-    certificatePassword varchar(64);
-    workerProgram       varchar(256);
-    isWorker            ind;
-    threadingMode       int(5);
-    filler              char(4096); // required - contains the private internal handlers
+    host                 varchar(64);
+    port                 int(10);
+    protocol             int(5);
+    certificateFile      varchar(256);
+    certificatePassword  varchar(64);
+    workerProgram        varchar(256);
+    isWorker             ind;
+    threadingMode        int(5);
+    tlsServerCertEnabled int(5);
+    filler               char(4096); // required - contains the private internal handlers
 end-ds;
 
 ///
@@ -1061,4 +1064,24 @@ dcl-pr il_setKeyfile extproc(*dclcase);
     config likeds(il_config);
     keyfilePath varchar(256) const;
     keyfilePassword varchar(64) const options(*nopass);
+end-pr;
+
+///
+// Enable Server Certificate Infos in TLS
+//
+// If enabled the available infos about the used server certificate for the TLS
+// connection are copied to the thread local storage avaiable in the request,
+// see il_getThreadMem.
+// <p>
+// The information will be copied to the path /ileastic/certificate/server.
+// The information is only available if the connection uses TLS (HTTPS).
+//
+// @param Configuration
+// @param IL_TRUE = enabled , IL_FALSE = disable (default)
+//
+// @info This setting has no effect if no TLS is used.
+///
+dcl-pr il_setTlsServerCertEnabled extproc(*dclcase);
+    config likeds(il_config);
+    enabled int(5) value;
 end-pr;

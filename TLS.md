@@ -58,3 +58,33 @@ Test with curl:
 ```
 curl -v --cacert server.pub --url https://localhost:35800
 ```
+
+
+## Certificate Information
+
+Information about the used server certificate can be queried during runtime. The data is available
+via the thread local storage which is a noxDB graph and can be queried with the noxDB API, see 
+`il_getThreadMem`.
+
+Example:
+
+```
+dcl-s tls pointer;
+dcl-s value varchar(100);
+
+tls = il_getThreadMem(request);
+value = jx_getStr(tls : '/ileastic/certificate/server/common_name');
+```
+
+The server certificate information is stored at the path `/ileastic/certificate/server`. The 
+certificate values can be accessed via their corresponding keys. The keys are based on the 
+GSKit certificate data ids. The value for `CERT_COMMON_NAME` can be access by the key `common_name`.
+All values are strings.
+
+The certificate is only available if it has been enabled by calling `il_setTlsServerCertEnabled`.
+
+```
+il_setTlsServerCertEnabled(config : IL_TRUE);
+```
+
+For more information and available keys see the GSKit API [gsk_attribute_get_cert_info](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74/apis/gsk_attribute_get_cert_info.html).
