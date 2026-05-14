@@ -452,3 +452,7 @@ void il_setKeyfile(PCONFIG config, PVARCHAR256 keyfilePath , PVARCHAR64 keyfileP
         config->certificatePassword = *keyfilePassword;
     }
 }
+
+void il_setTlsServerCertEnabled(PCONFIG config, BOOL enabled) {
+    config->tlsServerCertEnabled = enabled;
+}

@@ -65,7 +65,8 @@ typedef _Packed struct _CONFIG  {
     VARCHAR256  workerProgram;
     BOOL        isWorker;
     THREADING_MODE threadingMode;
-    UCHAR       filler[1024];
+    BOOL        tlsServerCertEnabled;
+    UCHAR       filler[1022];
     // Private:
     int         mainSocket;
     int         clientSocket;
