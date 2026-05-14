@@ -816,12 +816,17 @@ static void * serverThread (PINSTANCE pInstance)
     PROUTING matchingRouting;
     BOOL     connected = true; 
     UCHAR    temp [256]; 
+    PVOID serverCertNode;
     
     if(! pInstance->config.isWorker) 
     {
         pthread_detach(pthread_self());
     }   
 
+    if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
+        serverCertNode = jx_NewObject(NULL);
+        addServerCertInfos(&(pInstance->config.envHandle), serverCertNode);
+    }
 
     while (pInstance->config.clientSocket > 0 && connected) {
         memset(&request  , 0, sizeof(REQUEST));
@@ -842,9 +847,6 @@ static void * serverThread (PINSTANCE pInstance)
         
         request.threadMem = (PVOID) jx_NewObject(NULL);
         if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
-            PVOID serverCertNode = jx_NewObject(NULL);
-            addServerCertInfos(&(pInstance->config.envHandle), serverCertNode);
-
             PJXNODE tlsCertNode = jx_GetOrCreateNode(request.threadMem, "/ileastic/certificate");
             jx_NodeMoveInto(tlsCertNode, "server", serverCertNode);
         }
