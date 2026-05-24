@@ -381,7 +381,7 @@ dcl-ds il_config qualified template;
     workerProgram        varchar(256);
     isWorker             ind;
     threadingMode        int(5);
-    tlsServerCertEnabled int(5);
+    tlsServerCertEnabled int(3);
     filler               char(4096); // required - contains the private internal handlers
 end-ds;
 
