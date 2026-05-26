@@ -65,6 +65,7 @@ BOOL isSecure(PCONFIG config);
 void log_gskit_error(const char * msg, int rc);
 int setupGskitEnvironment(PCONFIG pConfig);
 int setupSecureSocket(PCONFIG pConfig, int clientSocket);
+void addServerCertInfos(gsk_handle * sslHandle, void * threadMem);
 
 VARCHAR256 il_getCallingProgramPath();
 
@@ -815,12 +816,17 @@ static void * serverThread (PINSTANCE pInstance)
     PROUTING matchingRouting;
     BOOL     connected = true; 
     UCHAR    temp [256]; 
+    PVOID serverCertNode;
     
     if(! pInstance->config.isWorker) 
     {
         pthread_detach(pthread_self());
     }   
 
+    if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
+        serverCertNode = jx_NewObject(NULL);
+        addServerCertInfos(&(pInstance->config.envHandle), serverCertNode);
+    }
 
     while (pInstance->config.clientSocket > 0 && connected) {
         memset(&request  , 0, sizeof(REQUEST));
@@ -840,6 +846,10 @@ static void * serverThread (PINSTANCE pInstance)
         pResponse = &response;
         
         request.threadMem = (PVOID) jx_NewObject(NULL);
+        if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
+            PJXNODE tlsCertNode = jx_GetOrCreateNode(request.threadMem, "/ileastic/certificate");
+            jx_NodeMoveInto(tlsCertNode, "server", serverCertNode);
+        }
 
         #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
         matchingRouting = findRoute(request.pConfig, &request);
@@ -1188,7 +1198,6 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
             return ;
         }
 
-
         // accept() the incoming connection request.
         clientSize = sizeof(client);
         if(!pConfig->isWorker) {
@@ -1210,7 +1219,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
             close(0);
         }
 
-        if (isSecure(pConfig) && setupSecureSocket(pConfig, clientSocket) != 0) {
+        if (isSecure(pConfig) && setupSecureSocket(pConfig, clientSocket) != 0)  {
             il_joblog("Error setting up secure socket");
             continue;
         }
@@ -1269,6 +1278,194 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 exit(-1);
         }
     }
+}
+
+void addServerCertInfos(gsk_handle * sslHandle, void * serverCertInfos) {
+    // All certificate data is returned in ASCII CCSID 850.
+    PXLATEDESC a2e = XlateXdOpen(850, 0);
+
+    gsk_cert_data_elem *certElements;
+    int certElementCount = 0;
+    int rc;
+    PUCHAR certInfoKey;
+    char certInfoValue[1024];
+
+    rc = gsk_attribute_get_cert_info (
+            *sslHandle,
+            GSK_LOCAL_CERT_INFO,
+            &certElements,
+            &certElementCount);
+
+    if (rc == GSK_OK) {
+        il_joblog("got cert infos: %d", certElementCount);
+
+        // typedef struct gsk_cert_data_elem_t {
+        //     GSK_CERT_DATA_ID cert_data_id;
+        //     char *cert_data_p;
+        //     int cert_data_l;
+        // } gsk_cert_data_elem;
+
+
+        for (int i = 0; i < certElementCount; i++) {
+            rc = XlateXdBuf(a2e , certInfoValue, certElements[i].cert_data_p , certElements[i].cert_data_l);
+            if (rc >= sizeof(certInfoValue)) certInfoValue[1023] = '\0';
+            else if (rc > 0) certInfoValue[rc] = '\0';
+            else certInfoValue[0] = '\0';
+
+            certInfoKey = NULL;
+
+            switch(certElements[i].cert_data_id) {
+                case 601:
+                    certInfoKey = "body_base64";
+                    break;
+                case 602:
+                    certInfoKey = "serial_number";
+                    break;
+                case 610:
+                    certInfoKey = "common_name";
+                    break;
+                case 611:
+                    certInfoKey = "locality";
+                    break;
+                case 612:
+                    certInfoKey = "state_or_province";
+                    break;
+                case 613:
+                    certInfoKey = "country";
+                    break;
+                case 614:
+                    certInfoKey = "org";
+                    break;
+                case 615:
+                    certInfoKey = "org_unit";
+                    break;
+                case 616:
+                    certInfoKey = "dn_printable";
+                    break;
+                case 618:
+                    certInfoKey = "postal_code";
+                    break;
+                case 619:
+                    certInfoKey = "email";
+                    break;
+                case 650:
+                    certInfoKey = "issuer_common_name";
+                    break;
+                case 651:
+                    certInfoKey = "issuer_locality";
+                    break;
+                case 652:
+                    certInfoKey = "issuer_state_or_province";
+                    break;
+                case 653:
+                    certInfoKey = "issuer_country";
+                    break;
+                case 654:
+                    certInfoKey = "issuer_org";
+                    break;
+                case 655:
+                    certInfoKey = "issuer_org_unit";
+                    break;
+                case 656:
+                    certInfoKey = "issuer_dn_printable";
+                    break;
+                case 658:
+                    certInfoKey = "issuer_postal_code";
+                    break;
+                case 659:
+                    certInfoKey = "issuer_email";
+                    break;
+                case 660:
+                    certInfoKey = "version";
+                    break;
+                case 661:
+                    certInfoKey = "signature_algorithm";
+                    break;
+                case 662:
+                    certInfoKey = "valid_from";
+                    break;
+                case 663:
+                    certInfoKey = "valid_to";
+                    break;
+                case 664:
+                    certInfoKey = "public_key_algorithm";
+                    break;
+                case 665:
+                    certInfoKey = "public_key";
+                    break;
+                case 666:
+                    certInfoKey = "public_key_size";
+                    break;
+                case 667:
+                    certInfoKey = "fingerprint_algorithm";
+                    break;
+                case 668:
+                    certInfoKey = "fingerprint";
+                    break;
+                case 669:
+                    certInfoKey = "issuer_uniqueid";
+                    break;
+                case 670:
+                    certInfoKey = "subject_uniqueid";
+                    break;
+                case 671:
+                    certInfoKey = "key_usage";
+                    break;
+                case 672:
+                    certInfoKey = "subject_alternative_name_rfc822name";
+                    break;
+                case 673:
+                    certInfoKey = "subject_alternative_name_dnsname";
+                    break;
+                case 674:
+                    certInfoKey = "subject_alternative_name_directoryname";
+                    break;
+                case 675:
+                    certInfoKey = "subject_alternative_name_uri";
+                    break;
+                case 676:
+                    certInfoKey = "subject_alternative_name_ipaddress";
+                    break;
+                case 677:
+                    certInfoKey = "certificate_policy_policyidentifier";
+                    break;
+                case 678:
+                    certInfoKey = "basic_constraints_ca";
+                    break;
+                case 679:
+                    certInfoKey = "basic_constraints_path_length_constraint";
+                    break;
+                case 680:
+                    certInfoKey = "crl_distribution_points_distributionpointname";
+                    break;
+                case 681:
+                    certInfoKey = "valid_from_ex";
+                    break;
+                case 682:
+                    certInfoKey = "valid_to_ex";
+                    break;
+                case 683:
+                    certInfoKey = "fingerprint_sha1";
+                    break;
+                case 684:
+                    certInfoKey = "fingerprint_sha256";
+                    break;
+                case 685:
+                    certInfoKey = "extendedkeyusage_identifier";
+                    break;
+                case 688:
+                    certInfoKey = "aia_access_location";
+                    break;
+            }
+
+            if (certInfoKey) jx_SetStrByName (serverCertInfos, certInfoKey, certInfoValue);
+        }
+
+    } else {
+        log_gskit_error("gsk_attribute_get_cert_info", rc);
+    }
+
+    XlateXdClose(a2e);
 }
 
 BOOL isSecure(PCONFIG config) {

@@ -46,14 +46,17 @@ dcl-pr test_headErrorMessageBody end-pr;
 dcl-pr test_options end-pr;
 dcl-pr test_post end-pr;
 dcl-pr test_routeNotFound end-pr;
+dcl-pr test_serverCertificateInfos end-pr;
 
 
 dcl-s httpClient pointer;
 dcl-s keyFilePath varchar(1000);
 dcl-s keyFileSecret varchar(100);
 dcl-s baseUrl varchar(100);
-dcl-s buffer varchar(65000:4) ccsid(1208);
+// dcl-s buffer varchar(65000:4) ccsid(1208);
+dcl-s buffer varchar(200000:4) ccsid(1208);
 dcl-s book varchar(1000);
+dcl-s secured ind;
 
 dcl-proc setup export;
     dcl-s value pointer;
@@ -61,6 +64,7 @@ dcl-proc setup export;
     value = getenv('ILEASTIC_ITEST_KEYFILE_PATH');
     if (value <> *null);
         keyFilePath = %str(value);
+        secured = *on;
     endif;
 
     value = getenv('ILEASTIC_ITEST_KEYFILE_SECRET');
@@ -79,7 +83,6 @@ dcl-proc setup export;
     httpClient = iv_newHttpClient();
     iv_setTimeout(httpClient : 5);
     iv_setRetries(httpClient : 1);
-    iv_setCertificate(httpClient : '/home/mschmidt/cert/rpgnextgen/server.kdb' : 'changeit');
 
     book = BRACKET_OPEN;
     book += CURLY_OPEN;
@@ -356,4 +359,30 @@ dcl-proc test_routeNotFound export;
 
     iv_execute(httpClient : 'GET' : baseUrl + '/not_valid_route');
     iEqual(IV_HTTP_NOT_FOUND : iv_getStatus(httpClient));
+end-proc;
+
+
+dcl-proc test_serverCertificateInfos export;
+    dcl-s json pointer;
+    dcl-s entryValue varchar(1000);
+
+    if (not secured);
+        return;
+    endif;
+
+    clear buffer;
+    iv_setResponseDataBuffer (httpClient : %addr(buffer) : %size(buffer) : IV_VARCHAR4 : IV_CCSID_UTF8);
+
+    iv_execute(httpClient : 'GET' : baseUrl + '/cert/server');
+    iEqual(IV_HTTP_OK : iv_getStatus(httpClient));
+    
+    json = jx_parseStringCcsid(%addr(buffer : *data) : 1208);
+    entryValue = jx_getStr(json : 'common_name');
+    assert(entryValue <> *blank : 'CERT_COMMON_NAME should not be blank/empty');
+
+    entryValue = jx_getStr(json : 'dn_printable');
+    assert(entryValue <> *blank : 'CERT_DN_PRINTABLE should not be blank/empty');
+
+    on-exit;
+        jx_close(json);
 end-proc;
