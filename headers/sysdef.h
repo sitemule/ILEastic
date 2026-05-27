@@ -46,6 +46,14 @@ typedef enum _THREADING_MODE  {
 } THREADING_MODE , *PTHREADING_MODE;
 #pragma enum     (pop)
 
+#pragma enum     (1)
+typedef enum _CLIENT_AUTH_MODE  {
+    CLIENT_AUTH_MODE_NONE = 0,
+    CLIENT_AUTH_MODE_REQUIRED = 1,
+    CLIENT_AUTH_MODE_PASSTHRU = 2
+} CLIENT_AUTH_MODE;
+#pragma enum     (pop)
+
 typedef _Packed struct  {
     FCGX_Stream * out;
     FCGX_Stream * in;
@@ -66,7 +74,9 @@ typedef _Packed struct _CONFIG  {
     BOOL        isWorker;
     THREADING_MODE threadingMode;
     BOOL        tlsServerCertEnabled;
-    UCHAR       filler[1022];
+    BOOL        tlsClientCertEnabled;
+    CLIENT_AUTH_MODE clientAuthMode;
+    UCHAR       filler[1021];
     // Private:
     int         mainSocket;
     int         clientSocket;

@@ -60,7 +60,7 @@ curl -v --cacert server.pub --url https://localhost:35800
 ```
 
 
-## Certificate Information
+## Server Certificate Information
 
 Information about the used server certificate can be queried during runtime. The data is available
 via the thread local storage which is a noxDB graph and can be queried with the noxDB API, see 
@@ -81,10 +81,74 @@ certificate values can be accessed via their corresponding keys. The keys are ba
 GSKit certificate data ids. The value for `CERT_COMMON_NAME` can be access by the key `common_name`.
 All values are strings.
 
-The certificate is only available if it has been enabled by calling `il_setTlsServerCertEnabled`.
+The certificate information is only available if it has been enabled by calling `il_setTlsServerCertEnabled`,
+`Tls` in this case means thread local storage.
 
 ```
 il_setTlsServerCertEnabled(config : IL_TRUE);
 ```
 
 For more information and available keys see the GSKit API [gsk_attribute_get_cert_info](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74/apis/gsk_attribute_get_cert_info.html).
+
+
+
+## mTLS
+
+ILEastic supports mutual TLS which means that not only the server certificate is checked by the 
+client but the client must also send a certficiate which is validated by the server).
+
+This can be enabled by setting the `client auth mode` to something other than NONE.
+
+With the configuration set to IL_CLIENT_AUTH_MODE_REQUIRED the client must provide a valid client 
+certificate to establish a TLS connection.
+
+With the configuration set to IL_CLIENT_AUTH_MODE_PASSTHRU the client is asked for a client 
+certficate but does not need to provide one.
+
+A requirement for this is having TLS enabled by providing a server certificate in the
+configured keystore file.
+
+All client certificates must also be available in the same keystore file.
+
+### Client Certificate Information
+
+Information about the provided client certificate can be queried during runtime. The data is available
+via the thread local storage which is a noxDB graph and can be queried with the noxDB API, see 
+`il_getThreadMem`.
+
+Example:
+
+```
+dcl-s tls pointer;
+dcl-s value varchar(100);
+
+tls = il_getThreadMem(request);
+value = jx_getStr(tls : '/ileastic/certificate/client/common_name');
+```
+
+The client certificate information is stored at the path `/ileastic/certificate/client`. The 
+certificate values can be accessed via their corresponding keys. The keys are based on the 
+GSKit certificate data ids. The value for `CERT_COMMON_NAME` can be access by the key `common_name`.
+All values are strings.
+
+The certificate information is only available if it has been enabled by calling `il_setTlsClientCertEnabled`,
+`Tls` in this case means thread local storage.
+
+```
+il_setTlsClientCertEnabled(config : IL_TRUE);
+```
+
+For more information and available keys see the GSKit API [gsk_attribute_get_cert_info](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74/apis/gsk_attribute_get_cert_info.html).
+
+### Client Certifcate Validation Result
+
+The result of the validation of the client certificate can be queried via the thread local storage
+at `/ileastic/certificate/client/validationcode`. The value is the returned value of the call to
+`gsk_attribute_get_numeric_value` with enum id `GSK_CERTIFICATE_VALIDATION_CODE`.
+
+TLDR: validationcode = 0 means client certificate is valid
+
+### Plugins
+
+Plugins can access the certificate information by querying the thread local store. This can be used
+to further filter requests by custom criterias.
