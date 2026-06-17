@@ -456,3 +456,11 @@ void il_setKeyfile(PCONFIG config, PVARCHAR256 keyfilePath , PVARCHAR64 keyfileP
 void il_setTlsServerCertEnabled(PCONFIG config, BOOL enabled) {
     config->tlsServerCertEnabled = enabled;
 }
+
+void il_setTlsClientCertEnabled(PCONFIG config, BOOL enabled) {
+    config->tlsClientCertEnabled = enabled;
+}
+
+void il_setClientAuthMode(PCONFIG config, CLIENT_AUTH_MODE mode) {
+    config->clientAuthMode = mode;
+}
