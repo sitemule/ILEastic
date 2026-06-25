@@ -373,16 +373,16 @@ dcl-c IL_FALSE 0;
 // Configuration
 ///
 dcl-ds il_config qualified template;
-    host                 varchar(64);
-    port                 int(10);
-    protocol             int(5);
-    certificateFile      varchar(256);
-    certificatePassword  varchar(64);
-    workerProgram        varchar(256);
-    isWorker             ind;
-    threadingMode        int(5);
-    tlsServerCertEnabled int(3);
-    filler               char(4096); // required - contains the private internal handlers
+    host                 varchar(64) inz;
+    port                 int(10) inz;
+    protocol             int(5) inz;
+    certificateFile      varchar(256) inz;
+    certificatePassword  varchar(64) inz;
+    workerProgram        varchar(256) inz;
+    isWorker             ind inz;
+    threadingMode        int(5) inz;
+    tlsServerCertEnabled int(3) inz;
+    filler               char(4096) inz; // required - contains the private internal handlers
 end-ds;
 
 ///

@@ -54,7 +54,7 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
     12 // The web service can be tested with the browser by entering the following URL:                                     000012
     13 // http://my_ibm_i:44045/hello                                                                                       000013
     14 //                                                                                                                   000014
-    15 // Øinfo: It requires your RPG code to be reentrant and compiled for                                                 000015
+    15 // ï¿½info: It requires your RPG code to be reentrant and compiled for                                                 000015
     16 //        multithreading. Each client request is handled by a seperate thread.                                       000016
     17 ///                                                                                                                  000017
     18                                                                                                                      000018
@@ -95,13 +95,13 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
     40+// code into a service infrastructure or make simple web applications without                                       1000017
     41+// the need of any third party webserver products.                                                                  1000018
     42+//                                                                                                                  1000019
-    43+// Øauthor Niels Liisberg                                                                                           1000020
-    44+// Ødate 27.08.2018                                                                                                 1000021
-    45+// Øproject ILEastic                                                                                                1000022
-    46+// Ølink https://github.com/sitemule/ILEastic Project page                                                          1000023
-    47+// Øversion 1.1.3                                                                                                   1000024
+    43+// ï¿½author Niels Liisberg                                                                                           1000020
+    44+// ï¿½date 27.08.2018                                                                                                 1000021
+    45+// ï¿½project ILEastic                                                                                                1000022
+    46+// ï¿½link https://github.com/sitemule/ILEastic Project page                                                          1000023
+    47+// ï¿½version 1.1.3                                                                                                   1000024
     48+//                                                                                                                  1000025
-    49+// Øinfo Source for HTTP status documentation is the Mozilla developer website                                      1000026
+    49+// ï¿½info Source for HTTP status documentation is the Mozilla developer website                                      1000026
     50+//       at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status .                                              1000027
     51+///                                                                                                                 1000028
     52+                                                                                                                    1000029
@@ -562,8 +562,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    442+//                                                                                                                  1000419
    443+// Returns the value of a string data structure (il_varchar).                                                       1000420
    444+//                                                                                                                  1000421
-   445+// Øparam String                                                                                                    1000422
-   446+// Øreturn Value of the string data structure                                                                       1000423
+   445+// ï¿½param String                                                                                                    1000422
+   446+// ï¿½return Value of the string data structure                                                                       1000423
    447+///                                                                                                                 1000424
    448+dcl-pr il_getVarcharValue varchar(524284:4) ccsid(*utf8) rtnparm                                                    1000425
    449+                extproc(*CWIDEN:'lvpc2lvc');                                                                        1000426
@@ -575,8 +575,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    455+//                                                                                                                  1000432
    456+// Returns the HTTP method from the request (like GET, POST, DELETE, ...).                                          1000433
    457+//                                                                                                                  1000434
-   458+// Øparam Request                                                                                                   1000435
-   459+// Øreturn HTTP method                                                                                              1000436
+   458+// ï¿½param Request                                                                                                   1000435
+   459+// ï¿½return HTTP method                                                                                              1000436
    460+///                                                                                                                 1000437
    461+dcl-pr il_getRequestMethod  varchar(256:2) ccsid(*utf8) rtnparm                                                     1000438
    462+                extproc(*CWIDEN:'il_getRequestMethod');                                                             1000439
@@ -595,8 +595,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
 Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
 Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
    474+//                                                                                                                  1000451
-   475+// Øparam Request                                                                                                   1000452
-   476+// Øreturn URL                                                                                                      1000453
+   475+// ï¿½param Request                                                                                                   1000452
+   476+// ï¿½return URL                                                                                                      1000453
    477+///                                                                                                                 1000454
    478+dcl-pr il_getRequestUrl  varchar(524284:4) ccsid(*utf8) rtnparm                                                     1000455
    479+                extproc(*CWIDEN:'il_getRequestUrl');                                                                1000456
@@ -610,8 +610,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    487+// http://localhost:8080/api/v1/iledocs/search?q=map&scope=full would return                                        1000464
    488+// /api/v1/iledocs/search .                                                                                         1000465
    489+//                                                                                                                  1000466
-   490+// Øparam Request                                                                                                   1000467
-   491+// Øreturn Resource                                                                                                 1000468
+   490+// ï¿½param Request                                                                                                   1000467
+   491+// ï¿½return Resource                                                                                                 1000468
    492+///                                                                                                                 1000469
    493+dcl-pr il_getRequestResource varchar(524284:4) ccsid(*utf8) rtnparm                                                 1000470
    494+                extproc(*CWIDEN:'il_getRequestResource');                                                           1000471
@@ -627,11 +627,11 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    504+// http://localhost:8000/folder//file : the second segment is empty and will                                        1000481
    505+// be returned as an empty value and the third segment is "file".                                                   1000482
    506+//                                                                                                                  1000483
-   507+// Øparam Request                                                                                                   1000484
-   508+// Øparam Index (0-based)                                                                                           1000485
-   509+// Øreturn Resource segment                                                                                         1000486
+   507+// ï¿½param Request                                                                                                   1000484
+   508+// ï¿½param Index (0-based)                                                                                           1000485
+   509+// ï¿½return Resource segment                                                                                         1000486
    510+//                                                                                                                  1000487
-   511+// Ødeprecated Use il_getPathParameter (parameter 4).                                                               1000488
+   511+// ï¿½deprecated Use il_getPathParameter (parameter 4).                                                               1000488
    512+///                                                                                                                 1000489
    513+dcl-pr il_getRequestSegmentByIndex varchar(524284:4) ccsid(*utf8) rtnparm                                           1000490
    514+                extproc(*CWIDEN:'il_getRequestSegmentByIndex');                                                     1000491
@@ -651,8 +651,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    525+// path and the query string is not part of the return value. If the URL does                                       1000502
    526+// not contain a query string a zero length string is returned.                                                     1000503
    527+//                                                                                                                  1000504
-   528+// Øparam Request                                                                                                   1000505
-   529+// Øreturn Query string                                                                                             1000506
+   528+// ï¿½param Request                                                                                                   1000505
+   529+// ï¿½return Query string                                                                                             1000506
    530+///                                                                                                                 1000507
    531+dcl-pr il_getRequestQueryString  varchar(524284:4) ccsid(*utf8) rtnparm                                             1000508
    532+                extproc(*CWIDEN:'il_getRequestQueryString');                                                        1000509
@@ -669,11 +669,11 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    543+// return value. If the URL does not contain a query string the default string                                      1000520
    544+// is returned.                                                                                                     1000521
    545+//                                                                                                                  1000522
-   546+// Øparam Request                                                                                                   1000523
-   547+// Øparam Query parameter key                                                                                       1000524
-   548+// Øparam Default value (returned if key does not exist in query string)                                            1000525
-   549+// Øreturn Query parameter string value                                                                             1000526
-   550+// Ødeprecated Use il_getQueryParameter instead.                                                                    1000527
+   546+// ï¿½param Request                                                                                                   1000523
+   547+// ï¿½param Query parameter key                                                                                       1000524
+   548+// ï¿½param Default value (returned if key does not exist in query string)                                            1000525
+   549+// ï¿½return Query parameter string value                                                                             1000526
+   550+// ï¿½deprecated Use il_getQueryParameter instead.                                                                    1000527
    551+///                                                                                                                 1000528
    552+dcl-pr il_getParmStr varchar(524284:4) ccsid(*utf8) rtnparm                                                         1000529
    553+                extproc(*CWIDEN:'il_getParmStr');                                                                   1000530
@@ -695,10 +695,10 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    566+// return value. If the URL does not contain a query string the default string                                      1000543
    567+// is returned.                                                                                                     1000544
    568+//                                                                                                                  1000545
-   569+// Øparam Request                                                                                                   1000546
-   570+// Øparam Query parameter key                                                                                       1000547
-   571+// Øparam Default value (returned if key does not exist in query string)                                            1000548
-   572+// Øreturn Query parameter string value                                                                             1000549
+   569+// ï¿½param Request                                                                                                   1000546
+   570+// ï¿½param Query parameter key                                                                                       1000547
+   571+// ï¿½param Default value (returned if key does not exist in query string)                                            1000548
+   572+// ï¿½return Query parameter string value                                                                             1000549
    573+///                                                                                                                 1000550
    574+dcl-pr il_getQueryParameter varchar(524284:4) ccsid(*utf8) rtnparm                                                  1000551
    575+                extproc(*CWIDEN:'il_getParmStr');                                                                   1000552
@@ -711,17 +711,17 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    582+// Get path parameter                                                                                               1000559
    583+//                                                                                                                  1000560
    584+// Returns the path parameter identified by the name of the path segment                                            1000561
-   585+// specified at il_addRoute (enclosed in æ and å ).                                                                 1000562
+   585+// specified at il_addRoute (enclosed in ï¿½ and ï¿½ ).                                                                 1000562
    586+// <br><br>                                                                                                         1000563
    587+// The passed default value will be returned when the URL does not contain the                                      1000564
    588+// named segment and when the path segment does not exist in the route                                              1000565
    589+// specified at il_addRoute().                                                                                      1000566
    590+//                                                                                                                  1000567
-   591+// Øparam Request                                                                                                   1000568
-   592+// Øparam Path segment name                                                                                         1000569
-   593+// Øparam Default value                                                                                             1000570
-   594+// Øparam Path segment index (0-based)                                                                              1000571
-   595+// Øreturn Path segment of the request URL or the default value                                                     1000572
+   591+// ï¿½param Request                                                                                                   1000568
+   592+// ï¿½param Path segment name                                                                                         1000569
+   593+// ï¿½param Default value                                                                                             1000570
+   594+// ï¿½param Path segment index (0-based)                                                                              1000571
+   595+// ï¿½return Path segment of the request URL or the default value                                                     1000572
    596+///                                                                                                                 1000573
    597+dcl-pr il_getPathParameter varchar(524284:4) ccsid(*utf8) rtnparm                                                   1000574
    598+                extproc(*CWIDEN:'il_getPathParameter');                                                             1000575
@@ -739,8 +739,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    607+//                                                                                                                  1000584
    608+// Returns the request protocol, f. e. HTTP/1.1 .                                                                   1000585
    609+//                                                                                                                  1000586
-   610+// Øparam Request                                                                                                   1000587
-   611+// Øreturn Protocol                                                                                                 1000588
+   610+// ï¿½param Request                                                                                                   1000587
+   611+// ï¿½return Protocol                                                                                                 1000588
    612+///                                                                                                                 1000589
    613+dcl-pr il_getRequestProtocol  varchar(256:2)  ccsid(*utf8) rtnparm                                                  1000590
    614+                extproc(*CWIDEN:'il_getRequestProtocol');                                                           1000591
@@ -752,8 +752,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    620+//                                                                                                                  1000597
    621+// Returns the request headers as they are in the HTTP message.                                                     1000598
    622+//                                                                                                                  1000599
-   623+// Øparam Request                                                                                                   1000600
-   624+// Øreturn HTTP headers                                                                                             1000601
+   623+// ï¿½param Request                                                                                                   1000600
+   624+// ï¿½return HTTP headers                                                                                             1000601
    625+///                                                                                                                 1000602
    626+dcl-pr il_getRequestHeaders  varchar(524284:4)  ccsid(*utf8) rtnparm                                                1000603
    627+                extproc(*CWIDEN:'il_getRequestHeaders');                                                            1000604
@@ -765,9 +765,9 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    633+//                                                                                                                  1000610
    634+// Returns a single request header.                                                                                 1000611
    635+//                                                                                                                  1000612
-   636+// Øparam Request                                                                                                   1000613
-   637+// Øparam HTTP header key                                                                                           1000614
-   638+// Øreturn HTTP header value                                                                                        1000615
+   636+// ï¿½param Request                                                                                                   1000613
+   637+// ï¿½param HTTP header key                                                                                           1000614
+   638+// ï¿½return HTTP header value                                                                                        1000615
    639+///                                                                                                                 1000616
    640+dcl-pr il_getRequestHeader  varchar(524284:4)  ccsid(*utf8) rtnparm                                                 1000617
    641+                extproc(*CWIDEN:'il_getRequestHeader');                                                             1000618
@@ -786,8 +786,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    651+// request data structure can be accessed directly to process the                                                   1000628
    652+// content block by block, see il_request.content.                                                                  1000629
    653+//                                                                                                                  1000630
-   654+// Øparam Request                                                                                                   1000631
-   655+// Øreturn HTTP message content                                                                                     1000632
+   654+// ï¿½param Request                                                                                                   1000631
+   655+// ï¿½return HTTP message content                                                                                     1000632
    656+///                                                                                                                 1000633
    657+dcl-pr il_getRequestContent  varchar(524284:4)  ccsid(*utf8) rtnparm                                                1000634
    658+                extproc(*CWIDEN:'il_getRequestContent');                                                            1000635
@@ -800,8 +800,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    665+// If the requested resource is a file then the corresponding MIME type to                                          1000642
    666+// the file will be returned.                                                                                       1000643
    667+//                                                                                                                  1000644
-   668+// Øparam File name                                                                                                 1000645
-   669+// Øreturn MIME type                                                                                                1000646
+   668+// ï¿½param File name                                                                                                 1000645
+   669+// ï¿½return MIME type                                                                                                1000646
    670+///                                                                                                                 1000647
    671+dcl-pr il_getFileMimeType  varchar(256:2)  rtnparm                                                                  1000648
    672+                extproc(*CWIDEN:'il_getFileMimeType');                                                              1000649
@@ -814,8 +814,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    679+// If the requested resource is a file then the file extension will be returned.                                    1000656
    680+// A request for http://localhost:8080/index.html will return html.                                                 1000657
    681+//                                                                                                                  1000658
-   682+// Øparam File name                                                                                                 1000659
-   683+// Øreturn File extension                                                                                           1000660
+   682+// ï¿½param File name                                                                                                 1000659
+   683+// ï¿½return File extension                                                                                           1000660
    684+///                                                                                                                 1000661
    685+dcl-pr il_getFileExtension  varchar(256:2)  rtnparm                                                                 1000662
    686+                extproc(*CWIDEN:'il_getFileExtension');                                                             1000663
@@ -830,11 +830,11 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
 Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
 Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
    694+//                                                                                                                  1000671
-   695+// Øparam Configuration                                                                                             1000672
-   696+// Øparam Servlet                                                                                                   1000673
+   695+// ï¿½param Configuration                                                                                             1000672
+   696+// ï¿½param Servlet                                                                                                   1000673
    697+///                                                                                                                 1000674
    698+dcl-pr il_listen extproc(*CWIDEN:'il_listen');                                                                      1000675
-   699+    config      likeds(il_config);                                                                                  1000676
+   699+    config      likeds(il_config) inz(*likeds);;                                                                                  1000676
    700+    servlet     pointer(*PROC) value options(*nopass) ;                                                             1000677
    701+end-pr;                                                                                                             1000678
    702+                                                                                                                    1000679
@@ -844,9 +844,9 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    706+// Adds an HTTP header to the response sent to the client. The same HTTP header                                     1000683
    707+// key can be added multiple times to the response, the old value is not replaced.                                  1000684
    708+//                                                                                                                  1000685
-   709+// Øparam response Response                                                                                         1000686
-   710+// Øparam HTTP header key                                                                                           1000687
-   711+// Øparam HTTP header value                                                                                         1000688
+   709+// ï¿½param response Response                                                                                         1000686
+   710+// ï¿½param HTTP header key                                                                                           1000687
+   711+// ï¿½param HTTP header value                                                                                         1000688
    712+///                                                                                                                 1000689
    713+dcl-pr il_addHeader extproc(*CWIDEN:'il_addHeader');                                                                1000690
    714+    response    likeds(il_response);                                                                                1000691
@@ -862,10 +862,10 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    724+// HTTP message in chunked transport mode. The receiving side builds one                                            1000701
    725+// HTTP message from all sent chunks.                                                                               1000702
    726+//                                                                                                                  1000703
-   727+// Øparam Response                                                                                                  1000704
-   728+// Øparam Response message content.                                                                                 1000705
+   727+// ï¿½param Response                                                                                                  1000704
+   728+// ï¿½param Response message content.                                                                                 1000705
    729+//                                                                                                                  1000706
-   730+// Øinfo The response data structure must be filled with the correct values                                         1000707
+   730+// ï¿½info The response data structure must be filled with the correct values                                         1000707
    731+//       (f. e. the HTTP status code) for the response on the first call of                                         1000708
    732+//       this procedure for the HTTP response.                                                                      1000709
    733+///                                                                                                                 1000710
@@ -886,10 +886,10 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    745+// HTTP message from all sent chunks. The content of the message will be                                            1000722
    746+// written without any character conversion.                                                                        1000723
    747+//                                                                                                                  1000724
-   748+// Øparam Response                                                                                                  1000725
-   749+// Øparam Response message content.                                                                                 1000726
+   748+// ï¿½param Response                                                                                                  1000725
+   749+// ï¿½param Response message content.                                                                                 1000726
    750+//                                                                                                                  1000727
-   751+// Øinfo The response data structure must be filled with the correct values                                         1000728
+   751+// ï¿½info The response data structure must be filled with the correct values                                         1000728
    752+//       (f. e. the HTTP status code) for the response on the first call of                                         1000729
    753+//       this procedure for the HTTP response.                                                                      1000730
    754+///                                                                                                                 1000731
@@ -903,9 +903,9 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    762+//                                                                                                                  1000739
    763+// Writes the content of the file to the response message.                                                          1000740
    764+//                                                                                                                  1000741
-   765+// Øparam Response                                                                                                  1000742
-   766+// Øparam File name                                                                                                 1000743
-   767+// Øreturn <code>*on</code> = error , <code>*off</code> = success                                                   1000744
+   765+// ï¿½param Response                                                                                                  1000742
+   766+// ï¿½param File name                                                                                                 1000743
+   767+// ï¿½return <code>*on</code> = error , <code>*off</code> = success                                                   1000744
    768+///                                                                                                                 1000745
    769+dcl-pr il_serveStatic ind extproc(*CWIDEN:'il_serveStatic');                                                        1000746
    770+    response    likeds(il_response);                                                                                1000747
@@ -917,8 +917,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    776+//                                                                                                                  1000753
    777+// Writes the content of the stream to the response message.                                                        1000754
    778+//                                                                                                                  1000755
-   779+// Øparam Response                                                                                                  1000756
-   780+// Øparam Stream - Pointer returned by i.e. json_stream from noxDB                                                  1000757
+   779+// ï¿½param Response                                                                                                  1000756
+   780+// ï¿½param Stream - Pointer returned by i.e. json_stream from noxDB                                                  1000757
    781+///                                                                                                                 1000758
  5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     21
 Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
@@ -966,19 +966,19 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    822+//                                                                                                                  1000799
    823+// A servlet is added to the server with the passed routing information.                                            1000800
    824+//                                                                                                                  1000801
-   825+// Øparam Configuration                                                                                             1000802
+   825+// ï¿½param Configuration                                                                                             1000802
  5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     22
 Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
 Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
-   826+// Øparam Servlet                                                                                                   1000803
-   827+// Øparam HTTP Method (multiple methods can be specified like this:                                                 1000804
+   826+// ï¿½param Servlet                                                                                                   1000803
+   827+// ï¿½param HTTP Method (multiple methods can be specified like this:                                                 1000804
    828+//        IL_GET + IL_POST, default: IL_ANY)                                                                        1000805
-   829+// Øparam Path (default: / )                                                                                        1000806
-   830+// Øparam Content type (default: application/json)                                                                  1000807
-   831+// Øparam Route Id                                                                                                  1000808
+   829+// ï¿½param Path (default: / )                                                                                        1000806
+   830+// ï¿½param Content type (default: application/json)                                                                  1000807
+   831+// ï¿½param Route Id                                                                                                  1000808
    832+///                                                                                                                 1000809
    833+dcl-pr il_addRoute extproc(*CWIDEN:'il_addRoute');                                                                  1000810
-   834+    config       likeds(il_config);                                                                                 1000811
+   834+    config       likeds(il_config) inz(*likeds);;                                                                                 1000811
    835+    servlet      pointer(*PROC) value;                                                                              1000812
    836+    httpMethods  int(5) value options(*nopass);                                                                     1000813
    837+    route        varchar(1024) const options(*omit : *nopass) ccsid(37);                                            1000814
@@ -1004,13 +1004,13 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    857+// A servlet that can handle pre and post request. A prerequest can return                                          1000834
    858+// *OFF to stop futher processing.                                                                                  1000835
    859+//                                                                                                                  1000836
-   860+// Øparam Configuration                                                                                             1000837
-   861+// Øparam Plugin                                                                                                    1000838
-   862+// Øparam Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be                                              1000839
+   860+// ï¿½param Configuration                                                                                             1000837
+   861+// ï¿½param Plugin                                                                                                    1000838
+   862+// ï¿½param Type (when to run): IL_PREREQUEST + IL_POSTRESPONSE : can be                                              1000839
    863+//        either/or simply add together                                                                             1000840
    864+///                                                                                                                 1000841
    865+dcl-pr il_addPlugin extproc(*CWIDEN:'il_addPlugin');                                                                1000842
-   866+    config       likeds(il_config);                                                                                 1000843
+   866+    config       likeds(il_config) inz(*likeds);;                                                                                 1000843
    867+    plugin       pointer(*PROC) value;                                                                              1000844
    868+    pluginType   int(5) value;                                                                                      1000845
    869+end-pr;                                                                                                             1000846
@@ -1025,12 +1025,12 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    875+// This starts an extra thread that calls your callback procedure.                                                  1000852
    876+// Returning *OFF will terminate the ILEastic application server.                                                   1000853
    877+//                                                                                                                  1000854
-   878+// Øparam Configuration                                                                                             1000855
-   879+// Øparam Address to plugin procedure                                                                               1000856
-   880+// Øparam Seconds between calls                                                                                     1000857
+   878+// ï¿½param Configuration                                                                                             1000855
+   879+// ï¿½param Address to plugin procedure                                                                               1000856
+   880+// ï¿½param Seconds between calls                                                                                     1000857
    881+///                                                                                                                 1000858
    882+dcl-pr il_setSchedulerPlugin extproc(*CWIDEN:'il_setSchedulerPlugin');                                              1000859
-   883+    config       likeds(il_config);                                                                                 1000860
+   883+    config       likeds(il_config) inz(*likeds);;                                                                                 1000860
    884+    plugin       pointer(*PROC) value;                                                                              1000861
    885+    timerSec     int(5) value;                                                                                      1000862
    886+end-pr;                                                                                                             1000863
@@ -1056,10 +1056,10 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    906+//                                                                                                                  1000883
    907+// Decodes a base64 encoded string.                                                                                 1000884
    908+//                                                                                                                  1000885
-   909+// Øparam Encoded string                                                                                            1000886
-   910+// Øreturn Decoded string                                                                                           1000887
+   909+// ï¿½param Encoded string                                                                                            1000886
+   910+// ï¿½return Decoded string                                                                                           1000887
    911+//                                                                                                                  1000888
-   912+// Øinfo The character encoding for the original value is expected to be UTF-8.                                     1000889
+   912+// ï¿½info The character encoding for the original value is expected to be UTF-8.                                     1000889
    913+///                                                                                                                 1000890
  5770WDS V7R4M0  190419 RN        IBM ILE RPG             ILEASTIC/SWAGROUTE       DKSRV134   06-11-23 23:13:25        Page     24
 Line   <---------------------- Source Specifications ----------------------------------------------------->  Do  Change Src Seq
@@ -1073,10 +1073,10 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    920+//                                                                                                                  1000897
    921+// Encodes a string into base64 .                                                                                   1000898
    922+//                                                                                                                  1000899
-   923+// Øparam string to encode                                                                                          1000900
-   924+// Øreturn Encoded string                                                                                           1000901
+   923+// ï¿½param string to encode                                                                                          1000900
+   924+// ï¿½return Encoded string                                                                                           1000901
    925+//                                                                                                                  1000902
-   926+// Øinfo The character encoding for the original value is expected to be UTF-8.                                     1000903
+   926+// ï¿½info The character encoding for the original value is expected to be UTF-8.                                     1000903
    927+///                                                                                                                 1000904
    928+dcl-pr il_encodeBase64 varchar(524284:4) ccsid(*utf8) extproc(*CWIDEN : 'il_encodeBase64') rtnparm;                 1000905
    929+  string varchar(524284:4) ccsid(*utf8) options(*varsize) const;                                                    1000906
@@ -1090,8 +1090,8 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    937+//                                                                                                                  1000914
    938+//    il_joblog('This is %s a test' : 'Super');                                                                     1000915
    939+//                                                                                                                  1000916
-   940+// Øparam format string                                                                                             1000917
-   941+// Øparam Parms : list of strings                                                                                   1000918
+   940+// ï¿½param format string                                                                                             1000917
+   941+// ï¿½param Parms : list of strings                                                                                   1000918
    942+//                                                                                                                  1000919
    943+///                                                                                                                 1000920
    944+dcl-pr il_joblog extproc(*CWIDEN : 'il_joblog') ;                                                                   1000921
@@ -1117,7 +1117,7 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    961+// Returns a graph of the thread local storage. You can access the graph with                                       1000938
    962+// the noxDB API. Paths starting with /ileastic are framework specific values.                                      1000939
    963+//                                                                                                                  1000940
-   964+// Øreturn Pointer to thread local storage                                                                          1000941
+   964+// ï¿½return Pointer to thread local storage                                                                          1000941
    965+///                                                                                                                 1000942
    966+dcl-pr il_getThreadMem pointer extproc('il_getThreadMem');                                                          1000943
    967+  request likeds(il_request);                                                                                       1000944
@@ -1159,11 +1159,11 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
    990+// As an extra feature it also provide a endpoint for openAPI ( swagger) for                                        2000014
    991+// endpoints loaded this way                                                                                        2000015
    992+//                                                                                                                  2000016
-   993+// Øauthor Niels Liisberg                                                                                           2000017
-   994+// Ødate   05.11.2023                                                                                               2000018
-   995+// Øproject ILEastic                                                                                                2000019
+   993+// ï¿½author Niels Liisberg                                                                                           2000017
+   994+// ï¿½date   05.11.2023                                                                                               2000018
+   995+// ï¿½project ILEastic                                                                                                2000019
    996+//                                                                                                                  2000020
-   997+// Ørev 05.11.2023  Niels Liisberg                                                                                  2000021
+   997+// ï¿½rev 05.11.2023  Niels Liisberg                                                                                  2000021
    998+//      Initial commit                                                                                              2000022
    999+///                                                                                                                 2000023
   1000+                                                                                                                    2000024
@@ -1174,17 +1174,17 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
   1005+//                                                                                                                  2000029
   1006+// A servlet is added to the server with the passed routing information.                                            2000030
   1007+//                                                                                                                  2000031
-  1008+// Øparam Configuration                                                                                             2000032
-  1009+// Øparam library name kwhere program exists                                                                        2000033
-  1010+// Øparam program name. Compiled with: Ctl-Opt PGMINFO(*PCML:*MODULE);                                              2000034
-  1011+// Øparam HTTP Method (multiple methods can be specified like this:                                                 2000035
+  1008+// ï¿½param Configuration                                                                                             2000032
+  1009+// ï¿½param library name kwhere program exists                                                                        2000033
+  1010+// ï¿½param program name. Compiled with: Ctl-Opt PGMINFO(*PCML:*MODULE);                                              2000034
+  1011+// ï¿½param HTTP Method (multiple methods can be specified like this:                                                 2000035
   1012+//        IL_GET + IL_POST, default: IL_ANY)                                                                        2000036
-  1013+// Øparam Path (default: / )                                                                                        2000037
-  1014+// Øparam Content type (default: application/json)                                                                  2000038
-  1015+// Øparam Route Id                                                                                                  2000039
+  1013+// ï¿½param Path (default: / )                                                                                        2000037
+  1014+// ï¿½param Content type (default: application/json)                                                                  2000038
+  1015+// ï¿½param Route Id                                                                                                  2000039
   1016+///                                                                                                                 2000040
   1017+dcl-pr il_addProgramRoute extproc(*CWIDEN:'il_addProgramRoute');                                                    2000041
-  1018+    config       likeds(il_config);                                                                                 2000042
+  1018+    config       likeds(il_config) inz(*likeds);;                                                                                 2000042
   1019+    library      char(10) const ccsid(37);                                                                          2000043
   1020+    program      char(10) const ccsid(37);                                                                          2000044
   1021+    httpMethods  int(5) value options(*nopass);                                                                     2000045
@@ -1201,7 +1201,7 @@ Line   <---------------------- Source Specifications ---------------------------
 Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....8....+....9....+...10  Num Date   Id  Number
   1030 dcl-proc main;                                                                                                       000030
   1031                                                                                                                      000031
-  1032     dcl-ds config likeds(il_config);                                                                                 000032
+  1032     dcl-ds config likeds(il_config) inz(*likeds);;                                                                                 000032
   1033                                                                                                                      000033
   1034     config.port = 44045;                                                                                             000034
   1035     config.host = '*ANY';                                                                                            000035
@@ -1209,11 +1209,11 @@ Number ....+....1....+....2....+....3....+....4....+....5....+....6....+....7...
   1037     // The resource paths must be entered as a regular expression.                                                   000037
   1038     //                                                                                                               000038
   1039     // ^ means that a matching request must start here                                                               000039
-  1040     // Å means that a matching request must end here                                                                 000040
+  1040     // ï¿½ means that a matching request must end here                                                                 000040
   1041     //                                                                                                               000041
   1042     // This means that a request for /timestamp or /api/date will                                                    000042
   1043     // not be routed to one of these end points and will return 404 NOT FOUND.                                       000043
-  1044     il_addProgramRoute(config : '*LIBL' : 'HELLOPGM'  : IL_ANY : '^/helloÅ');                                        000044
+  1044     il_addProgramRoute(config : '*LIBL' : 'HELLOPGM'  : IL_ANY : '^/helloï¿½');                                        000044
   1045                                                                                                                      000045
   1046     il_listen(config);                                                                                               000046
   1047                                                                                                                      000047

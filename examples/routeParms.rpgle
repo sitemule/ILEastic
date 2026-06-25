@@ -35,7 +35,7 @@ ctl-opt ccsid(*CHAR:37);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     
     config.port = 44010; 
     config.host = '*ANY';

@@ -8,7 +8,6 @@
 # (make clean).
 BIN_LIB=ILEASTIC
 
-TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
 
@@ -19,12 +18,17 @@ RU_LIB=*LIBL
 # User-defined part end
 #-------------------------------------------------------------------------------
 
-TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
+OS_VERSION=$(shell echo "$$(uname -v)$$(uname -r)")
+HAS_TGTCCSID=$(shell if [ $(OS_VERSION) -ge 74 ]; then echo yes; else echo no; fi)
+ifeq ($(HAS_TGTCCSID),yes)
+RPG_TGTCCSID=TGTCCSID(37)
+endif
+
 SRVPGMS = ($(RU_LIB)/RUTESTCASE) ($(BIN_LIB)/JSONXML)
 OBJECTS = HMACUT RSAUT JWTUT JWTPLUGUT
 
 # RCFLAGS = RPG compiler parameter
-RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../../headers' '../.' '../../..') DBGVIEW(*ALL) TGTRLS($(TARGET_RLS)) DEFINE($(DEFINE)) $(TGTCCSID)
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../../headers' '../.' '../../..') DBGVIEW(*ALL) TGTRLS($(TARGET_RLS)) DEFINE($(DEFINE)) $(RPG_TGTCCSID)
 
 # Bind options
 BINDFLAGS=STGMDL(*SNGLVL) BNDSRVPGM($(SRVPGMS)) EXPORT(*ALL) OPTION(*DUPPROC)

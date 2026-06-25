@@ -34,6 +34,10 @@ dcl-proc main;
     
     config.port = 44000; 
     config.host = '*ANY';
+
+    il_setKeyfile(config : '/prj/icebreak.kdb' : 'john1234');
+
+    
     
     il_listen (config : %paddr(myservlet));
  

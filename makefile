@@ -11,7 +11,7 @@
 BIN_LIB=ILEASTIC
 LIBLIST=$(BIN_LIB)
 TARGET_RLS=*CURRENT
-OUTPUT=*NONE
+OUTPUT=*PRINT
 MAKE=/QOpenSys/pkgs/bin/gmake
 
 BIND_LIB=*LIBL
@@ -33,12 +33,20 @@ export USRINCDIR=/usr/local/include
 # system and application include folder
 INCLUDE='/QIBM/include' 'headers/' 'ILEfastCGI/include' 'noxDB/headers'
 
-# CCFLAGS = C compiler parameter
-CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE)) 
+# TGTCCSID is only valid for RPG compilers on IBM i 7.4+
+OS_VERSION=$(shell echo "$$(uname -v)$$(uname -r)")
+HAS_TGTCCSID=$(shell if [ $(OS_VERSION) -ge 74 ]; then echo yes; else echo no; fi)
+ifeq ($(HAS_TGTCCSID),yes)
+RPG_TGTCCSID=TGTCCSID(37)
+endif
+
+# CCFLAGS = C compiler parameter (CRTCMOD always supports TGTCCSID)
+CCFLAGS2=OPTION(*STDLOGMSG) OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*ALL) INCDIR($(INCLUDE))
+RPGFLAGS2=OUTPUT($(OUTPUT)) $(RPG_TGTCCSID) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL) OPTION(*NOXREF *NOUNREF *NOSHOWCPY)
 
 MODULES = $(BIN_LIB)/githash $(BIN_LIB)/stream $(BIN_LIB)/ileastic $(BIN_LIB)/ileasticr $(BIN_LIB)/varchar $(BIN_LIB)/api $(BIN_LIB)/sndpgmmsg $(BIN_LIB)/strutil $(BIN_LIB)/e2aa2e $(BIN_LIB)/xlate $(BIN_LIB)/simpleList $(BIN_LIB)/serialize $(BIN_LIB)/base64 $(BIN_LIB)/fastCGI $(BIN_LIB)/teramem $(BIN_LIB)/mediatype
 	
-all: env noxDB ILEfastCGI compile bind
+all: env noxDB ILEfastCGI compile
  
 env:
 	-system -qi "CRTLIB $(BIN_LIB) TYPE(*TEST) TEXT('ILEastic: Programmable applications server for ILE')"                                          
@@ -48,15 +56,6 @@ env:
 	-system -q "CRTSRCPF FILE($(BIN_LIB)/QRPGLEREF) RCDLEN(132)"
 	system "CPYFRMSTMF FROMSTMF('headers/ileastic.rpgle') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QRPGLEREF.file/ileastic.mbr') MBROPT(*REPLACE)"
 
-compile: .PHONY
-# get the git hash and put it into the version file so it becomes part of the copyright notice in the service program
-	-$(eval gitshort := $(shell git rev-parse --short HEAD))
-	-$(eval githash := $(shell git rev-parse --verify HEAD))
-	-touch src/githash.c 
-	-setccsid 1252 src/githash.c
-	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > src/githash.c 
-
-	cd src && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
 noxDB: .PHONY
 	cd noxDB && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
@@ -64,20 +63,12 @@ noxDB: .PHONY
 ILEfastCGI: .PHONY
 	cd ILEfastCGI && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 
-		
-bind:
 
-	liblist -a $(LIBLIST);\
-	system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)";\
-	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
-	system "CPYFRMSTMF FROMSTMF('headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
-	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
-	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES)) TGTRLS($(TARGET_RLS)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')";
-ifndef KEEP_MODULES
-	@for module in $(MODULES); do\
-		system -q "dltmod $$module" ; \
-	done
-endif
+compile: .PHONY
+	cd src && $(MAKE) BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
+
+bind: .PHONY
+	cd src && $(MAKE) bind BIN_LIB=$(BIN_LIB) TARGET_RLS=$(TARGET_RLS)
 clean:
 	-system -q "CLRLIB $(BIN_LIB)"
 
@@ -90,9 +81,8 @@ $(PLUGINS): .PHONY
 
 plugins: $(PLUGINS)
 
-# For vsCode 
-current: env
-	system "CRTCMOD MODULE($(BIN_LIB)/$(SRC)) SRCSTMF('src/$(SRC).c') $(CCFLAGS2) "
+bind-update:
+	liblist -a $(LIBLIST);\
 	system -ik "UPDSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(MODULES))"
 
 # install the copybooks in the user provided directory (variable USRINCDIR)

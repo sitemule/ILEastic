@@ -28,7 +28,7 @@ ctl-opt thread(*CONCURRENT);
 // Program Entry Points-------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     
     config.port = 44000; 
     config.host = '*ANY';

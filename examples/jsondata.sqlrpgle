@@ -35,7 +35,7 @@ ctl-opt thread(*CONCURRENT);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
 
     config.port = 44001; 
     config.host = '*ANY';

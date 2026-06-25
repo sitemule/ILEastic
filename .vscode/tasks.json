@@ -5,101 +5,105 @@
     
     "version": "2.0.0",
     "tasks": [
+
         {
-            "label": "Compile current file (and update ILEastic service program)",
-            "command": "ssh -t my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake current SRC=${fileBasenameNoExtension}'",
+            "label": "Remote sync: Build all",
             "type": "shell",
+            "command": ".sitemule/sync_build.sh all",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
-            // Use the standard less compilation problem matcher.
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
             "problemMatcher": {
                 "owner": "c",
-                "fileLocation": ["relative", "${workspaceRoot}"],
+                "fileLocation": ["relative", "${workspaceFolder}/src"],
                 "pattern": {
-                    //"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    // src/ileastic.c, 241.2: CZM0045(30) Undeclared identifier a.
-                    
                     "regexp": "^(.*), (\\d+)\\.(\\d+):\\s+(.*)$",
                     "file": 1,
                     "line": 2,
                     "column": 3,
-                    // "severity": 4,
                     "message": 4
                 }
             }
         },
         {
-            "label": "Compile Service program ILEastic",
-            "command": "ssh my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/;gmake all'",
+            "label": "Remote sync: Build all in current directory",
             "type": "shell",
+            "command": ".sitemule/sync_build.sh all-here SRCDIR=${relativeFileDirname}",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
             },
             "problemMatcher": [
-                // "$gcc"
+                {
+                    "owner": "c",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": {
+                        "regexp": "^(.*), (\\d+)\\.(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "message": 4
+                    }
+                },
+                {
+                    "owner": "rpg",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": {
+                        "regexp": "^(.*):.*\\s{3,6}(\\d+)\\s{1}(\\d+)\\s{1}\\s+(.*)$",
+                        "file": 1,
+                        "line": 3,
+                        "message": 4
+                    }
+                }
             ]
         },
         {
-            "label": "Compile all example files",
-            "command": "ssh -t my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake '",
+        // ── Compile the file open in the editor ───────────────────────
+            "label": "Remote sync: Compile current file",
             "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "command": ".sitemule/sync_build.sh current SRCDIR=${relativeFileDirname} SRC=${fileBasename}",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
             },
             "problemMatcher": [
-                // "$gcc"
-            ],
-            
-        },
-        // NOTE: OBJECT are overridden by the command line, so OBJECT will be "this" files 
-        {
-            "label": "Compile current example file",
-            "command": "ssh -t my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/examples/;gmake ${fileBasenameNoExtension} OUTPUT=*PRINT'",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            // Use the standard less compilation problem matcher.
-            "problemMatcher": {
-                "owner": "c",
-                "fileLocation": ["relative", "${workspaceRoot}/examples"],
-                "pattern": {
-                    // FileName: *RNF7030 30    399 000022  The name or indicator A is not defined.
-                    "regexp": "^(.*):.*\\s{3,6}(\\d+)\\s{1}(\\d+)\\s{1}\\s+(.*)$",
-                    "file": 1,
-                    "line": 3,
-                    //"column": 3,
-                    // "severity": 4,
-                    "message": 4
+                // C source files
+                {
+                    "owner": "c",
+                    "fileLocation": ["relative", "${workspaceFolder}/src"],
+                    "pattern": {
+                        "regexp": "^(.*), (\\d+)\\.(\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "message": 4
+                    }
+                },
+                // RPG source files
+                {
+                    "owner": "rpg",
+                    "fileLocation": ["relative", "${workspaceFolder}/src"],
+                    "pattern": {
+                        "regexp": "^(.*):.*\\s{3,6}(\\d+)\\s{1}(\\d+)\\s{1}\\s+(.*)$",
+                        "file": 1,
+                        "line": 3,
+                        "message": 4
+                    }
                 }
-            }
-        },{
-            "label": "Compile openAPI plugin ",
-            "command": "ssh my_ibm_i 'PATH=/QOpenSys/pkgs/bin:$PATH;cd /prj/ILEastic/plugins/openAPI/;gmake all'",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": {
-                "owner": "c",
-                "fileLocation": [ "relative","${relativeFileDirname}"],
-                "pattern": {
-                    // addpgmrte.c, 72.65: CZM0276(30) Syntax error: possible missing ')'?
-                    "regexp": "^(.*), (\\d+).(\\d+): (.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    // "severity": 4,
-                    "message": 4
-                }
-            }
+            ]
         },
-
     ]
 }

@@ -34,7 +34,7 @@ ctl-opt thread(*CONCURRENT);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     
     config.port = 44004; 
     config.host = '*ANY';
@@ -52,7 +52,7 @@ end-proc;
 dcl-proc myScheduler;
 
     dcl-pi *n ind;
-        config  likeds(IL_CONFIG);
+        config  likeds(il_config) inz(*likeds);;
     end-pi;
     dcl-s countDown int(5) static inz(10); // count from 10 and down 
 

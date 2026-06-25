@@ -35,7 +35,7 @@ dcl-c CURLY_CLOSE u'007D';
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     
     config.port = 44001; 
     config.host = '*ANY';

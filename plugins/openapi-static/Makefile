@@ -9,7 +9,6 @@
 export BIN_LIB=ILEASTIC
 
 export DBGVIEW=*ALL
-export TARGET_CCSID=*JOB
 export TARGET_RLS=*CURRENT
 export OUTPUT=*NONE
 
@@ -17,11 +16,14 @@ export OUTPUT=*NONE
 # User-defined part end
 #-------------------------------------------------------------------------------
 
-TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
-
+OS_VERSION=$(shell echo "$$(uname -v)$$(uname -r)")
+HAS_TGTCCSID=$(shell if [ $(OS_VERSION) -ge 74 ]; then echo yes; else echo no; fi)
+ifeq ($(HAS_TGTCCSID),yes)
+RPG_TGTCCSID=TGTCCSID(37)
+endif
 
 # CFLAGS = compiler parameter
-RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' 'ext/llist') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('../../headers' 'ext/llist') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(RPG_TGTCCSID)
 
 # CCFLAGS = C/C++ compiler parameter
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) TGTCCSID(37) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) DBGVIEW(*LIST)

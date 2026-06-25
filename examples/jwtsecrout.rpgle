@@ -32,7 +32,7 @@ ctl-opt thread(*CONCURRENT);
 // Program Entry Point
 // -----------------------------------------------------------------------------
 dcl-proc main;
-  dcl-ds config likeds(il_config);
+  dcl-ds config likeds(il_config) inz(*likeds);;
   dcl-ds jwtOptions likeds(jwt_options_t) inz;
 
   // The server will listen on port 44000.

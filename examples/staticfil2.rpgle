@@ -29,7 +29,7 @@ ctl-opt main(main);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(IL_CONFIG);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     config.port = 44012;  // Is overridden if envvar I_PORT is set
     config.host = '*ANY'; // Is overridden if envvar I_INTERFACE is set
 

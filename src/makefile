@@ -9,6 +9,7 @@
 # Binder source file and rpg module can be remove with the clean step 
 # (make clean).
 BIN_LIB=ILEASTIC
+LIBLIST=$(BIN_LIB)
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
 OS_VERSION=$(shell echo "$$(uname -v)$$(uname -r)")
@@ -20,6 +21,9 @@ endif
 # User-defined part end
 #-------------------------------------------------------------------------------
 
+# The shell we use
+SHELL=/QOpenSys/usr/bin/qsh
+
 
 # system and application include folder
 INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/headers'
@@ -28,7 +32,10 @@ INCLUDE='/QIBM/include' '../headers/' '../' '../ILEfastCGI/include' '../noxDB/he
 CCFLAGS=OUTPUT($(OUTPUT)) OPTIMIZE(10) $(TGTCCSID) TGTRLS($(TARGET_RLS)) ENUM(*INT) TERASPACE(*YES) STGMDL(*INHERIT) SYSIFCOPT(*IFSIO) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 RPGFLAGS=OUTPUT($(OUTPUT)) $(TGTCCSID) TGTRLS($(TARGET_RLS)) INCDIR($(INCLUDE)) DBGVIEW(*ALL)
 
+LIBLIST=$(BIN_LIB)
+BIND_LIB=*LIBL
 MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate simpleList serialize base64 fastCGI teramem ileasticr mediatype
+SRVPGM_MODULES = $(addprefix $(BIN_LIB)/,$(MODULES))
 
 .SUFFIXES: .c .rpgmod .sqlrpgmod
 
@@ -44,7 +51,23 @@ MODULES = githash stream ileastic varchar api sndpgmmsg strUtil e2aa2e xlate sim
 	system -i "CHGATR OBJ('$<') ATR(*CCSID) VALUE(1252)"
 	system -ik "CRTSQLRPGI OBJ($(BIN_LIB)/$@) SRCSTMF('$<') OBJTYPE(*MODULE) RPGPPOPT(*LVL2) COMMIT(*NONE) DBGVIEW(*SOURCE) TGTRLS($(TARGET_RLS)) COMPILEOPT('$(TGTCCSID) INCDIR($(subst ','',$(INCLUDE)))')"
 
-all: compile
+all: compile bind
 
-compile: $(MODULES) 
+compile: .PHONY
+# update git hash in the copyright notice of the service program
+	-$(eval gitshort := $(shell git rev-parse --short HEAD))
+	-$(eval githash := $(shell git rev-parse --verify HEAD))
+	-touch githash.c
+	-setccsid 1252 githash.c
+	-echo "#pragma comment(copyright,\"System & Method A/S - Sitemule: git checkout $(gitshort) (hash: $(githash) )\")" > githash.c
+	$(MAKE) $(MODULES)
 
+bind:
+	liblist -a $(LIBLIST);\
+	system -q "DLTOBJ OBJ($(BIN_LIB)/QSRVSRC) OBJTYPE(*FILE)";\
+	system "CRTSRCPF FILE($(BIN_LIB)/QSRVSRC) RCDLEN(112)";\
+	system "CPYFRMSTMF FROMSTMF('../headers/ileastic.bnd') TOMBR('/QSYS.lib/$(BIN_LIB).lib/QSRVSRC.file/ILEASTIC.mbr') MBROPT(*replace)";\
+	system -q "DLTOBJ OBJ($(BIN_LIB)/ILEASTIC) OBJTYPE(*SRVPGM)";\
+	system -kpieb "CRTSRVPGM SRVPGM($(BIN_LIB)/ILEASTIC) MODULE($(SRVPGM_MODULES)) TGTRLS($(TARGET_RLS)) BNDSRVPGM(($(BIND_LIB)/ILEFASTCGI *DEFER) ($(BIND_LIB)/JSONXML *DEFER)) OPTION(*DUPPROC) DETAIL(*BASIC) STGMDL(*INHERIT) SRCFILE($(BIN_LIB)/QSRVSRC) TEXT('ILEastic - programable applicationserver for ILE')"
+
+.PHONY:

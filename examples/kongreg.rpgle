@@ -25,7 +25,7 @@ ctl-opt bnddir('ILEASTIC/ILEASTIC' : 'ILEASTIC/JSONXML' : 'ILEVATOR/ILEVATOR');
 /include 'kong.rpginc'
  
 dcl-proc main;
-    dcl-ds config likeds(il_config);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     dcl-s ilevator pointer;
     dcl-s authIlevator pointer;
     dcl-ds authProvider likeds(il_kong_oauth2AuthProvider_t) inz;

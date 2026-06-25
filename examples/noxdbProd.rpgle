@@ -32,7 +32,7 @@ ctl-opt main(main);
 // -----------------------------------------------------------------------------     
 dcl-proc main;
 
-    dcl-ds config likeds(IL_CONFIG);
+    dcl-ds config likeds(il_config) inz(*likeds);;
     config.port = 44025; 
     config.host = '*ANY';
 

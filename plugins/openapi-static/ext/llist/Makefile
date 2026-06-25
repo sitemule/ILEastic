@@ -9,7 +9,6 @@
 BIN_LIB=ILEASTIC
 
 DBGVIEW=*ALL
-TARGET_CCSID=*JOB
 TARGET_RLS=*CURRENT
 OUTPUT=*NONE
 
@@ -17,11 +16,14 @@ OUTPUT=*NONE
 # User-defined part end
 #-------------------------------------------------------------------------------
 
-TGTCCSID = $(if $(filter V7R3M0,$(TARGET_RLS)), "" , TGTCCSID($(TARGET_CCSID)))
-
+OS_VERSION=$(shell echo "$$(uname -v)$$(uname -r)")
+HAS_TGTCCSID=$(shell if [ $(OS_VERSION) -ge 74 ]; then echo yes; else echo no; fi)
+ifeq ($(HAS_TGTCCSID),yes)
+RPG_TGTCCSID=TGTCCSID(37)
+endif
 
 # CFLAGS = compiler parameter
-RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('.') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(TGTCCSID)
+RCFLAGS=OUTPUT($(OUTPUT)) OPTION(*NOUNREF *SRCSTMT) STGMDL(*INHERIT) INCDIR('.') DBGVIEW($(DBGVIEW)) TGTRLS($(TARGET_RLS)) $(RPG_TGTCCSID)
 
 MODULES = llist llist_sort
 
