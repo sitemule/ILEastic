@@ -366,8 +366,27 @@ dcl-c IL_MEDIA_TYPE_JSON 'application/json';
 ///
 dcl-c IL_MEDIA_TYPE_XML 'application/xml';
 
+///
+// Generic <code>true</code> constant
+///
 dcl-c IL_TRUE 1;
+///
+// Generic <code>false</code> constant
+///
 dcl-c IL_FALSE 0;
+
+///
+// mTLS : No client certificate requested (no mTLS)
+///
+dcl-c IL_CLIENT_AUTH_MODE_NONE 0;
+///
+// mTLS : client certificate is required else TLS session will not be started
+///
+dcl-c IL_CLIENT_AUTH_MODE_REQUIRED 1;
+///
+// mTLS : client certificate is always request but does not need to be provided by the client. TLS session is always started.
+///
+dcl-c IL_CLIENT_AUTH_MODE_PASSTHRU 2;
 
 ///
 // Configuration
@@ -382,6 +401,8 @@ dcl-ds il_config qualified template;
     isWorker             ind inz;
     threadingMode        int(5) inz;
     tlsServerCertEnabled int(3) inz;
+    tlsClientCertEnabled int(3) inz;
+    clientAuthMode       int(3) inz;
     filler               char(4096) inz; // required - contains the private internal handlers
 end-ds;
 
@@ -1067,7 +1088,7 @@ dcl-pr il_setKeyfile extproc(*dclcase);
 end-pr;
 
 ///
-// Enable Server Certificate Infos in TLS
+// Enable server certificate infos in TLS
 //
 // If enabled the available infos about the used server certificate for the TLS
 // connection are copied to the thread local storage avaiable in the request,
@@ -1083,5 +1104,51 @@ end-pr;
 ///
 dcl-pr il_setTlsServerCertEnabled extproc(*dclcase);
     config likeds(il_config);
-    enabled int(5) value;
+    enabled int(3) value;
+end-pr;
+
+///
+// Enable client certificate infos in TLS
+//
+// If enabled the available infos about the used client certificate for the TLS
+// connection are copied to the thread local storage avaiable in the request,
+// see il_getThreadMem.
+// <p>
+// The information will be copied to the path /ileastic/certificate/client.
+// The information is only available if the connection uses TLS (HTTPS).
+//
+// @param Configuration
+// @param IL_TRUE = enabled , IL_FALSE = disable (default)
+//
+// @info This setting has no effect if no TLS is used.
+///
+dcl-pr il_setTlsClientCertEnabled extproc(*dclcase);
+    config likeds(il_config);
+    enabled int(3) value;
+end-pr;
+
+///
+// Set client auth mode (mTLS)
+//
+// Sets the client auth mode. The client auth mode defines if the client is asked
+// for a client certificate which will be validated using the configured key
+// store.
+// <br/><br/>
+// By default the client is not asked for a certificated (no mTLS).
+// <br/><br/>
+// With the configuration set to IL_CLIENT_AUTH_MODE_REQUIRED the client must
+// provide a valid client certificate to establish a TLS connection.
+// <br/><br/>
+// With the configuration set to IL_CLIENT_AUTH_MODE_PASSTHRU the client is
+// asked for a client certficate but does not need to provide one.
+// <br/><br/>
+// The result of the client certificate validation is provided via the thread
+// local storage at <code>/ileastic/certificate/client/validationcode</code>.
+//
+// @param Configuration
+// @param mTLS client auth mode (see IL_CLIENT_AUTH_MODE_xyz)
+///
+dcl-pr il_setClientAuthMode extproc(*dclcase);
+    config likeds(il_config);
+    mode int(3) value;
 end-pr;

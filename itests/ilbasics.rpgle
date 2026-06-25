@@ -81,6 +81,8 @@ dcl-proc main;
     endif;
 
     il_setTlsServerCertEnabled(config : IL_TRUE);
+    il_setTlsClientCertEnabled(config : IL_TRUE);
+    il_setClientAuthMode(config : IL_CLIENT_AUTH_MODE_PASSTHRU);
 
     il_addRoute(config : %paddr(test_getBookExcerpt) : IL_GET : REGEX_START + '/book/excerpt' + REGEX_END);
     il_addRoute(config : %paddr(test_deleteBook) : IL_DELETE: REGEX_START + '/book/' + CURLY_OPEN + 'isbn' + CURLY_CLOSE + REGEX_END);
@@ -90,6 +92,7 @@ dcl-proc main;
     il_addRoute(config : %paddr(test_search) : IL_GET : REGEX_START + '/book' + REGEX_END);
     il_addRoute(config : %paddr(test_bookOptions) : IL_OPTIONS : REGEX_START + '/book' + REGEX_END);
     il_addRoute(config : %paddr(test_getServerCertInfos) : IL_GET : REGEX_START + '/cert/server' + REGEX_END);
+    il_addRoute(config : %paddr(test_getClientCertInfos) : IL_GET : REGEX_START + '/cert/client' + REGEX_END);
     il_addRoute(config : %paddr(test_notFound));
 
     il_listen (config);
@@ -294,4 +297,22 @@ dcl-proc test_getServerCertInfos;
     response.status = 200;
     response.contentType = 'application/json';
     il_responseWriteStream(response: jx_stream(serverCertInfos));
+end-proc;
+
+
+dcl-proc test_getClientCertInfos;
+    dcl-pi *n;
+        request  likeds(IL_REQUEST);
+        response likeds(IL_RESPONSE);
+    end-pi;
+
+    dcl-s tls pointer;
+    dcl-s clientCertInfos pointer;
+
+    tls = il_getThreadMem(request);
+    clientCertInfos = jx_locate(tls : '/ileastic/certificate/client');
+
+    response.status = 200;
+    response.contentType = 'application/json';
+    il_responseWriteStream(response: jx_stream(clientCertInfos));
 end-proc;

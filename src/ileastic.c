@@ -65,7 +65,8 @@ BOOL isSecure(PCONFIG config);
 void log_gskit_error(const char * msg, int rc);
 int setupGskitEnvironment(PCONFIG pConfig);
 int setupSecureSocket(PCONFIG pConfig, int clientSocket);
-void addServerCertInfos(gsk_handle * sslHandle, void * threadMem);
+void addCertificateDetails(gsk_handle * sslHandle, void * tlsCertNode, GSK_CERT_ID certificateType);
+void addClientCertificateValidationResult(gsk_handle * sslHandle, void * tlsCertNode);
 
 VARCHAR256 il_getCallingProgramPath();
 
@@ -816,16 +817,28 @@ static void * serverThread (PINSTANCE pInstance)
     PROUTING matchingRouting;
     BOOL     connected = true; 
     UCHAR    temp [256]; 
-    PVOID serverCertNode;
+    PVOID serverCertNode = NULL;
+    PVOID clientCertNode = NULL;
     
     if(! pInstance->config.isWorker) 
     {
         pthread_detach(pthread_self());
     }   
 
-    if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
-        serverCertNode = jx_NewObject(NULL);
-        addServerCertInfos(&(pInstance->config.envHandle), serverCertNode);
+    if (isSecure(&(pInstance->config))) {
+        if (pInstance->config.tlsServerCertEnabled) {
+            serverCertNode = jx_NewObject(NULL);
+            addCertificateDetails(&(pInstance->config.envHandle), serverCertNode, GSK_LOCAL_CERT_INFO);
+        }
+
+        if (pInstance->config.clientAuthMode != CLIENT_AUTH_MODE_NONE) {
+            clientCertNode = jx_NewObject(NULL);
+            addClientCertificateValidationResult(&(pInstance->config.sessionHandle), clientCertNode);
+
+            if (pInstance->config.tlsClientCertEnabled) {
+                addCertificateDetails(&(pInstance->config.sessionHandle), clientCertNode, GSK_PARTNER_CERT_INFO);
+            }
+        }
     }
 
     while (pInstance->config.clientSocket > 0 && connected) {
@@ -846,9 +859,16 @@ static void * serverThread (PINSTANCE pInstance)
         pResponse = &response;
         
         request.threadMem = (PVOID) jx_NewObject(NULL);
-        if (isSecure(&(pInstance->config)) && pInstance->config.tlsServerCertEnabled) {
-            PJXNODE tlsCertNode = jx_GetOrCreateNode(request.threadMem, "/ileastic/certificate");
-            jx_NodeMoveInto(tlsCertNode, "server", serverCertNode);
+        if (isSecure(&(pInstance->config))) {
+            if (serverCertNode != NULL) {
+                PJXNODE tlsCertNode = jx_GetOrCreateNode(request.threadMem, "/ileastic/certificate");
+                jx_NodeMoveInto(tlsCertNode, "server", serverCertNode);
+            }
+
+            if (clientCertNode != NULL) {
+                PJXNODE tlsCertNode = jx_GetOrCreateNode(request.threadMem, "/ileastic/certificate");
+                jx_NodeMoveInto(tlsCertNode, "client", clientCertNode);
+            }
         }
 
         #pragma exception_handler(handleServletException, pResponse, _C1_ALL, _C2_MH_ESCAPE, _CTLA_HANDLE)
@@ -1280,7 +1300,7 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
     }
 }
 
-void addServerCertInfos(gsk_handle * sslHandle, void * serverCertInfos) {
+void addCertificateDetails(gsk_handle * sslHandle, void * tlsCertNode, GSK_CERT_ID certificateType) {
     // All certificate data is returned in ASCII CCSID 850.
     PXLATEDESC a2e = XlateXdOpen(850, 0);
 
@@ -1292,13 +1312,11 @@ void addServerCertInfos(gsk_handle * sslHandle, void * serverCertInfos) {
 
     rc = gsk_attribute_get_cert_info (
             *sslHandle,
-            GSK_LOCAL_CERT_INFO,
+            certificateType,
             &certElements,
             &certElementCount);
 
     if (rc == GSK_OK) {
-        il_joblog("got cert infos: %d", certElementCount);
-
         // typedef struct gsk_cert_data_elem_t {
         //     GSK_CERT_DATA_ID cert_data_id;
         //     char *cert_data_p;
@@ -1458,7 +1476,7 @@ void addServerCertInfos(gsk_handle * sslHandle, void * serverCertInfos) {
                     break;
             }
 
-            if (certInfoKey) jx_SetStrByName (serverCertInfos, certInfoKey, certInfoValue);
+            if (certInfoKey) jx_SetStrByName (tlsCertNode, certInfoKey, certInfoValue);
         }
 
     } else {
@@ -1466,6 +1484,15 @@ void addServerCertInfos(gsk_handle * sslHandle, void * serverCertInfos) {
     }
 
     XlateXdClose(a2e);
+}
+
+void addClientCertificateValidationResult(gsk_handle * sslHandle, void * tlsCertNode) {
+    int value = 0;
+    int rc = gsk_attribute_get_numeric_value(*sslHandle, GSK_CERTIFICATE_VALIDATION_CODE, &value);
+    if (rc == GSK_OK)
+        jx_SetIntByName(tlsCertNode , "validationcode", value);
+    else 
+        log_gskit_error("Get client certificate validation code", rc);
 }
 
 BOOL isSecure(PCONFIG config) {
@@ -1524,35 +1551,46 @@ int setupGskitEnvironment(PCONFIG pConfig) {
 }
 
 int setupSecureSocket(PCONFIG pConfig, int clientSocket) {
-     int rc;
+    int rc;
+     
+    // Create secure socket handle
+    rc = gsk_secure_soc_open(pConfig->envHandle, &(pConfig->sessionHandle));
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_secure_soc_open", rc);
+        return -1;
+       }
+        
+       // Associate socket with SSL handle
+       rc = gsk_attribute_set_numeric_value(pConfig->sessionHandle, GSK_FD, clientSocket);
+       if (rc != GSK_OK) {
+           log_gskit_error("gsk_attribute_set_numeric_value GSK_FD", rc);
+           return -1;
+       }
+        
+    // Set as server socket
+    GSK_ENUM_ID sessionType = pConfig->clientAuthMode != CLIENT_AUTH_MODE_NONE ? GSK_SERVER_SESSION_WITH_CL_AUTH  : GSK_SERVER_SESSION;
+    rc = gsk_attribute_set_enum(pConfig->sessionHandle, GSK_SESSION_TYPE, sessionType);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_enum GSK_SESSION_TYPE", rc);
+        return -1;
+    }
 
-     // Create secure socket handle
-     rc = gsk_secure_soc_open(pConfig->envHandle, &(pConfig->sessionHandle));
-     if (rc != GSK_OK) {
-         log_gskit_error("gsk_secure_soc_open", rc);
-         return -1;
-     }
+    if (pConfig->clientAuthMode != CLIENT_AUTH_MODE_NONE) {
+        GSK_ENUM_ID authType = pConfig->clientAuthMode == CLIENT_AUTH_MODE_PASSTHRU ? GSK_CLIENT_AUTH_PASSTHRU : GSK_IBMI_CLIENT_AUTH_REQUIRED;
 
-     // Associate socket with SSL handle
-     rc = gsk_attribute_set_numeric_value(pConfig->sessionHandle, GSK_FD, clientSocket);
-     if (rc != GSK_OK) {
-         log_gskit_error("gsk_attribute_set_numeric_value GSK_FD", rc);
-         return -1;
-     }
+        gsk_attribute_set_enum(pConfig->sessionHandle, GSK_CLIENT_AUTH_TYPE , authType );
+        if (rc != GSK_OK) {
+        log_gskit_error("gsk_attribute_set_enum GSK_CLIENT_AUTH_TYPE", rc);
+            return -1;
+        }
+    }
 
-     // Set as server socket
-     rc = gsk_attribute_set_enum(pConfig->sessionHandle, GSK_SESSION_TYPE, GSK_SERVER_SESSION);
-     if (rc != GSK_OK) {
-         log_gskit_error("gsk_attribute_set_enum GSK_SESSION_TYPE", rc);
-         return -1;
-     }
+    // Initialize secure session
+    rc = gsk_secure_soc_init(pConfig->sessionHandle);
+    if (rc != GSK_OK) {
+        log_gskit_error("gsk_secure_soc_init", rc);
+        return -1;
+    }
 
-     // Initialize secure session
-     rc = gsk_secure_soc_init(pConfig->sessionHandle);
-     if (rc != GSK_OK) {
-         log_gskit_error("gsk_secure_soc_init", rc);
-         return -1;
-     }
-
-     return 0;
+    return 0;
 }
