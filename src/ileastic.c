@@ -35,6 +35,7 @@
 #include <gskssl.h>
 #include <ssl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <unistd.h>
@@ -1228,6 +1229,26 @@ void il_listen (PCONFIG pConfig, SERVLET servlet)
                 close(pConfig->mainSocket);
                 il_joblog( "Accept error: %d - %s" ,(int) errcde, strerror((int) errcde));
                 continue;
+            }
+
+            // Disable Nagle on accepted HTTP sockets.
+            int tcpNoDelay = 1;
+
+            rc = setsockopt(
+                clientSocket,
+                IPPROTO_TCP,
+                TCP_NODELAY,
+                (char *)&tcpNoDelay,
+                sizeof(tcpNoDelay)
+            );
+
+            if (rc < 0) {
+                errcde = montcp(errno);
+                il_joblog(
+                    "setsockopt TCP_NODELAY error: %d - %s",
+                    (int) errcde,
+                    strerror((int) errcde)
+                );
             }
         } else {
             clientSocket = 1;
