@@ -60,6 +60,52 @@ curl -v --cacert server.pub --url https://localhost:35800
 ```
 
 
+## TLS Protocol Versions and Lax Mode
+
+By default ILEastic enables TLS 1.2 and TLS 1.3:
+
+- TLS 1.2 is required - if GSKit cannot enable it the server does not start.
+- TLS 1.3 is enabled when available. If the release or the system value `QSSLPCL`
+  does not allow it, a message is written to the joblog and the server continues
+  with TLS 1.2 only.
+
+Some old clients can only talk TLS 1.0 or 1.1. For those, lax mode can be enabled:
+
+```
+il_setTlsLaxMode(config : IL_TRUE);
+il_setKeyfile(config : '/my/path/to/the/certificate/store/server.kdb' : 'changeit');
+il_listen(config : %paddr(myServlet));
+```
+
+Lax mode only adds TLS 1.0 and TLS 1.1 to the allowed protocols. The protocols must also be
+allowed by the system value `QSSLPCL` (e.g. `*OPSYS` or an explicit list containing
+`*TLSV1` / `*TLSV1.1`) - otherwise GSKit refuses them and a message is written to the joblog.
+
+On IBM i 7.4 and later the default `*OPSYS` only allows TLS 1.3 and 1.2, so a TLS 1.0 / 1.1
+client is refused with `alert protocol version` (TLS alert 70) even in lax mode, until `QSSLPCL`
+is changed. Older cipher suites may also have to be added to `QSSLCSL`.
+
+Notes:
+
+- Lax mode is off by default. Only enable it when you have to - TLS 1.0 and 1.1 are deprecated.
+- Self signed server certificates do not need lax mode.
+- For mTLS with self signed client certificates use
+  `il_setClientAuthMode(config : IL_CLIENT_AUTH_MODE_PASSTHRU)` instead.
+- Programs compiled against an older ILEastic header are not affected - they keep TLS 1.2 and 1.3.
+
+Test which protocols the server accepts:
+
+```
+openssl s_client -connect my_ibm_i:44000 -tls1   </dev/null   # only succeeds in lax mode
+openssl s_client -connect my_ibm_i:44000 -tls1_2 </dev/null   # always succeeds
+```
+
+The key store password is optional. If it is omitted, the job must have authority to the key store:
+
+```
+il_setKeyfile(config : '/my/path/to/the/certificate/store/server.kdb');
+```
+
 ## Server Certificate Information
 
 Information about the used server certificate can be queried during runtime. The data is available

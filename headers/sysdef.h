@@ -76,7 +76,8 @@ typedef _Packed struct _CONFIG  {
     BOOL        tlsServerCertEnabled;
     BOOL        tlsClientCertEnabled;
     CLIENT_AUTH_MODE clientAuthMode;
-    UCHAR       filler[1021];
+    BOOL        tlsLaxMode;
+    UCHAR       filler[1020];
     // Private:
     int         mainSocket;
     int         clientSocket;

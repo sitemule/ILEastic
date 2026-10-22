@@ -403,7 +403,8 @@ dcl-ds il_config qualified template;
     tlsServerCertEnabled int(3) inz;
     tlsClientCertEnabled int(3) inz;
     clientAuthMode       int(3) inz;
-    filler               char(4096) inz; // required - contains the private internal handlers
+    tlsLaxMode           int(3) inz;
+    filler               char(4095) inz; // required - contains the private internal handlers
 end-ds;
 
 ///
@@ -1151,4 +1152,25 @@ end-pr;
 dcl-pr il_setClientAuthMode extproc(*dclcase);
     config likeds(il_config);
     mode int(3) value;
+end-pr;
+
+///
+// Enable TLS lax mode
+//
+// If enabled the older protocols TLS 1.0 and TLS 1.1 are allowed in addition
+// to TLS 1.2 and 1.3, for compatibility with old clients. The protocols must
+// also be allowed by the system value QSSLPCL.
+// <p>
+// Self-signed server certificates need no setting. For mTLS with self-signed
+// client certificates use il_setClientAuthMode with
+// IL_CLIENT_AUTH_MODE_PASSTHRU instead.
+//
+// @param Configuration
+// @param IL_TRUE = enabled , IL_FALSE = disable (default)
+//
+// @info This setting has no effect if no TLS is used.
+///
+dcl-pr il_setTlsLaxMode extproc(*dclcase);
+    config likeds(il_config);
+    enabled int(3) value;
 end-pr;

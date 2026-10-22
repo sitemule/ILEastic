@@ -8,7 +8,7 @@
 //
 // Start it:
 // ADDLIBLE ILEASTIC
-// SBMJOB CMD(CALL PGM(HELLOWORLD)) JOB(HELLOWORLD) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
+// SBMJOB CMD(CALL PGM(HELLOTLS)) JOB(HELLOTLS) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
 // The web service can be tested with the browser by entering the following URL:
 // http://my_ibm_i:44000
@@ -17,7 +17,7 @@
 //        multithreading. Each client request is handled by a seperate thread.
 ///
 
-ctl-opt copyright('Sitemule.com  (C), 2018,2022');
+ctl-opt copyright('Sitemule.com (C), 2018,2026');
 ctl-opt decEdit('0,') datEdit(*YMD.) main(main);
 ctl-opt debug(*yes) option(*nodebugio:*srcstmt:*nounref);
 ctl-opt bndDir('ILEASTIC');
@@ -34,11 +34,9 @@ dcl-proc main;
     
     config.port = 44000; 
     config.host = '*ANY';
+    il_setTlsLaxMode(config : IL_TRUE); // Also allow TLS 1.0 and 1.1 for old clients
 
-    il_setKeyfile(config : '/prj/icebreak.kdb' : 'john1234');
-
-    
-    
+    il_setKeyfile(config : '/prj/icebreak.kdb': 'john1234');
     il_listen (config : %paddr(myservlet));
  
 end-proc;

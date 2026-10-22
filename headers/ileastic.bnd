@@ -38,4 +38,5 @@ STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ILEastic 1.1.2')
     EXPORT SYMBOL("il_setTlsServerCertEnabled")
     EXPORT SYMBOL("il_setTlsClientCertEnabled")
     EXPORT SYMBOL("il_setClientAuthMode")
+    EXPORT SYMBOL("il_setTlsLaxMode")
 ENDPGMEXP

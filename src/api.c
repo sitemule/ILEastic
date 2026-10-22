@@ -464,3 +464,7 @@ void il_setTlsClientCertEnabled(PCONFIG config, BOOL enabled) {
 void il_setClientAuthMode(PCONFIG config, CLIENT_AUTH_MODE mode) {
     config->clientAuthMode = mode;
 }
+
+void il_setTlsLaxMode(PCONFIG config, BOOL enabled) {
+    config->tlsLaxMode = enabled ? 1 : 0;
+}

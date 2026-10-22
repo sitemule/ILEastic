@@ -1522,7 +1522,8 @@ BOOL isSecure(PCONFIG config) {
 }
 
 void log_gskit_error(const char * msg, int rc) {
-    il_joblog("%s failed with rc=%d", msg, rc);
+    const char* gskmsg = gsk_strerror(rc);
+    il_joblog("%s failed with rc=%d. %s", msg, rc, gskmsg );
 }
 
 int setupGskitEnvironment(PCONFIG pConfig) {
@@ -1542,23 +1543,37 @@ int setupGskitEnvironment(PCONFIG pConfig) {
         return -1;
     }
 
-    // Set key database password
-    rc = gsk_attribute_set_buffer(pConfig->envHandle, GSK_KEYRING_PW, pConfig->certificatePassword.String, pConfig->certificatePassword.Length);
-    if (rc != GSK_OK) {
-        log_gskit_error("gsk_attribute_set_buffer GSK_KEYRING_PW", rc);
-        return -1;
+    // Set key database password if supplied 
+    // else go with having authority the the keystore 
+    if ( pConfig->certificatePassword.Length > 0) {
+        rc = gsk_attribute_set_buffer(pConfig->envHandle, GSK_KEYRING_PW, pConfig->certificatePassword.String, pConfig->certificatePassword.Length);
+        if (rc != GSK_OK) {
+            log_gskit_error("gsk_attribute_set_buffer GSK_KEYRING_PW", rc);
+            return -1;
+        }
     }
 
-    // TODO define which TLS versions should be used
-    gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV12, GSK_TRUE);
+    // Test explicitly for 1: programs compiled against an older il_config
+    // have a blank (x'40') in this byte, which must not enable lax mode
+    if (pConfig->tlsLaxMode == 1) {
+        // Lax mode: enable older TLS versions for compatibility
+        // Note: self-signed server certs need no server-side setting; for mTLS with
+        // self-signed client certs, set clientAuthMode = CLIENT_AUTH_MODE_PASSTHRU instead
+        rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV1, GSK_TRUE);
+        if (rc != GSK_OK) log_gskit_error("gsk_attribute_set_enum TLS 1.0", rc);
+        rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV11, GSK_TRUE);
+        if (rc != GSK_OK) log_gskit_error("gsk_attribute_set_enum TLS 1.1", rc);
+    }
+    
+    rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV12, GSK_TRUE);
     if (rc != GSK_OK) {
         log_gskit_error("gsk_attribute_set_enum TLS 1.2", rc);
         return -1;
     }
-    gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV13, GSK_TRUE);
+    // TLS 1.3 is optional - not available on all releases / QSSLPCL settings
+    rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV13, GSK_TRUE);
     if (rc != GSK_OK) {
-        log_gskit_error("gsk_attribute_set_enum TLS 1.3", rc);
-        return -1;
+        log_gskit_error("gsk_attribute_set_enum TLS 1.3 (continuing without TLS 1.3)", rc);
     }
 
     // Initialize the environment
