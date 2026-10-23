@@ -85,6 +85,8 @@ else
         --no-perms \
         "./" \
         "$I_HOST:$DELPOY_PATH" || echo ">>> rsync finished with warnings (continuing to build)"
+    # Leave a note on the IFS: this folder is a copy of the git repo, edits here are lost
+    .sitemule/git_managed_note.sh "$I_HOST" "$DELPOY_PATH"
 fi
 
 # ---------------------------------------------------------------
