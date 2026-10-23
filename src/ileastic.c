@@ -63,6 +63,19 @@ BOOL (*receiveHeader)  (PREQUEST pRequest);
 BOOL shutdownFlag = false;
 
 BOOL isSecure(PCONFIG config);
+
+/* The mTLS fields came out of the config's filler (2026-05): programs compiled with the header
+   before them have blanks (x'40') there, so only the documented values count - anything else
+   is "no client certificate". */
+static CLIENT_AUTH_MODE clientAuthMode(PCONFIG config)
+{
+    return (config->clientAuthMode == CLIENT_AUTH_MODE_REQUIRED
+        ||  config->clientAuthMode == CLIENT_AUTH_MODE_PASSTHRU) ? config->clientAuthMode : CLIENT_AUTH_MODE_NONE;
+}
+static BOOL tlsClientCertEnabled(PCONFIG config)
+{
+    return config->tlsClientCertEnabled == 1;
+}
 void log_gskit_error(const char * msg, int rc);
 int setupGskitEnvironment(PCONFIG pConfig);
 int setupSecureSocket(PCONFIG pConfig, int clientSocket);
@@ -832,11 +845,11 @@ static void * serverThread (PINSTANCE pInstance)
             addCertificateDetails(&(pInstance->config.envHandle), serverCertNode, GSK_LOCAL_CERT_INFO);
         }
 
-        if (pInstance->config.clientAuthMode != CLIENT_AUTH_MODE_NONE) {
+        if (clientAuthMode(&(pInstance->config)) != CLIENT_AUTH_MODE_NONE) {
             clientCertNode = jx_NewObject(NULL);
             addClientCertificateValidationResult(&(pInstance->config.sessionHandle), clientCertNode);
 
-            if (pInstance->config.tlsClientCertEnabled) {
+            if (tlsClientCertEnabled(&(pInstance->config))) {
                 addCertificateDetails(&(pInstance->config.sessionHandle), clientCertNode, GSK_PARTNER_CERT_INFO);
             }
         }
@@ -1604,15 +1617,15 @@ int setupSecureSocket(PCONFIG pConfig, int clientSocket) {
        }
         
     // Set as server socket
-    GSK_ENUM_ID sessionType = pConfig->clientAuthMode != CLIENT_AUTH_MODE_NONE ? GSK_SERVER_SESSION_WITH_CL_AUTH  : GSK_SERVER_SESSION;
+    GSK_ENUM_ID sessionType = clientAuthMode(pConfig) != CLIENT_AUTH_MODE_NONE ? GSK_SERVER_SESSION_WITH_CL_AUTH  : GSK_SERVER_SESSION;
     rc = gsk_attribute_set_enum(pConfig->sessionHandle, GSK_SESSION_TYPE, sessionType);
     if (rc != GSK_OK) {
         log_gskit_error("gsk_attribute_set_enum GSK_SESSION_TYPE", rc);
         return -1;
     }
 
-    if (pConfig->clientAuthMode != CLIENT_AUTH_MODE_NONE) {
-        GSK_ENUM_ID authType = pConfig->clientAuthMode == CLIENT_AUTH_MODE_PASSTHRU ? GSK_CLIENT_AUTH_PASSTHRU : GSK_IBMI_CLIENT_AUTH_REQUIRED;
+    if (clientAuthMode(pConfig) != CLIENT_AUTH_MODE_NONE) {
+        GSK_ENUM_ID authType = clientAuthMode(pConfig) == CLIENT_AUTH_MODE_PASSTHRU ? GSK_CLIENT_AUTH_PASSTHRU : GSK_IBMI_CLIENT_AUTH_REQUIRED;
 
         gsk_attribute_set_enum(pConfig->sessionHandle, GSK_CLIENT_AUTH_TYPE , authType );
         if (rc != GSK_OK) {
