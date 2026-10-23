@@ -5,7 +5,7 @@
 #   .sitemule/git_managed_note.sh <ssh host> <remote folder>     (right after the rsync)
 #
 # The remote folder may start with ~/ (the remote user's home). Never fails the caller.
-# Master copy: scripts/git_managed_note.sh in the sitemule workspace - copy it into each
+# Master copy: .sitemule/git_managed_note.sh in the sitemule workspace - copy it into each
 # project that syncs to the IBM i (see the workspace CLAUDE.md).
 host=$1; dir=$2
 [ -n "$host" ] && [ -n "$dir" ] || exit 0
