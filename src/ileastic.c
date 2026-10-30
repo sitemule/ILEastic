@@ -1572,7 +1572,9 @@ int setupGskitEnvironment(PCONFIG pConfig) {
         // Lax mode: enable older TLS versions for compatibility
         // Note: self-signed server certs need no server-side setting; for mTLS with
         // self-signed client certs, set clientAuthMode = CLIENT_AUTH_MODE_PASSTHRU instead
-        rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV1, GSK_TRUE);
+        // GSK_PROTOCOL_TLSV1 takes its own values (GSK_PROTOCOL_TLSV1_ON, 518) - GSK_TRUE is
+        // rc 703 "enumeration not valid"; TLSV11 and later take GSK_TRUE
+        rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV1, GSK_PROTOCOL_TLSV1_ON);
         if (rc != GSK_OK) log_gskit_error("gsk_attribute_set_enum TLS 1.0", rc);
         rc = gsk_attribute_set_enum(pConfig->envHandle, GSK_PROTOCOL_TLSV11, GSK_TRUE);
         if (rc != GSK_OK) log_gskit_error("gsk_attribute_set_enum TLS 1.1", rc);

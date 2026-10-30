@@ -10,8 +10,9 @@
 // ADDLIBLE ILEASTIC
 // SBMJOB CMD(CALL PGM(HELLOTLS)) JOB(HELLOTLS) JOBQ(QSYSNOMAX) ALWMLTTHD(*YES)        
 // 
-// The web service can be tested with the browser by entering the following URL:
-// http://my_ibm_i:44000
+// The web service can be tested with the browser by entering the following URL
+// (TLS: https - a plain http request ends with gsk_secure_soc_init rc 410 in the job log):
+// https://my_ibm_i:44000
 // 
 // @info: It requires your RPG code to be reentrant and compiled for 
 //        multithreading. Each client request is handled by a seperate thread.
