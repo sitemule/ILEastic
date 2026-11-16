@@ -5,7 +5,7 @@
 #
 # Config (in .env or as environment variables):
 #   I_HOST       SSH hostname or alias for the IBM i
-#   DELPOY_PATH  Deployment path on the IBM i  (e.g. /prj/ILEastic)
+#   DEPLOY_PATH  Deployment path on the IBM i  (e.g. /prj/ILEastic)
 #   SKIP_RSYNC   Set to "true" to force-skip rsync (auto-detected for network mounts)
 #
 # Examples:
@@ -22,7 +22,9 @@ if [ -f ".env" ]; then
 fi
 
 : "${I_HOST:?I_HOST is not set. Add it to .env or export it before running.}"
-: "${DELPOY_PATH:?DELPOY_PATH is not set. Add it to .env or export it before running.}"
+# DELPOY_PATH: the old misspelling, still read so existing .env files keep working
+DEPLOY_PATH="${DEPLOY_PATH:-$DELPOY_PATH}"
+: "${DEPLOY_PATH:?DEPLOY_PATH is not set. Add it to .env or export it before running.}"
 
 MAKE_TARGET="${1:-all}"
 shift 1 || true          # remaining args are extra make variables (e.g. SRC=foo SRCDIR=src)
@@ -69,7 +71,7 @@ fi
 if [ "$SKIP_RSYNC" = "true" ]; then
     echo ">>> Working from IFS share — skipping rsync."
 else
-    echo ">>> Syncing to $I_HOST:$DELPOY_PATH ..."
+    echo ">>> Syncing to $I_HOST:$DEPLOY_PATH ..."
     rsync -az \
         --inplace \
         --ignore-errors \
@@ -84,9 +86,9 @@ else
         --omit-dir-times \
         --no-perms \
         "./" \
-        "$I_HOST:$DELPOY_PATH" || echo ">>> rsync finished with warnings (continuing to build)"
+        "$I_HOST:$DEPLOY_PATH" || echo ">>> rsync finished with warnings (continuing to build)"
     # Leave a note on the IFS: this folder is a copy of the git repo, edits here are lost
-    .sitemule/git_managed_note.sh "$I_HOST" "$DELPOY_PATH"
+    .sitemule/git_managed_note.sh "$I_HOST" "$DEPLOY_PATH"
 fi
 
 # ---------------------------------------------------------------
@@ -104,12 +106,12 @@ if [ "$MAKE_TARGET" = "all-here" ]; then
     SRCDIR_VAL=$(echo "$MAKE_EXTRA" | grep -oE 'SRCDIR=[^ ]+' | sed 's/SRCDIR=//')
     ssh "$I_HOST" "
         PATH=/QOpenSys/pkgs/bin:\$PATH
-        dir='$DELPOY_PATH/$SRCDIR_VAL'
+        dir='$DEPLOY_PATH/$SRCDIR_VAL'
         while true; do
             if [ -f \"\$dir/makefile\" ] || [ -f \"\$dir/Makefile\" ]; then
                 break
             fi
-            if [ \"\$dir\" = '$DELPOY_PATH' ] || [ \"\$dir\" = '/' ]; then
+            if [ \"\$dir\" = '$DEPLOY_PATH' ] || [ \"\$dir\" = '/' ]; then
                 echo 'ERROR: No makefile found above $SRCDIR_VAL' >&2
                 exit 1
             fi
@@ -126,12 +128,12 @@ elif [ "$MAKE_TARGET" = "current" ]; then
     SRC_TARGET="${SRC_VAL%.*}"   # strip extension — make target is always basename
     ssh "$I_HOST" "
         PATH=/QOpenSys/pkgs/bin:\$PATH
-        dir='$DELPOY_PATH/$SRCDIR_VAL'
+        dir='$DEPLOY_PATH/$SRCDIR_VAL'
         while true; do
             if [ -f \"\$dir/makefile\" ] || [ -f \"\$dir/Makefile\" ]; then
                 break
             fi
-            if [ \"\$dir\" = '$DELPOY_PATH' ] || [ \"\$dir\" = '/' ]; then
+            if [ \"\$dir\" = '$DEPLOY_PATH' ] || [ \"\$dir\" = '/' ]; then
                 echo 'ERROR: No makefile found above $SRCDIR_VAL' >&2
                 exit 1
             fi
@@ -139,11 +141,11 @@ elif [ "$MAKE_TARGET" = "current" ]; then
         done
         echo \">>> gmake $SRC_TARGET OUTPUT=*PRINT in: \$dir\"
         cd \"\$dir\" && gmake $SRC_TARGET OUTPUT=*PRINT
-        if [ \"\$dir\" = '$DELPOY_PATH/src' ]; then
-            cd '$DELPOY_PATH' && gmake bind-update
+        if [ \"\$dir\" = '$DEPLOY_PATH/src' ]; then
+            cd '$DEPLOY_PATH' && gmake bind-update
         fi
     "
 else
     ssh "$I_HOST" \
-        "PATH=/QOpenSys/pkgs/bin:\$PATH; cd '$DELPOY_PATH' && gmake $MAKE_TARGET $MAKE_EXTRA"
+        "PATH=/QOpenSys/pkgs/bin:\$PATH; cd '$DEPLOY_PATH' && gmake $MAKE_TARGET $MAKE_EXTRA"
 fi

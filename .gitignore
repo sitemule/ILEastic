@@ -6,3 +6,4 @@ examples/errorlist.txt
 **/node_modules
 .claude/rules/blueprint-mcp.instructions.md
 .github/instructions/blueprint-mcp.instructions.md
+.env
