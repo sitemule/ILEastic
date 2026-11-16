@@ -129,7 +129,7 @@ Copy `.env.example` to `.env` and fill in your values:
 I_HOST=my-ibmi
 
 # IFS path where the project lives on the IBM i
-DELPOY_PATH=/prj/ILEastic
+DEPLOY_PATH=/prj/ILEastic
 
 # Uncomment when the project folder is mounted directly from the IBM i
 # (rsync is skipped automatically for SMB/NFS mounts, but you can force it)
