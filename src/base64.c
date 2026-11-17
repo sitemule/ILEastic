@@ -26,6 +26,14 @@ void il_encodeBase64(PLVARCHAR output, PLVARCHAR input )
     ULONG  inlen = input->Length;
     PUCHAR result = output->String;
 
+    // The result is returned as varchar(524284:4): 4 bytes for each 3, so no
+    // more than 393213 bytes of input can be encoded
+    if (input->Length < 0 || input->Length > 393213) {
+        output->Length = 0;
+        *result = '\0';
+        return;
+    }
+
     while (inlen > 2) {
         *result++ = base64_table[current[0] >> 2];
         *result++ = base64_table[((current[0] & 0x03) << 4) + (current[1] >> 4)];
@@ -51,7 +59,7 @@ void il_encodeBase64(PLVARCHAR output, PLVARCHAR input )
         }
     }
     output->Length= result - output->String;
-    *result = '\0';
+    if (output->Length < 524284) *result = '\0';
 }
 
 /* ------------------------------------------------------------- */

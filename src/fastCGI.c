@@ -154,6 +154,10 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
       int rem = pRequest->contentLength;
       int len; 
       PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a zero terniation
+      if (buf == NULL) {
+         pRequest->contentLength = 0;
+         return true; // can not hold it: drop the request
+      }
 
       // Build up the previous and the rest
       buf [pRequest->contentLength] = '\0';  // Enshure It will always be a zeroterminted string if used that way
@@ -166,6 +170,9 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
          buf += len;
          rem -= len;
       }
+      // Only what was received - never memory that was not filled
+      pRequest->content.Length = pRequest->contentLength - rem;
+      *buf = '\0';
    }
    return false;
 }

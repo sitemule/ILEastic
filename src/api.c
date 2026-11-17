@@ -166,6 +166,8 @@ static int urldecodeBuf (PUCHAR out , LONG outMax, PUCHAR in , int inLen)
 /* --------------------------------------------------------------------------- */
 void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft)
 {
+    PNPMPARMLISTADDRP pParms = _NPMPARMLISTADDR();
+    PLVARCHAR pDft = (pParms->OpDescList->NbrOfParms >= 4) ? dft : NULL; // *nopass / *omit
      PSLISTNODE pNode;
     int  keyLen= strlen(parmName);
     UCHAR aKey [256];
@@ -188,8 +190,11 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
         }
     }
     
-    out->Length = dft->Length;
-    substr(out->String , dft->String , dft->Length);
+    if (pDft == NULL) {
+        rtnLvc (out , "" , 0);
+    } else {
+        rtnLvc (out , pDft->String , pDft->Length);
+    }
 }
 /* --------------------------------------------------------------------------- */
 void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVARCHAR dft, unsigned short index)
@@ -212,7 +217,8 @@ void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , 
     if (pRoute != NULL) {
         for (i = 0 ; i< pRoute->parmNumbers ; i++) {
             if (0==stricmp(parmName , pRoute->parmNames[i])) {
-                rtnLvc (out  , pRequest->parmValue[i], strlen(pRequest->parmValue[i]));
+                PUCHAR v = pRequest->parmValue[i]; // NULL when the group did not match
+                rtnLvc (out  , v ? v : (PUCHAR) "", v ? strlen(v) : 0);
                 return;
             }
         }
@@ -263,20 +269,31 @@ void il_addHeader (PRESPONSE pResponse, PVARCHAR headerName, PVARCHAR headerValu
 }
 
 /* --------------------------------------------------------------------------- */
+// The extension is what follows the last "." of the last path segment, at
+// most 32 characters; anything else gives no extension
+#define MAX_FILE_EXTENSION 32
+static void fileExtension (PUCHAR ext, PVARCHAR fileName)
+{
+    PUCHAR begin = fileName->String;
+    PUCHAR end   = begin + ((fileName->Length > 0) ? fileName->Length : 0);
+    PUCHAR p, dot = NULL;
+
+    *ext = '\0';
+    for (p = end; p > begin; p--) {
+        if (p[-1] == '/') break;
+        if (p[-1] == '.') {
+            dot = p;
+            break;
+        }
+    }
+    if (dot == NULL || end - dot > MAX_FILE_EXTENSION) return;
+    memcpy (ext , dot , end - dot);
+    ext [end - dot] = '\0';
+}
 PUCHAR il_getFileExtension  (PVARCHAR256 extension, PVARCHAR fileName)
 {
-    PUCHAR f = vc2str(fileName);
-    PUCHAR temp, ext = f;
-
-    for(;;) {
-        temp = strchr ( ext  , '.');
-        if (temp == NULL) break;
-        ext = temp +1;
-    }
-    if (ext == f) {
-        str2vc(extension , "");
-        return;
-    }
+    UCHAR ext [MAX_FILE_EXTENSION + 1];
+    fileExtension (ext , fileName);
     str2vc(extension , ext);
     return extension->String;
 }
@@ -287,15 +304,14 @@ PUCHAR il_getFileExtension  (PVARCHAR256 extension, PVARCHAR fileName)
 \* --------------------------------------------------------------------------- */
 PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
 {
-    PUCHAR f = vc2str(fileName);
-    VARCHAR256 ext;
-    PUCHAR extension = il_getFileExtension (&ext , fileName);
+    UCHAR extension [MAX_FILE_EXTENSION + 1];
+    fileExtension (extension , fileName);
 
     if (*extension == '\0'
     || 0 == stricmp (extension, "html")
     || 0 == stricmp (extension, "htm")) {
         str2vc(pMimeType , "text/html");
-        return;
+        return pMimeType->String;
     }
 
     if ( 0 == stricmp (extension, "gif")
@@ -305,13 +321,14 @@ PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
     ||   0 == stricmp (extension, "jpg")
     ||   0 == stricmp (extension, "jpeg")) {
         vcprintf (pMimeType , "image/%s", extension);
-        return;
+        return pMimeType->String;
     }
     if ( 0 == stricmp (extension, "css")) {
         vcprintf (pMimeType , "text/%s", extension);
-        return;
+        return pMimeType->String;
     }
     vcprintf (pMimeType , "application/%s", extension);
+    return pMimeType->String;
 }
 /* --------------------------------------------------------------------------- */
 /* --------------------------------------------------------------------------- *\

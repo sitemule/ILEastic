@@ -498,22 +498,47 @@ PUCHAR getHeaderValue(PUCHAR  value, LONG size, PSLIST headerList ,  PUCHAR key)
     return value;
 }
 /* ---------------------------------------------------------------------------
-   Content-Length: digits only, no more than MAX_CONTENT_LENGTH.
-   Returns -1 when it is not a valid length
+   Number of headers named "key"
    --------------------------------------------------------------------------- */
-static LONG parseContentLength (PUCHAR s)
+static int countHeader (PSLIST headerList ,  PUCHAR key)
+{
+    PSLISTNODE pNode;
+    int  keyLen= strlen(key);
+    int  n = 0;
+    UCHAR aKey [256];
+
+    if (keyLen >= sizeof(aKey)) return 0;
+    for (pNode = headerList->pHead; pNode; pNode=pNode->pNext) {
+        PSLISTKEYVAL header = pNode->payloadData;
+        if (keyLen == header->key.Length) {
+            mema2e(aKey , header->key.String , keyLen); // The headers are in ASCII
+            if (memicmp (key , aKey , keyLen) == 0) n++;
+        }
+    }
+    return n;
+}
+/* ---------------------------------------------------------------------------
+   Content-Length (ASCII): digits only, no more than MAX_CONTENT_LENGTH.
+   No header is 0. Returns -1 when it is not a valid length
+   --------------------------------------------------------------------------- */
+static LONG parseContentLength (PLVARPUCHAR value)
 {
     LONG res = 0;
     BOOL digits = FALSE;
-    for (;*s == 0x20 || *s == 0x09; s++);   // ASCII blank / tab
-    for (;*s >= 0x30 && *s <= 0x39; s++) {
+    PUCHAR s, end;
+
+    if (value == NULL) return 0;
+    s   = value->String;
+    end = s + value->Length;
+    for (;s < end && (*s == 0x20 || *s == 0x09); s++);   // ASCII blank / tab
+    for (;s < end && *s >= 0x30 && *s <= 0x39; s++) {
         if (res > (MAX_CONTENT_LENGTH - 9) / 10) return -1; // before it can wrap
         res = 10*res + (*s - 0x30);
         digits = TRUE;
     }
-    for (;*s == 0x20 || *s == 0x09; s++);
-    if (*s != '\0') return -1;
-    return digits ? res : 0;
+    for (;s < end && (*s == 0x20 || *s == 0x09); s++);
+    if (s != end) return -1;
+    return digits ? res : -1;
 }
 /* ---------------------------------------------------------------------------
    Parse this:
@@ -525,50 +550,54 @@ static LONG parseContentLength (PUCHAR s)
 #define LFH_BAD  -1  // not a valid request (Content-Length) - drop it
 int lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 {
-
-    ULONG beforeHeadersLen;
-    PUCHAR begin , next;
+    PUCHAR begin , next, lineEnd, eoh;
+    PUCHAR end = buf + bufLen;
     static char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
     UCHAR temp [256];
     LONG  contentLength;
-    PUCHAR eoh = memmem ( buf ,bufLen , eol , 4);
+
+    // Skip CR / LF before the request line (a client may send a CRLF after a
+    // body) - within the data received
+    for (; buf < end && (*buf == 0x0d || *buf == 0x0a); buf++);
+    bufLen = end - buf;
 
     // No end-of-headers in this buffer, the just continue
+    eoh = (bufLen >= 4) ? memmem ( buf ,bufLen , eol , 4) : NULL;
     if (eoh == NULL)      return LFH_MORE;
-
-    // Skip all CRLF from the begining of buffer
-    for (;*buf == 0x0d || *buf == 0x0a; buf ++, bufLen --);
 
     // got the end of header; Now parse the HTTP header
     pRequest->completeHeader.String = buf;
     pRequest->completeHeader.Length = eoh - buf;
 
-    beforeHeadersLen = pRequest->completeHeader.Length;
+    // The request line ends at the first CRLF - at eoh when there are no headers
+    lineEnd = memmem ( buf , (eoh - buf) + 2 , eol , 2);
 
     // Headers
-    pRequest->headers.String = memmem ( buf ,bufLen , eol , 2) + 2;
-    pRequest->headers.Length = eoh - pRequest->headers.String;
+    pRequest->headers.String = lineEnd + 2;
+    pRequest->headers.Length = (eoh > lineEnd) ? eoh - pRequest->headers.String : 0;
 
-    // Method
+    // Request line: method SP url SP protocol - all within the line
     begin = buf;
-    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    for (;begin < lineEnd && *begin== 0x20; begin ++); // Skip blank(s)
+    next = memchr(begin, 0x20, lineEnd - begin);
+    if (next == NULL || next == begin) return LFH_BAD;
     pRequest->method.String = begin;
-    next = memchr(begin, 0x20, beforeHeadersLen);
     pRequest->method.Length = next - begin;
 
     // url
     begin = next;
-    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    for (;begin < lineEnd && *begin== 0x20; begin ++); // Skip blank(s)
+    next = memchr(begin, 0x20, lineEnd - begin);
+    if (next == NULL || next == begin) return LFH_BAD;
     pRequest->url.String = begin;
-    next = memchr(begin, 0x20, beforeHeadersLen);
     pRequest->url.Length = next - begin;
 
     // Protocol
     begin = next;
-    for (;*begin== 0x20; begin ++); // Skip blank(s)
+    for (;begin < lineEnd && *begin== 0x20; begin ++); // Skip blank(s)
+    if (begin >= lineEnd) return LFH_BAD;
     pRequest->protocol.String = begin;
-    next  = memmem ( begin  , beforeHeadersLen , eol , 2);
-    pRequest->protocol.Length = next - begin;
+    pRequest->protocol.Length = lineEnd - begin;
 
 
     // The request is now parsed into raw components:
@@ -578,7 +607,15 @@ int lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     pRequest->resourceSegments = parseResource(pRequest->resource);
 
 
-    contentLength = parseContentLength(getHeaderValue (temp , sizeof(temp), pRequest->headerList, "content-length"));
+    // Request smuggling: one Content-Length only, and no Transfer-Encoding
+    // (a chunked request body is not supported - it would be read as the next
+    // request)
+    if (countHeader (pRequest->headerList, "content-length") > 1
+    ||  findHeader  (pRequest->headerList, "transfer-encoding") != NULL) {
+        pRequest->contentLength = 0;
+        return LFH_BAD;
+    }
+    contentLength = parseContentLength(findHeader (pRequest->headerList, "content-length"));
     if (contentLength < 0) {
         pRequest->contentLength = 0;
         return LFH_BAD;
@@ -600,12 +637,20 @@ int lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 
 }
 /* --------------------------------------------------------------------------- */
+// Returns TRUE when the whole body is received. Otherwise content.Length is
+// what arrived and the request must not be run
 static BOOL receivePayload (PREQUEST pRequest)
 {
     PUCHAR buf = memAlloc (pRequest->contentLength +1); // Add a null termination character
     PUCHAR bufwin , end;
     LONG rc;
     int bytes_received;
+
+    if (buf == NULL) {
+        pRequest->content.String = NULL;
+        pRequest->content.Length = 0;
+        return FALSE;
+    }
 
     // What is already receved - lookForHeaders keeps it within contentLength
     if (pRequest->content.Length > pRequest->contentLength) {
@@ -622,34 +667,33 @@ static BOOL receivePayload (PREQUEST pRequest)
     end = buf + pRequest->contentLength;
     while (bufwin < end) {
         rc = socketWait (pRequest->pConfig->clientSocket, MAX_PAYLOAD_WAIT);
-        if (rc <= 0) {
-            return true;
-        }
+        if (rc <= 0) break;
 
         if (isSecure(pRequest->pConfig)) {
             rc = gsk_secure_soc_read(pRequest->pConfig->sessionHandle, bufwin, end - bufwin, &bytes_received);
             if (rc != GSK_OK) {
                 il_joblog("Error on reading data from socket. GSKit error code: %d", rc);
-                return false;
+                break;
             }
-
-            if (bytes_received == 0) return true;
-
+            if (bytes_received == 0) break;
             bufwin += bytes_received;
         } else {
             rc = read(pRequest->pConfig->clientSocket, bufwin, end - bufwin);
             if (rc < 0) {
                 il_joblog("Error on reading data from socket: Error code: %d", errno);
-                return false;
+                break;
             } else if (rc == 0) {
-                return true;
+                break;
             } else {
                 bufwin += rc;
             }
         }
     }
 
-    return false;
+    // Only what was received - never memory that was not filled
+    pRequest->content.Length = bufwin - buf;
+    *bufwin = '\0';
+    return (bufwin == end);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -674,8 +718,12 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
             rc = gsk_secure_soc_read(pRequest->pConfig->sessionHandle, bufWin, SOCMAXREAD - bufLen, &bytes_received);
             if (rc != GSK_OK) {
                 il_joblog("Error on reading data from socket. GSKit error code: %d", rc);
-                return false;
-            } else if (bytes_received == 0) return true;
+                memFree(&buf);
+                return true;
+            } else if (bytes_received == 0) {
+                memFree(&buf);
+                return true;
+            }
         } else {
             rc = read(pRequest->pConfig->clientSocket , bufWin , SOCMAXREAD - bufLen);
             if (rc <= 0) {
@@ -689,14 +737,27 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
         bufLen += bytes_received;
         bufWin += bytes_received;
         if (isLookingForHeaders) {
-            int lfh = lookForHeaders ( pRequest , buf, bufLen);
+            int lfh;
+            // CR / LF before the request line (after a previous body): drop
+            // them here, so completeHeader.String stays the buffer we allocated
+            PUCHAR first = buf;
+            for (; first < bufWin && (*first == 0x0d || *first == 0x0a); first++);
+            if (first > buf) {
+                bufLen = bufWin - first;
+                memmove (buf , first , bufLen);
+                bufWin = buf + bufLen;
+            }
+            lfh = lookForHeaders ( pRequest , buf, bufLen);
             if (lfh == LFH_BAD) {
+                pRequest->completeHeader.String = NULL; // it is buf - freed here
                 memFree(&buf);
                 return true;
             }
             if (lfh == LFH_DONE) {
                 if (pRequest->contentLength) {
-                    receivePayload (pRequest);
+                    if (! receivePayload (pRequest)) {
+                        return true; // incomplete body: do not run the request
+                    }
                 }
                 isLookingForHeaders = false;
                 // memFree(&buf); !! Dont !! this is now pRequest->completeHeader.String
@@ -918,6 +979,8 @@ static void * serverThread (PINSTANCE pInstance)
         request.pConfig = &pInstance->config;
         response.pConfig = &pInstance->config;
         if (receiveHeader(&request)) {
+            // a request that was (partly) parsed is not run - free what it has
+            cleanupTransaction (&request , &response);
             break;
         }
         response.firstWrite = true;

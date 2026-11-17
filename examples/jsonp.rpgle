@@ -64,10 +64,19 @@ dcl-proc myservlet;
 
     if (callback = *blank); 
       // no callback function name given => return the plain JSON object
+      response.contentType = 'application/json';
       il_responseWrite(response : content);
+    elseif (%check('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.'
+                  : %trim(callback)) > 0);
+      // the callback comes from the request: only a plain function name is
+      // accepted - anything else could inject script
+      response.status = 400;
+      response.contentType = 'text/plain';
+      il_responseWrite(response : 'Invalid callback');
     else;
       // callback function name given => return the JSON object wrapped
-      il_responseWrite(response : callback + '(' + content + ')');
+      response.contentType = 'application/javascript';
+      il_responseWrite(response : %trim(callback) + '(' + content + ')');
     endif;
 end-proc;
 

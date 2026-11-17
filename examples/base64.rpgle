@@ -66,9 +66,12 @@ dcl-proc myservlet;
     decodeOut = il_decodeBase64(decode);
 
 
-    il_responseWrite(response : 'Encode:<br/>');
+    // Plain text: the decoded value comes from the request and must not be
+    // returned as HTML (cross site scripting)
+    response.contentType = 'text/plain';
+    il_responseWrite(response : 'Encode:' + x'0D25');
     il_responseWrite(response : encodeOut);
-    il_responseWrite(response : '<br/>Decode:<br/>');
+    il_responseWrite(response : x'0D25' + 'Decode:' + x'0D25');
     il_responseWrite(response : decodeOut);
     
 

@@ -20,11 +20,16 @@
 /* ------------------------------------------------------------- */
 // LONG (  4 byte length)
 /* ------------------------------------------------------------- */ 
+// lvpc2lvc is also il_getVarcharValue: RPG gets a varchar(524284:4) back, so
+// never copy more than that (the request fields can be bigger)
+#define LVPC_RTN_MAX 524284
 void lvpc2lvc (PLVARCHAR out, PLVARPUCHAR in)
 {
-   out->Length = in->Length;
-   memcpy(out->String , in->String, in->Length);
-   out->String[in->Length] = '\0'; 
+   LONG len = (in->Length < 0) ? 0 : in->Length;
+   if (len > LVPC_RTN_MAX) len = LVPC_RTN_MAX;
+   out->Length = len;
+   memcpy(out->String , in->String, len);
+   if (len < LVPC_RTN_MAX) out->String[len] = '\0';
 }
 void plvc2plvc (PLVARCHAR out, PLVARCHAR in)
 {
@@ -47,11 +52,15 @@ void lvpcSetFromStr (PLVARPUCHAR out, PUCHAR in)
 /* ------------------------------------------------------------- */
 // SHORT (  2 byte length)
 /* ------------------------------------------------------------- */
+// The callers return varchar(256:2) to RPG
+#define VPC_RTN_MAX 256
 void lvpc2vc (PVARCHAR out, PLVARPUCHAR in)
 {
-   out->Length = in->Length;
-   memcpy(out->String , in->String, in->Length);
-   out->String[in->Length] = '\0'; 
+   LONG len = (in->Length < 0) ? 0 : in->Length;
+   if (len > VPC_RTN_MAX) len = VPC_RTN_MAX;
+   out->Length = len;
+   memcpy(out->String , in->String, len);
+   if (len < VPC_RTN_MAX) out->String[len] = '\0';
 }
 /* ------------------------------------------------------------- */
 VARPUCHAR str2varpuchar(PUCHAR s)

@@ -775,8 +775,9 @@ end-pr;
 // Serve file
 //
 // Writes the content of the file to the response message.
-// A file name with a ".." segment is refused (returns *on) so a resource
-// from the request can not climb out of the folder you serve from.
+// A file name with a ".." segment, or longer than 256 bytes, is refused
+// (returns *on) so a resource from the request can not climb out of the
+// folder you serve from.
 //
 // @param Response
 // @param File name
