@@ -101,8 +101,17 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
       PUCHAR parm  = *envp;
       UCHAR  key [64];
       PUCHAR val;
+      LONG   nameLen;
       val = strchr(parm , '=');
-      substr(key ,parm , val - parm);
+      if (val == NULL) continue;
+      nameLen = val - parm;
+      // The names we look for are short; a longer one (a long header name) is
+      // only used as HTTP_<name> below, straight from "parm"
+      if (nameLen < sizeof(key)) {
+         substr(key ,parm , nameLen);
+      } else {
+         *key = '\0';
+      }
       val ++; // Skip after =
 
       if (strcmp (key , "SERVER_PROTOCOL") ==0) {
@@ -121,15 +130,16 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
          lvpcSetFromStr (&pRequest->queryString, val);
       }
       else if (strcmp(key,"CONTENT_LENGTH")==0) {
-         pRequest->contentLength = a2i(val);
+         LONG cl = a2i(val);
+         pRequest->contentLength = (cl > 0 && cl <= MAX_CONTENT_LENGTH) ? cl : 0;
       } 
-      else if (memcmp(key, "HTTP_" , 5)==0) { // Akk http headers are prfixed with HTTP_ ( five chars) 
+      else if (nameLen > 5 && memcmp(parm, "HTTP_" , 5)==0) { // Akk http headers are prfixed with HTTP_ ( five chars) 
 
          LVARPUCHAR lkey;
          LVARPUCHAR lvalue;
 
          lkey.String = parm+5; // Must be the "real" array not the temp value in "key" 
-         lkey.Length = strlen(key+5);
+         lkey.Length = nameLen - 5;
 
          lvpcSetFromStr (&lvalue , val);
 
@@ -152,7 +162,7 @@ BOOL fcgiReceiveHeader (PREQUEST pRequest)
 
       while (rem > 0) {
          len = FCGX_GetStr(buf , rem, in);
-         if (len < 0) break;
+         if (len <= 0) break;
          buf += len;
          rem -= len;
       }

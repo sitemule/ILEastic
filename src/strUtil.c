@@ -797,6 +797,7 @@ LONG a2i (PUCHAR s)
     for (;*s;s++) {
         // Is real ascii number?
         if (*s >= 0x30 && *s <= 0x39) {
+            if (res > (0x7fffffff - 9) / 10) return 0x7fffffff; // no wrap around: saturate
             res = 10*res + (*s - 0x30);
         }
     }

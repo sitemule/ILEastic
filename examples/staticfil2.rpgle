@@ -60,8 +60,10 @@ dcl-proc serveStaticFiles;
     
     // Serve whtever is in the home directory 
     if (FILE_NOT_FOUND = il_serveStatic (response : './' + file));
+        // Do not echo the file name: it comes from the request (cross site scripting)
         response.status = 404;
-        il_responseWrite(response : 'File ' + file + ' not found');
+        response.contentType = 'text/plain';
+        il_responseWrite(response : 'File not found');
     endif;
 
 end-proc;

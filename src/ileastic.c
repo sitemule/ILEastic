@@ -462,40 +462,79 @@ static void parseHeaders (PREQUEST pRequest)
    Return string of header values
    Note - the keys are in ASCII so we have to convert. memicmp only works on EBCDIC
    --------------------------------------------------------------------------- */
-PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key)
+PLVARPUCHAR findHeader(PSLIST headerList ,  PUCHAR key)
 {
-     PSLISTNODE pNode;
+    PSLISTNODE pNode;
     int  keyLen= strlen(key);
     UCHAR aKey [256];
+
+    if (keyLen >= sizeof(aKey)) return NULL;
 
     for (pNode = headerList->pHead; pNode; pNode=pNode->pNext) {
         PSLISTKEYVAL header = pNode->payloadData;
         if (keyLen == header->key.Length) {
             mema2e(aKey , header->key.String , keyLen); // The headers are in ASCII
             if (memicmp (key , aKey , keyLen) == 0) {
-                substr(value , header->value.String ,  header->value.Length);
-                return value;
+                return &header->value;
             }
         }
     }
+    return NULL;
+}
+/* ---------------------------------------------------------------------------
+   Copy a header value into "value" that holds "size" bytes; a longer value
+   is cut, the result is always zero terminated
+   --------------------------------------------------------------------------- */
+PUCHAR getHeaderValue(PUCHAR  value, LONG size, PSLIST headerList ,  PUCHAR key)
+{
+    PLVARPUCHAR pValue = findHeader (headerList , key);
+    LONG len;
+
     *value = '\0';
+    if (pValue == NULL || size <= 0) return value;
+    len = pValue->Length;
+    if (len > size - 1) len = size - 1;
+    substr(value , pValue->String ,  len);
     return value;
+}
+/* ---------------------------------------------------------------------------
+   Content-Length: digits only, no more than MAX_CONTENT_LENGTH.
+   Returns -1 when it is not a valid length
+   --------------------------------------------------------------------------- */
+static LONG parseContentLength (PUCHAR s)
+{
+    LONG res = 0;
+    BOOL digits = FALSE;
+    for (;*s == 0x20 || *s == 0x09; s++);   // ASCII blank / tab
+    for (;*s >= 0x30 && *s <= 0x39; s++) {
+        if (res > (MAX_CONTENT_LENGTH - 9) / 10) return -1; // before it can wrap
+        res = 10*res + (*s - 0x30);
+        digits = TRUE;
+    }
+    for (;*s == 0x20 || *s == 0x09; s++);
+    if (*s != '\0') return -1;
+    return digits ? res : 0;
 }
 /* ---------------------------------------------------------------------------
    Parse this:
    GET / HTTP/1.1??Host: dksrv133:44001??Con
    --------------------------------------------------------------------------- */
-BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
+// lookForHeaders returns:
+#define LFH_MORE 0   // no complete header yet
+#define LFH_DONE 1   // header parsed
+#define LFH_BAD  -1  // not a valid request (Content-Length) - drop it
+int lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
 {
 
     ULONG beforeHeadersLen;
     PUCHAR begin , next;
     static char eol [4]  = { 0x0d , 0x0a , 0x0d , 0x0a};
     UCHAR temp [256];
+    LONG  contentLength;
     PUCHAR eoh = memmem ( buf ,bufLen , eol , 4);
 
     // No end-of-headers in this buffer, the just continue
-    if (eoh == NULL)      return false;
+    if (eoh == NULL)      return LFH_MORE;
 
     // Skip all CRLF from the begining of buffer
     for (;*buf == 0x0d || *buf == 0x0a; buf ++, bufLen --);
@@ -539,15 +578,25 @@ BOOL lookForHeaders ( PREQUEST pRequest, PUCHAR buf , ULONG bufLen)
     pRequest->resourceSegments = parseResource(pRequest->resource);
 
 
-    pRequest->contentLength = a2i(getHeaderValue (temp , pRequest->headerList, "content-length"));
+    contentLength = parseContentLength(getHeaderValue (temp , sizeof(temp), pRequest->headerList, "content-length"));
+    if (contentLength < 0) {
+        pRequest->contentLength = 0;
+        return LFH_BAD;
+    }
+    pRequest->contentLength = contentLength;
 
     // Only what is recived so far - the rest is returned in "receivePayload"
+    // A client may send more than it declares (pipelining or a bad request):
+    // never take more than Content-Length from this buffer
     if (pRequest->contentLength > 0) {
         pRequest->content.String = eoh + 4;
         pRequest->content.Length = bufLen - ( pRequest->content.String - buf );
+        if (pRequest->content.Length > pRequest->contentLength) {
+            pRequest->content.Length = pRequest->contentLength;
+        }
     }
 
-    return true;
+    return LFH_DONE;
 
 }
 /* --------------------------------------------------------------------------- */
@@ -558,7 +607,10 @@ static BOOL receivePayload (PREQUEST pRequest)
     LONG rc;
     int bytes_received;
 
-    // What is already receved:
+    // What is already receved - lookForHeaders keeps it within contentLength
+    if (pRequest->content.Length > pRequest->contentLength) {
+        pRequest->content.Length = pRequest->contentLength;
+    }
     memcpy ( buf , pRequest->content.String , pRequest->content.Length);
     bufwin = buf + pRequest->content.Length;
 
@@ -637,7 +689,12 @@ static BOOL receiveHeaderHTTP (PREQUEST pRequest)
         bufLen += bytes_received;
         bufWin += bytes_received;
         if (isLookingForHeaders) {
-            if (lookForHeaders ( pRequest , buf, bufLen)) {
+            int lfh = lookForHeaders ( pRequest , buf, bufLen);
+            if (lfh == LFH_BAD) {
+                memFree(&buf);
+                return true;
+            }
+            if (lfh == LFH_DONE) {
                 if (pRequest->contentLength) {
                     receivePayload (pRequest);
                 }
@@ -906,7 +963,7 @@ static void * serverThread (PINSTANCE pInstance)
 
         putChunkEnd (&response);
 
-        if ( 0 == memicmpascii (getHeaderValue (temp , request.headerList, "connection") , "close" , 5)) {
+        if ( 0 == memicmpascii (getHeaderValue (temp , sizeof(temp), request.headerList, "connection") , "close" , 5)) {
             connected = false;
         } 
 

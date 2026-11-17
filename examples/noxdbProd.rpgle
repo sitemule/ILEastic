@@ -74,8 +74,10 @@ dcl-proc serveStaticFiles;
     
     // Serve any static files from the IFS
     if (FILE_NOT_FOUND = il_serveStatic (response : file));
+        // Do not echo the file name: it comes from the request (cross site scripting)
         response.status = 404;
-        il_responseWrite(response : 'File ' + file + ' not found');
+        response.contentType = 'text/plain';
+        il_responseWrite(response : 'File not found');
     endif;
 
 end-proc;
@@ -201,17 +203,43 @@ dcl-proc addOrderByClause;
 
     dcl-pi *N;
         sqlStmt             varchar(4096); 
-        pInput 				pointer value;
+        pInput              pointer value;
     end-pi;
 
-    dcl-s  sort  	   		varchar(4096);
+    dcl-ds itColumns        likeds(json_iterator);
+    dcl-s  sort             varchar(256);
+    dcl-s  column           varchar(256);
+    dcl-s  direction        varchar(256);
+    dcl-s  pMeta            pointer;
+    dcl-s  p                int(10);
 
-    sort    =  json_getStr(pInput : 'sort');
+    // Never concatenate client input into the SQL statement (SQL injection):
+    // "sort" is a column name, optionally followed by ASC or DESC,
+    // and only the columns of the table are accepted
+    sort = %upper(%trim(json_getStr(pInput : 'sort')));
+    if sort = '';
+        return;
+    endif;
 
-    // Concat the order by:
-    if sort > '';
-        sqlStmt += ' order by ' + sort;
-    endif; 
+    column = sort;
+    p = %scan(' ' : sort);
+    if p > 0;
+        column = %subst(sort : 1 : p - 1);
+        direction = %trim(%subst(sort : p + 1));
+        if direction <> 'ASC' and direction <> 'DESC';
+            return;
+        endif;
+    endif;
+
+    pMeta = json_sqlGetMeta ('select * from microdemo.ilProducts');
+    itColumns = json_setIterator(pMeta);
+    dow json_forEach(itColumns);
+        if %upper(json_getStr(itColumns.this:'name')) = column;
+            sqlStmt += ' order by ' + column + ' ' + direction;
+            leave;
+        endif;
+    enddo;
+    json_delete(pMeta);
 
 end-proc;
 

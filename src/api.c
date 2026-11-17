@@ -54,10 +54,31 @@
 
 /* --------------------------------------------------------------------------- */
 // Getters - curtesy procedures
+//
+// The RPG prototypes return varchar(524284:4) or varchar(256:2) as rtnparm:
+// the caller's return buffer holds no more than that, so never copy more
+// into it - request data (url, headers, parameters, content) comes from the
+// client and can be up to SOCMAXREAD bytes or more.
 /* --------------------------------------------------------------------------- */
+#define RTN_LVC_MAX 524284
+#define RTN_VC_MAX  256
+static void rtnLvc (PLVARCHAR out, PUCHAR in, ULONG len)
+{
+    if (len > RTN_LVC_MAX) len = RTN_LVC_MAX;
+    if (len > 0) memcpy(out->String , in , len);
+    out->Length = len;
+    if (len < RTN_LVC_MAX) out->String[len] = '\0';
+}
+static void rtnVc (PVARCHAR out, PUCHAR in, ULONG len)
+{
+    if (len > RTN_VC_MAX) len = RTN_VC_MAX;
+    if (len > 0) memcpy(out->String , in , len);
+    out->Length = len;
+    if (len < RTN_VC_MAX) out->String[len] = '\0';
+}
 void il_getRequestResource (PLVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2lvc (out, &pRequest->resource);
+    rtnLvc (out, pRequest->resource.String, pRequest->resource.Length);
 }
 void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
 {
@@ -69,7 +90,7 @@ void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
         if (x == index) {
             PSLISTNODE node = iterator.this;
             PLVARPUCHAR segment = node->payloadData;
-            lvpc2lvc (out, segment);
+            rtnLvc (out, segment->String, segment->Length);
             return;
         }
         
@@ -80,32 +101,36 @@ void il_getRequestSegmentByIndex(PLVARCHAR out , PREQUEST pRequest, int index)
 }
 void il_getRequestMethod (PVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2vc (out, &pRequest->method);
+    rtnVc (out, pRequest->method.String, pRequest->method.Length);
 }
 void il_getRequestUrl (PLVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2lvc (out, &pRequest->url);
+    rtnLvc (out, pRequest->url.String, pRequest->url.Length);
 }
 void il_getRequestQueryString (PLVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2lvc (out, &pRequest->queryString);
+    rtnLvc (out, pRequest->queryString.String, pRequest->queryString.Length);
 }
 void il_getRequestProtocol (PVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2vc (out, &pRequest->protocol);
+    rtnVc (out, pRequest->protocol.String, pRequest->protocol.Length);
 }
 void il_getRequestHeaders (PLVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2lvc (out, &pRequest->headers);
+    rtnLvc (out, pRequest->headers.String, pRequest->headers.Length);
 }
 void il_getRequestHeader (PLVARCHAR out , PREQUEST pRequest, PUCHAR header)
 {
-    getHeaderValue(out->String , pRequest->headerList ,  header);
-    out->Length = strlen(out->String);
+    PLVARPUCHAR value = findHeader (pRequest->headerList ,  header);
+    if (value == NULL) {
+        rtnLvc (out, "", 0);
+    } else {
+        rtnLvc (out, value->String, value->Length);
+    }
 }
 void il_getRequestContent (PLVARCHAR out , PREQUEST pRequest)
 {
-    lvpc2lvc (out, &pRequest->content);
+    rtnLvc (out, pRequest->content.String, pRequest->content.Length);
 }
 /* --------------------------------------------------------------------------- */
 void il_emptyEndpoint   (PREQUEST pRequest, PRESPONSE pResponse)
@@ -120,15 +145,16 @@ static UCHAR hex2bin (UCHAR c)
     return 0;
 }
 /* --------------------------------------------------------------------------- */
-static int urldecodeBuf (PUCHAR out , PUCHAR in , int inLen)
+static int urldecodeBuf (PUCHAR out , LONG outMax, PUCHAR in , int inLen)
 {
     PUCHAR outBegin = out;
+    PUCHAR outEnd = out + outMax;
     PUCHAR end = in + inLen;
-    for (;in < end; in ++) {
-        // % escape?
-        if (*in == 0x25) {
-            UCHAR c = hex2bin(*(++in)) * 16+
-                      hex2bin(*(++in));
+    for (;in < end && out < outEnd; in ++) {
+        // % escape - only when both hex digits are inside the value
+        if (*in == 0x25 && in + 2 < end) {
+            UCHAR c = hex2bin(*(++in)) * 16;
+            c += hex2bin(*(++in));
             *(out ++) = c;
         } else {
             *(out ++) = *in;
@@ -151,11 +177,11 @@ void il_getParmStr  (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , PLVAR
     if (pParmList != NULL) {
         for (pNode = pParmList->pHead; pNode; pNode=pNode->pNext) {
             PSLISTKEYVAL parm = pNode->payloadData;
-            if (keyLen == parm->key.Length) {
-                len = urldecodeBuf( temp  , parm->key.String , keyLen);
+            if (keyLen == parm->key.Length && keyLen < sizeof(aKey)) {
+                len = urldecodeBuf( temp  , sizeof(temp), parm->key.String , keyLen);
                 mema2e(aKey , temp, len ); // The parms are in ASCII
                 if (memicmp (parmName , aKey , keyLen) == 0) {
-                    out->Length = urldecodeBuf( out->String, parm->value.String ,  parm->value.Length);
+                    out->Length = urldecodeBuf( out->String, RTN_LVC_MAX, parm->value.String ,  parm->value.Length);
                     return ;
                 }
             }
@@ -186,7 +212,7 @@ void il_getPathParameter (PLVARCHAR out , PREQUEST pRequest , PUCHAR parmName , 
     if (pRoute != NULL) {
         for (i = 0 ; i< pRoute->parmNumbers ; i++) {
             if (0==stricmp(parmName , pRoute->parmNames[i])) {
-                str2lvc (out  , pRequest->parmValue[i]);
+                rtnLvc (out  , pRequest->parmValue[i], strlen(pRequest->parmValue[i]));
                 return;
             }
         }
@@ -288,12 +314,36 @@ PUCHAR il_getFileMimeType (PVARCHAR256  pMimeType , PVARCHAR fileName)
     vcprintf (pMimeType , "application/%s", extension);
 }
 /* --------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- *\
+    A path with a ".." segment can climb out of the folder the application
+    serves from (the resource comes straight from the request) - and so can
+    a path with an embedded x'00' that cuts it short
+\* --------------------------------------------------------------------------- */
+static BOOL isUnsafePath (PVARCHAR fileName)
+{
+    PUCHAR p   = fileName->String;
+    PUCHAR end = p + fileName->Length;
+    PUCHAR seg = p;
+
+    if (memchr(p, '\0', fileName->Length)) return TRUE;
+    for (; p <= end; p++) {
+        if (p == end || *p == '/') {
+            if (p - seg == 2 && seg[0] == '.' && seg[1] == '.') return TRUE;
+            seg = p + 1;
+        }
+    }
+    return FALSE;
+}
+/* --------------------------------------------------------------------------- */
 LGL il_serveStatic (PRESPONSE pResponse, PVARCHAR fileName)
 {
     UCHAR buf [4096];
     LONG len;
     FILE * fp;
-    PUCHAR pFile = vc2str(fileName);
+    UCHAR pFile [257]; // the prototype passes varchar(256)
+    if (fileName->Length < 0 || fileName->Length >= sizeof(pFile)) return ON;
+    if (isUnsafePath(fileName)) return ON; // Not found
+    substr(pFile, fileName->String, fileName->Length);
     fp = fopen(pFile, "rb");
     if (fp == NULL) return ON; // Error;
 

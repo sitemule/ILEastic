@@ -10,6 +10,8 @@
 
 
 #define  SOCMAXREAD 650000
+// Largest request body accepted (Content-Length); larger is a bad request
+#define  MAX_CONTENT_LENGTH 2000000000
 
 typedef void(OS_CALL) ();
 #pragma linkage (OS_CALL, OS)
@@ -188,7 +190,8 @@ void putHeader (PRESPONSE pResponse);
 void prepareResponse  (PRESPONSE pResponse);
 void putChunkXlate (PRESPONSE pResponse, PUCHAR buf, LONG len);
 int socketWait (int sd , int sec);
-PUCHAR getHeaderValue(PUCHAR  value, PSLIST headerList ,  PUCHAR key);
+PLVARPUCHAR findHeader(PSLIST headerList ,  PUCHAR key);
+PUCHAR getHeaderValue(PUCHAR  value, LONG size, PSLIST headerList ,  PUCHAR key);
 PROUTING findRoute(PCONFIG pConfig, PREQUEST pRequest);
 BOOL httpMethodMatchesEndPoint(PLVARPUCHAR requestMethod, ROUTETYPE endPointRouteType);
 void handleServletException(_INTRPT_Hndlr_Parms_T * __ptr128 parms);
